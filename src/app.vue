@@ -38,7 +38,7 @@ body, html, main
   font-style: normal
   src: url("assets/VCR_OSD_MONO_1.001.ttf")
 
-h1, h2, h3, h4, h5, h6, p, span, input, button
+h1, h2, h3, h4, h5, h6, p, span, input, button, div
   margin: 0
   color: white
   font-family: vcr
