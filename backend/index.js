@@ -59,3 +59,4 @@ io.on("connection", client => {
 })
 
 io.listen(1169)
+console.log("w2g port 1169")

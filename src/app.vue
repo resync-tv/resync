@@ -1,7 +1,7 @@
 <template lang="pug">
-main.w2g
+main.w2g(:class="{ fullnav }")
   nav.bar
-    h1 w2g
+    span(@click="fullnav = !fullnav") W2G
   .route
     router-view
 </template>
@@ -9,9 +9,20 @@ main.w2g
 <script>
 export default {
   name: "w2g",
+  data: () => ({
+    fullnav: true,
+  }),
   mounted() {
     window.vue = this
+    const self = this
+
     this.socket.on("reconnect", () => location.reload())
+    this.socket.on("connect", () => (self.fullnav = false))
+    this.socket.on("connect_error", () => (self.fullnav = true))
+  },
+  beforeDestroy() {
+    this.socket.off("connect")
+    this.socket.off("connect_error")
   },
 }
 </script>
@@ -29,25 +40,20 @@ body, html, main
   -webkit-font-smoothing: antialiased
 
 @font-face
-  font-family: goodtimes
+  font-family: corporation_games
   font-style: normal
-  src: url("assets/goodtimes.ttf")
+  src: url("assets/corporation_games.ttf")
 
-@font-face
-  font-family: vcr
-  font-style: normal
-  src: url("assets/VCR_OSD_MONO_1.001.ttf")
-
-h1, h2, h3, h4, h5, h6, p, span, input, button, div
+h1, h2, h3, h4, h5, h6, p, span, button, div
   margin: 0
   color: white
-  font-family: vcr
+  font-family: corporation_games
   font-weight: lighter
   user-select: none
 
 .input
   position: relative
-  margin-bottom: 6px
+  margin-bottom: 12px
 
   input
     width: 100%
@@ -75,7 +81,7 @@ h1, h2, h3, h4, h5, h6, p, span, input, button, div
     left: 0
     right: 0
     height: 1px
-    background-color: #FFF
+    background-color: rgba(255, 255, 255, 0.5)
     transform-origin: bottom right
     transform: scaleX(0)
     transition: transform 0.5s ease
@@ -103,6 +109,16 @@ button.flat
   &:active
     padding: 0 7.5px
 
+  &.disabled
+    color: rgba(255, 255, 255, 0.5)
+
+    &:hover
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5)
+
+    &:active
+      padding: 2.5px 10px
+      color: red
+
 main.w2g
   nav.bar
     transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
@@ -111,9 +127,10 @@ main.w2g
     justify-content: center
     align-items: center
 
-    >h1
+    >span
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
       font-size: 3em
+      cursor: pointer
 
   .route
     transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
@@ -123,7 +140,7 @@ main.w2g
     nav.bar
       height: 100%
 
-      >h1
+      >span
         font-size: 10em
         transition-delay: 0.25s
 

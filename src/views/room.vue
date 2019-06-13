@@ -6,14 +6,15 @@
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off"
           autocapitalize="off" spellcheck="false")
         span
-      button.flat(@click="playurl") play
+      button.flat(@click="playurl" :class="{ disabled: !validlink}") play
       //- button.flat(@click="queueurl") queue
     .video(:class="{ ispaused }")
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
       .volume(@pointerdown="volume_click")
         .bar(:style="{height: `${volume}%`}")
-      .overlay(@click="overlay_click") paused
+      .overlay(@click="overlay_click")
+        h1 paused
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="1280" height="720"
           :fitParent="true" @playing="playing" @ready="ready" @paused="paused")
@@ -60,6 +61,9 @@ export default {
     id() {
       return this.$route.params.id
     },
+    validlink() {
+      return !!this.$youtube.getIdFromUrl(this.urlinput)
+    },
   },
   watch: {
     urlinput(n) {
@@ -71,7 +75,6 @@ export default {
     window.room = self
 
     window.onkeydown = async ({ keyCode }) => {
-      console.log(keyCode)
       if (keyCode === 37)
         self.socket.emit("seekTo", [
           self.id,
@@ -195,6 +198,13 @@ export default {
         >input
           text-align: center
           font-size: 1.5em
+          font-family: monospace
+          color: rgba(255, 255, 255, 0.5)
+          transition: 0.5s ease
+          font-weight: lighter
+
+          &:focus
+            color: #FFF
 
     >.video
       width: 1280px
@@ -214,7 +224,7 @@ export default {
         background: transparent
 
         >.bar
-          transition: 0.1s
+          transition: 0.25s
           width: 2px
           height: 20%
           background: #FFF
@@ -238,15 +248,18 @@ export default {
         overflow: hidden
 
         >.bar
-          transition: height 0.1s
+          transition: 0.25s
+          transition-property: height, box-shadow
           height: 2px
           width: 50%
           background: #FFF
           pointer-events: none
+          box-shadow: none
 
         &:hover
           >.bar
             height: 5px
+            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5)
 
       >.overlay
         position: absolute
@@ -257,11 +270,19 @@ export default {
         display: flex
         justify-content: center
         align-items: center
-        color: rgba(255, 255, 255, 0.5)
-        font-size: 3em
         opacity: 0
         background: rgba(0, 0, 0, 0.5)
         border-radius: 5px
+
+        >h1
+          color: rgba(255, 255, 255, 0.75)
+          font-size: 3em
+          user-select: none
+          pointer-events: none
+          padding: 0 1em
+          background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.125) 0%, rgba(255, 255, 255, 0.25) 25%, rgba(255, 255, 255, 1) 100%)
+          -webkit-background-clip: text
+          -webkit-text-fill-color: transparent
 
       &.ispaused
         box-shadow: 0 0 0 3px #FFF
