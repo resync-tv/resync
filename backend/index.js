@@ -20,7 +20,6 @@ const Room = class {
     }
   }
   play(urlid) {
-    console.log("video", this.id)
     this.urlid = urlid
     this.playing = true
     this.time = 0

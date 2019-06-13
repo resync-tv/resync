@@ -241,7 +241,7 @@ export default {
         bottom: 0
         height: 25px
         width: 100%
-        z-index: 2
+        z-index: 4
         display: flex
         align-items: flex-end
         border-radius: 0 0 5px 5px
