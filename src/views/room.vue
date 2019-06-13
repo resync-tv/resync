@@ -230,6 +230,7 @@ export default {
           height: 20%
           background: #FFF
           pointer-events: none
+          border-radius: 0 5px 5px 0
 
         &:hover
           >.bar
