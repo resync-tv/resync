@@ -215,26 +215,25 @@ export default {
 
       >.volume
         position: absolute
-        left: 100%
-        bottom: 5px
-        height: calc(100% - 10px)
+        left: calc(100% - 5px)
+        bottom: 0
+        height: 100%
         width: 25px
         display: flex
         align-items: flex-end
         background: transparent
+        z-index: 0
 
         >.bar
           transition: 0.25s
-          width: 2px
+          width: 7px
           height: 20%
           background: #FFF
-          // border-radius: 2px
           pointer-events: none
 
         &:hover
           >.bar
-            width: 5px
-            // border-radius: 2.5px
+            width: 10px
 
       >.progress
         position: absolute
@@ -265,7 +264,7 @@ export default {
         position: absolute
         height: 100%
         width: 100%
-        z-index: 1
+        z-index: 3
         transition: 0.5s ease
         display: flex
         justify-content: center
@@ -290,12 +289,21 @@ export default {
         >.overlay
           opacity: 1
 
+        >.volume>.bar
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5)
+
       >.player
         overflow: hidden
         border-radius: 5px
         height: 720px
+        z-index: 1
+        position: absolute
+        height: 100%
+        width: 100%
+        top: 0
+        left: 0
 
         >iframe
-          z-index: 0
+          z-index: 2
 </style>
 
