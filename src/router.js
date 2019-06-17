@@ -13,8 +13,12 @@ export default new Router({
       component: require("./views/room.vue").default,
     },
     {
+      path: "/",
+      component: require("./views/frontpage.vue").default,
+    },
+    {
       path: "*",
-      redirect: "/room/test",
+      redirect: "/",
     },
     // {
     //   path: "/about",

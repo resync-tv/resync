@@ -4,7 +4,7 @@
     .url
       .input
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off"
-          autocapitalize="off" spellcheck="false" :class="{ validlink }")
+          autocapitalize="off" spellcheck="false" :class="{ validlink }" @click.right="paste")
         span
       button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
@@ -27,13 +27,32 @@
 </template>
 
 <script>
-// fucking shoot me
 import ls from "local-storage"
 const debounce = (fn, ms = 0) => {
   let timeoutId
   return function(...args) {
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn.apply(this, args), ms)
+  }
+}
+const throttle = (fn, wait) => {
+  let inThrottle, lastFn, lastTime
+  return function() {
+    const context = this,
+      args = arguments
+    if (!inThrottle) {
+      fn.apply(context, args)
+      lastTime = Date.now()
+      inThrottle = true
+    } else {
+      clearTimeout(lastFn)
+      lastFn = setTimeout(function() {
+        if (Date.now() - lastTime >= wait) {
+          fn.apply(context, args)
+          lastTime = Date.now()
+        }
+      }, Math.max(wait - (Date.now() - lastTime), 0))
+    }
   }
 }
 export default {
@@ -79,7 +98,8 @@ export default {
     sb.style.setProperty("--max-width", `${sb.scrollWidth}px`)
     sb1.style.setProperty("--max-height", `${sb1.scrollHeight}px`)
 
-    window.onkeydown = async ({ keyCode }) => {
+    window.onkeydown = async ({ keyCode, target }) => {
+      if (target.nodeName === "INPUT") return
       if (keyCode === 37)
         self.socket.emit("seekTo", [
           self.id,
@@ -130,21 +150,47 @@ export default {
     this.socket.off("upadate")
   },
   methods: {
+    paste(e) {
+      const self = this
+      e.preventDefault()
+      navigator.clipboard
+        .readText()
+        .then(text => {
+          self.urlinput = text
+          const urlid = self.$youtube.getIdFromUrl(self.urlinput)
+          if (urlid) self.playurl()
+        })
+        .catch(console.log)
+    },
     async progress_click(e) {
       const time =
         (e.offsetX / e.target.offsetWidth) * (await this.p.getDuration())
       this.socket.emit("seekTo", [this.id, time])
       this.play_loop()
     },
-    volume_click(e) {
-      this.volume = (1 - e.offsetY / e.target.offsetHeight) * 100
-      this.p.setVolume(this.volume)
-      ls("volume", this.volume)
+    volume_click({ offsetY, target }) {
+      const self = this
+      self.volume = (1 - offsetY / target.offsetHeight) * 100
+      self.p.setVolume(self.volume)
+      ls("volume", self.volume)
+
+      target.onpointermove = throttle(({ offsetY: oy, target: t }) => {
+        self.volume = (1 - oy / t.offsetHeight) * 100
+        self.p.setVolume(self.volume)
+        ls("volume", self.volume)
+      }, 250)
+      document.onpointerup = () => {
+        document.onpointerup = null
+        target.onpointermove = null
+      }
     },
-    cleanurl: debounce(self => {
-      const urlid = self.$youtube.getIdFromUrl(self.urlinput)
-      if (urlid) self.urlinput = `https://youtu.be/${urlid}`
-    }, 500),
+    cleanurl:
+      // debounce(
+      self => {
+        const urlid = self.$youtube.getIdFromUrl(self.urlinput)
+        if (urlid) self.urlinput = `https://youtu.be/${urlid}`
+      },
+    // , 500)
     async overlay_click() {
       let update = [this.id]
       if ((await this.p.getPlayerState()) === 1)
@@ -181,7 +227,7 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 .room
   height: 100%
   width: 100%
@@ -233,6 +279,10 @@ export default {
       border-radius: 5px
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
       opacity: 1
+
+      @media only screen and (max-width: 1300px)
+        width: 928px
+        height: 522px
 
       >.volume
         position: absolute
@@ -329,7 +379,7 @@ export default {
           opacity: 1
 
         >.volume>.bar
-          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5)
+          box-shadow: 0 -1px 0 1px black
 
     &.novideo
       >button

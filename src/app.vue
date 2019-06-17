@@ -1,9 +1,10 @@
 <template lang="pug">
-main.w2g(:class="{ fullnav }")
+main.w2g(:class="{ fullnav, frontpage: $route.path === '/' }")
   nav.bar
-    span(@click="fullnav = !fullnav") W2G
+    span(@click="$router.push('/')") W2G
   .route
-    router-view
+    transition(name="opacity")
+      router-view.inner
 </template>
 
 <script>
@@ -119,6 +120,13 @@ button.flat
       padding: 2.5px 10px
       color: red
 
+  &.large
+    font-size: 3em
+    padding: 5px 15px
+
+    &:hover
+      padding: 10px 25px
+
 main.w2g
   nav.bar
     transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
@@ -136,10 +144,32 @@ main.w2g
   .route
     transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
     height: 95%
+    position: relative
+
+    >.inner
+      position: absolute
+      width: 100%
+
+      &.opacity-enter, &.opacity-leave-to
+        opacity: 0
+
+      &.opacity-enter-active, &.opacity-leave-active
+        transition: 0.2s
+
+  &.frontpage
+    nav.bar
+      height: 35%
+      box-shadow: 0 1px 45px 0 rgba(255, 255, 255, 0.5)
+      margin-bottom: 5%
+
+      >span
+        font-size: 6em
+        transition-delay: 0.25s
 
   &.fullnav
     nav.bar
       height: 100%
+      box-shadow: none
 
       >span
         font-size: 10em
