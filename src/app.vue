@@ -129,6 +129,7 @@ main.w2g
 
     >span
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      font-family: corporation_games
       font-size: 3em
       cursor: pointer
 

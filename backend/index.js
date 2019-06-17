@@ -23,11 +23,15 @@ const Room = class {
     this.urlid = urlid
     this.playing = true
     this.time = 0
-    io.to(this.id).emit("update", {
-      urlid: this.urlid,
-      playing: this.playing,
-      time: this.time,
-    })
+    io.to(this.id).emit("update", rooms[this.id].state)
+  }
+  stop() {
+    this.playing = false
+    this.urlid = ""
+    this.time = 0
+    this.queue = []
+    io.to(this.id).emit("update", rooms[this.id].state)
+    console.log("sop")
   }
   playpause(time) {
     this.playing = !this.playing
@@ -53,6 +57,7 @@ io.on("connection", client => {
   })
 
   client.on("play", ([room, urlid]) => rooms[room].play(urlid))
+  client.on("stop", ([room]) => rooms[room].stop())
   client.on("playpause", ([room, time]) => rooms[room].playpause(time))
   client.on("seekTo", ([room, time]) => rooms[room].seekTo(time))
 })

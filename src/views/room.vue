@@ -1,20 +1,20 @@
 <template lang="pug">
 .room
-  .player
+  .player(:class="{ novideo: urlid === '' }")
     .url
       .input
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off"
-          autocapitalize="off" spellcheck="false")
+          autocapitalize="off" spellcheck="false" :class="{ validlink }")
         span
-      button.flat(@click="playurl" :class="{ disabled: !validlink}") play
-      //- button.flat(@click="queueurl") queue
+      button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
+    button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
     .video(:class="{ ispaused }")
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
       .volume(@pointerdown="volume_click")
         .bar(:style="{height: `${volume}%`}")
-      .overlay(@click="overlay_click")
-        h1 paused
+      .overlay(@click="overlay_click" ref="overlay")
+        h1.paused paused
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="1280" height="720"
           :fitParent="true" @playing="playing" @ready="ready" @paused="paused")
@@ -27,6 +27,7 @@
 </template>
 
 <script>
+// fucking shoot me
 import ls from "local-storage"
 const debounce = (fn, ms = 0) => {
   let timeoutId
@@ -74,6 +75,10 @@ export default {
     const self = this
     window.room = self
 
+    const { searchbutton: sb, searchbutton1: sb1, overlay } = self.$refs
+    sb.style.setProperty("--max-width", `${sb.scrollWidth}px`)
+    sb1.style.setProperty("--max-height", `${sb1.scrollHeight}px`)
+
     window.onkeydown = async ({ keyCode }) => {
       if (keyCode === 37)
         self.socket.emit("seekTo", [
@@ -104,6 +109,8 @@ export default {
         self.urlid = urlid
         self.urlinput = `https://youtu.be/${urlid}`
         if (playing) self.pv.autoplay = 1
+      } else if (urlid === "") {
+        self.urlid = ""
       }
       if (typeof time === "number") {
         p.seekTo(time)
@@ -145,6 +152,7 @@ export default {
       this.socket.emit("playpause", update)
     },
     playurl() {
+      if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
       this.socket.emit("play", [
         this.id,
@@ -186,11 +194,23 @@ export default {
     align-items: center
     padding-top: 32px
 
+    >button
+      font-size: 4em
+      max-height: 0
+      margin: 0
+      opacity: 0
+      padding: 0
+
     >.url
       width: 75%
       display: flex
       justify-content: center
       align-items: center
+      transition: 1s
+
+      >button
+        box-shadow: none !important
+        max-width: var(--max-width)
 
       >.input
         flex-grow: 1
@@ -203,7 +223,7 @@ export default {
           transition: 0.5s ease
           font-weight: lighter
 
-          &:focus
+          &:focus, &.validlink
             color: #FFF
 
     >.video
@@ -211,7 +231,8 @@ export default {
       height: 720px
       position: relative
       border-radius: 5px
-      transition: 0.5s ease
+      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      opacity: 1
 
       >.volume
         position: absolute
@@ -241,7 +262,7 @@ export default {
         bottom: 0
         height: 25px
         width: 100%
-        z-index: 4
+        z-index: 14
         display: flex
         align-items: flex-end
         border-radius: 0 0 5px 5px
@@ -265,7 +286,9 @@ export default {
         position: absolute
         height: 100%
         width: 100%
-        z-index: 3
+        top: 0
+        left: 0
+        z-index: 10
         transition: 0.5s ease
         display: flex
         justify-content: center
@@ -284,15 +307,6 @@ export default {
           -webkit-background-clip: text
           -webkit-text-fill-color: transparent
 
-      &.ispaused
-        box-shadow: 0 0 0 3px #FFF
-
-        >.overlay
-          opacity: 1
-
-        >.volume>.bar
-          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5)
-
       >.player
         overflow: hidden
         border-radius: 5px
@@ -304,7 +318,49 @@ export default {
         top: 0
         left: 0
 
+        // pointer-events: none
         >iframe
-          z-index: 2
+          z-index: 1
+
+      &.ispaused
+        box-shadow: 0 0 0 3px #FFF
+
+        >.overlay
+          opacity: 1
+
+        >.volume>.bar
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5)
+
+    &.novideo
+      >button
+        max-height: var(--max-height)
+        opacity: 1
+        margin: 75px 0
+        padding: 2.5px 7.5px
+
+      >.url
+        width: 95%
+        padding-top: 25vh
+
+        >.input
+          >input
+            font-size: 4em
+
+          >span
+            background: #FFF
+
+        >button
+          max-width: 0
+          margin: 0
+          padding: 0
+          opacity: 0
+
+      >.video
+        // height: 0
+        box-shadow: none
+        opacity: 0
+
+        >.overlay
+          opacity: 0
 </style>
 
