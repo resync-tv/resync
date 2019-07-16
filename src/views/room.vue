@@ -24,9 +24,8 @@
         .info
           .title
           .uploader
-  .people
-    .person test
-    .person(v-for="person in people") {{person}}
+  transition-group(name="person" tag="div").people
+    .person(v-for="person in people" :key="person") {{person}}
 </template>
 
 <script>
@@ -257,6 +256,14 @@ export default {
       font-weight: 400
       opacity: 0.5
       text-align: right
+      height: 1.1em
+
+      &-enter-active, &-leave-active
+        transition: 0.5s
+
+      &-enter, &-leave-to
+        height: 0
+        opacity: 0
 
   >.player
     display: flex
