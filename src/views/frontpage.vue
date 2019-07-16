@@ -1,6 +1,8 @@
 <template lang="pug">
 .frontpage
   button.flat.large(@click="newroom") new room
+  button.flat.large(v-if="$store.state.lastroom" @click="$router.push(`/room/${$store.state.lastroom}`)")
+    | last room: {{$store.state.lastroom}}
 </template>
 
 <script>
@@ -26,6 +28,7 @@ export default {
   display: flex
   justify-content: center
   align-items: center
+  flex-direction: column
   height: 25%
 
   button
@@ -34,6 +37,7 @@ export default {
     font-family: inherit
     outline: none
     border: none
+    margin: 8px 0
 
     &::before
       content: ""
