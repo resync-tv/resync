@@ -11,12 +11,14 @@ const Room = class {
     this.urlid = ""
     this.time = 0
     this.queue = []
+    this.people = []
   }
   get state() {
     return {
       urlid: this.urlid,
       playing: this.playing,
       time: this.time,
+      people: this.people,
     }
   }
   play(urlid) {
@@ -31,7 +33,6 @@ const Room = class {
     this.time = 0
     this.queue = []
     io.to(this.id).emit("update", rooms[this.id].state)
-    console.log("sop")
   }
   playpause(time) {
     this.playing = !this.playing
@@ -49,12 +50,40 @@ const Room = class {
 
 const rooms = {}
 
+const clients = {}
+
 io.on("connection", client => {
-  client.on("joinroom", (room, reply) => {
-    if (!rooms[room]) rooms[room] = new Room(room)
-    client.join(room)
-    reply(rooms[room].state)
+  clients[client.id] = {}
+  client.on("joinroom", ({ id, name }, reply) => {
+    console.log(`joinroom ${client.id} ${name}`)
+    if (!rooms[id]) rooms[id] = new Room(id)
+    client.join(id)
+    rooms[id].people.push(name)
+    reply(rooms[id].state)
+    io.to(id).emit("update", { people: rooms[id].people })
+    clients[client.id] = {
+      name: name,
+      room: id,
+    }
+    console.log("joined", clients, client.id)
   })
+
+  const leave = () => {
+    console.log("leave", clients)
+    if (!clients[client.id]) return
+    const { name, room: id } = clients[client.id]
+    console.log(`leave ${name} ${client.id}`, rooms[id])
+
+    if (!rooms[id]) return console.log("rrrrr")
+    rooms[id].people = rooms[id].people.filter(e => e !== name)
+    console.log(rooms[id].people)
+    client.leave(id)
+    io.to(id).emit("update", { people: rooms[id].people })
+    clients[client.id] = false
+    console.log("left", clients)
+  }
+  client.on("leaveroom", leave)
+  client.on("disconnect", leave)
 
   client.on("play", ([room, urlid]) => rooms[room].play(urlid))
   client.on("stop", ([room]) => rooms[room].stop())

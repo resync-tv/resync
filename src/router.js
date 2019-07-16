@@ -13,6 +13,11 @@ export default new Router({
       component: require("./views/room.vue").default,
     },
     {
+      path: "/signup",
+      name: "signup",
+      component: require("./views/signup.vue").default,
+    },
+    {
       path: "/",
       component: require("./views/frontpage.vue").default,
     },

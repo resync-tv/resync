@@ -24,6 +24,9 @@
         .info
           .title
           .uploader
+  .people
+    .person test
+    .person(v-for="person in people") {{person}}
 </template>
 
 <script>
@@ -63,6 +66,7 @@ export default {
     progress: 0,
     volume: ls("volume") || 50,
     ispaused: true,
+    people: [],
     pv: {
       autoplay: 0,
       controls: 0,
@@ -94,6 +98,8 @@ export default {
     const self = this
     window.room = self
 
+    self.$store.commit("set", ["lastroom", self.id])
+
     const { searchbutton: sb, searchbutton1: sb1, overlay } = self.$refs
     sb.style.setProperty("--max-width", `${sb.scrollWidth}px`)
     sb1.style.setProperty("--max-height", `${sb1.scrollHeight}px`)
@@ -123,8 +129,8 @@ export default {
       }
     }
 
-    const update = ({ urlid, time, playing }) => {
-      const { p } = this
+    const update = ({ urlid, time, playing, people }) => {
+      const { p } = self
       if (urlid) {
         self.urlid = urlid
         self.urlinput = `https://youtu.be/${urlid}`
@@ -140,14 +146,20 @@ export default {
         if (playing) p.playVideo()
         else p.pauseVideo()
       }
+      if (people instanceof Array) self.people = people
     }
 
-    self.socket.emit("joinroom", self.id, update)
+    const { name } = self.$store.state
+
+    self.socket.emit("joinroom", { id: self.id, name }, update)
     self.socket.on("update", update)
   },
   beforeDestroy() {
     window.onkeydown = null
     this.socket.off("upadate")
+    console.log(this.$store.state.lastroom)
+    this.socket.emit("leaveroom")
+    console.log("before destroy")
   },
   methods: {
     paste(e) {
@@ -234,6 +246,18 @@ export default {
   display: flex
   justify-content: center
 
+  .people
+    position: absolute
+    top: 16px
+    right: 16px
+
+    .person
+      font-family: "Roboto Mono", monospace
+      font-style: italic
+      font-weight: 400
+      opacity: 0.5
+      text-align: right
+
   >.player
     display: flex
     flex-direction: column
@@ -264,7 +288,7 @@ export default {
         >input
           text-align: center
           font-size: 1.5em
-          font-family: monospace
+          font-family: "Roboto Mono", monospace
           color: rgba(255, 255, 255, 0.5)
           transition: 0.5s ease
           font-weight: lighter

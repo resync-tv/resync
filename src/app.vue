@@ -17,6 +17,11 @@ export default {
     window.vue = this
     const self = this
 
+    if (!self.$store.state.name && self.$route.path !== "/signup")
+      self.$router.push({
+        path: `/signup?returnto=${self.$route.fullPath}`,
+      })
+
     this.socket.on("reconnect", () => location.reload())
     this.socket.on("connect", () => (self.fullnav = false))
     this.socket.on("connect_error", () => (self.fullnav = true))
