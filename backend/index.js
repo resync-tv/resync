@@ -11,7 +11,7 @@ const Room = class {
     this.urlid = ""
     this.time = 0
     this.queue = []
-    this.people = []
+    this.people = {}
   }
   get state() {
     return {
@@ -58,7 +58,7 @@ io.on("connection", client => {
     console.log(`joinroom ${client.id} ${name}`)
     if (!rooms[id]) rooms[id] = new Room(id)
     client.join(id)
-    rooms[id].people.push(name)
+    rooms[id].people[client.id] = name
     reply(rooms[id].state)
     io.to(id).emit("update", { people: rooms[id].people })
     clients[client.id] = {
@@ -75,7 +75,7 @@ io.on("connection", client => {
     console.log(`leave ${name} ${client.id}`, rooms[id])
 
     if (!rooms[id]) return console.log("rrrrr")
-    rooms[id].people = rooms[id].people.filter(e => e !== name)
+    delete rooms[id].people[client.id]
     console.log(rooms[id].people)
     client.leave(id)
     io.to(id).emit("update", { people: rooms[id].people })

@@ -19,7 +19,10 @@ export default {
 
     if (!self.$store.state.name && self.$route.path !== "/signup")
       self.$router.push({
-        path: `/signup?returnto=${self.$route.fullPath}`,
+        path:
+          self.$route.fullPath === "/"
+            ? "/signup"
+            : `/signup?returnto=${self.$route.fullPath}`,
       })
 
     this.socket.on("reconnect", () => location.reload())
@@ -181,6 +184,6 @@ main.w2g
         transition-delay: 0.25s
 
     .route
-      height: 0%
+      height: 0
       opacity: 0
 </style>

@@ -8,15 +8,16 @@
         span
       button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
-    .video(:class="{ ispaused }")
+    .video(:class="{ ispaused }" ref="video")
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
       .volume(@pointerdown="volume_click")
         .bar(:style="{height: `${volume}%`}")
       .overlay(@click="overlay_click" ref="overlay")
         h1.paused paused
+        i.material-icons.fullscreen {{fullscreen ? "fullscreen_exit" : "fullscreen"}}
       .player
-        youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="1280" height="720"
+        youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @ready="ready" @paused="paused")
     .queue
       .video
@@ -66,6 +67,7 @@ export default {
     volume: ls("volume") || 50,
     ispaused: true,
     people: [],
+    fullscreen: false,
     pv: {
       autoplay: 0,
       controls: 0,
@@ -145,7 +147,10 @@ export default {
         if (playing) p.playVideo()
         else p.pauseVideo()
       }
-      if (people instanceof Array) self.people = people
+      if (typeof people === "object")
+        self.people = Object.entries(people)
+          .reverse()
+          .map(a => a[1])
     }
 
     const { name } = self.$store.state
@@ -195,15 +200,24 @@ export default {
         target.onpointermove = null
       }
     },
-    cleanurl:
-      // debounce(
-      self => {
-        const urlid = self.$youtube.getIdFromUrl(self.urlinput)
-        if (urlid) self.urlinput = `https://youtu.be/${urlid}`
-      },
-    // , 500)
-    async overlay_click() {
+    cleanurl: self => {
+      const urlid = self.$youtube.getIdFromUrl(self.urlinput)
+      if (urlid) self.urlinput = `https://youtu.be/${urlid}`
+    },
+    async toggle_fullscreen() {
+      const self = this
+      if (!self.fullscreen) {
+        await self.$refs.video.requestFullscreen()
+        self.fullscreen = true
+      } else {
+        await document.exitFullscreen()
+        self.fullscreen = false
+      }
+    },
+    async overlay_click(e) {
       let update = [this.id]
+      if (e && e.target.classList.contains("fullscreen"))
+        return this.toggle_fullscreen()
       if ((await this.p.getPlayerState()) === 1)
         update = [...update, await this.p.getCurrentTime()]
       this.socket.emit("playpause", update)
@@ -238,7 +252,7 @@ export default {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 .room
   height: 100%
   width: 100%
@@ -256,14 +270,17 @@ export default {
       font-weight: 400
       opacity: 0.5
       text-align: right
-      height: 1.1em
+      height: 1.25em
+      overflow: hidden
+      margin-right: 0
 
       &-enter-active, &-leave-active
-        transition: 0.5s
+        transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
 
       &-enter, &-leave-to
         height: 0
         opacity: 0
+        margin-right: -1em
 
   >.player
     display: flex
@@ -310,6 +327,9 @@ export default {
       border-radius: 5px
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
       opacity: 1
+
+      &:fullscreen
+        border-radius: 0
 
       @media only screen and (max-width: 1300px)
         width: 928px
@@ -378,13 +398,21 @@ export default {
         background: rgba(0, 0, 0, 0.5)
         border-radius: 5px
 
+        >i
+          position: absolute
+          bottom: 25px
+          right: 25px
+          font-size: 2em
+          text-shadow: 0 0 5px black
+          cursor: pointer
+
         >h1
           color: rgba(255, 255, 255, 0.75)
           font-size: 3em
           user-select: none
           pointer-events: none
           padding: 0 1em
-          background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.125) 0%, rgba(255, 255, 255, 0.25) 25%, rgba(255, 255, 255, 1) 100%)
+          background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.125) 0, rgba(255, 255, 255, 0.25) 25%, rgba(255, 255, 255, 1) 100%)
           -webkit-background-clip: text
           -webkit-text-fill-color: transparent
 
@@ -400,7 +428,9 @@ export default {
         left: 0
 
         // pointer-events: none
-        >iframe
+        iframe
+          width: 100%
+          height: 100%
           z-index: 1
 
       &.ispaused
