@@ -4,7 +4,7 @@
     .url
       .input
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off"
-          autocapitalize="off" spellcheck="false" :class="{ validlink }" @click.right="paste")
+          autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
         span
       button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
@@ -18,7 +18,7 @@
         i.material-icons.fullscreen {{fullscreen ? "fullscreen_exit" : "fullscreen"}}
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
-          :fitParent="true" @playing="playing" @ready="ready" @paused="paused")
+          :fitParent="true" @playing="playing" @paused="paused")
     .queue
       .video
         .thumb
@@ -26,7 +26,7 @@
           .title
           .uploader
   transition-group(name="person" tag="div").people
-    .person(v-for="person in people" :key="person") {{person}}
+    .person(v-for="person in people" :key="person[0]") {{person[1]}}
 </template>
 
 <script>
@@ -78,6 +78,7 @@ export default {
       modestbranding: 1,
       rel: 0,
     },
+    ignoreNextStateChange: false,
   }),
   computed: {
     p() {
@@ -106,7 +107,10 @@ export default {
     sb1.style.setProperty("--max-height", `${sb1.scrollHeight}px`)
 
     window.onkeydown = async ({ keyCode, target }) => {
-      if (target.nodeName === "INPUT") return
+      if (target.nodeName === "INPUT")
+        if (keyCode === 27) target.blur()
+        else return
+
       if (keyCode === 37)
         self.socket.emit("seekTo", [
           self.id,
@@ -130,10 +134,15 @@ export default {
       }
     }
 
-    const update = ({ urlid, time, playing, people }) => {
+    const update = async ({ urlid, time, playing, people }) => {
       const { p } = self
       if (urlid) {
         self.urlid = urlid
+        p.loadVideoById({
+          videoId: urlid,
+          startSeconds: 0,
+          suggestedQuality: "hd720",
+        })
         self.urlinput = `https://youtu.be/${urlid}`
         if (playing) self.pv.autoplay = 1
       } else if (urlid === "") {
@@ -141,16 +150,17 @@ export default {
       }
       if (typeof time === "number") {
         p.seekTo(time)
-        this.play_loop()
+        self.play_loop()
       }
       if (typeof playing === "boolean") {
-        if (playing) p.playVideo()
-        else p.pauseVideo()
+        if (playing === ((await this.p.getPlayerState()) === 1)) return
+        self.ignoreNextStateChange = true
+        if (playing) await p.playVideo()
+        else await p.pauseVideo()
       }
       if (typeof people === "object")
-        self.people = Object.entries(people)
-          .reverse()
-          .map(a => a[1])
+        self.people = Object.entries(people).reverse()
+      // .map(a => a[1])
     }
 
     const { name } = self.$store.state
@@ -220,8 +230,12 @@ export default {
         return this.toggle_fullscreen()
       if ((await this.p.getPlayerState()) === 1)
         update = [...update, await this.p.getCurrentTime()]
-      this.socket.emit("playpause", update)
+
+      this.ignoreNextStateChange = true
+      if (this.ispaused) this.socket.emit("resume", update)
+      else this.socket.emit("pause", update)
     },
+    async playerStateChange(n) {},
     playurl() {
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
@@ -243,10 +257,21 @@ export default {
       this.play_loop()
       this.p.setVolume(this.volume)
       this.ispaused = false
+
+      if (this.ignoreNextStateChange)
+        return (this.ignoreNextStateChange = false)
+
+      this.socket.emit("resume", [this.id])
     },
-    ready() {},
-    paused() {
+    async paused() {
+      if (this.ispaused) return
       this.ispaused = true
+
+      if (this.ignoreNextStateChange)
+        return (this.ignoreNextStateChange = false)
+
+      this.ignoreNextStateChange = false
+      this.socket.emit("pause", [this.id, await this.p.getCurrentTime()])
     },
   },
 }

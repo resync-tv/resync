@@ -1,8 +1,12 @@
-console.log("\x1Bc")
-
 const io = require("socket.io")({
   serveClient: false,
 })
+
+let dev = false
+
+const log = t => (dev ? console.log(t) : "")
+
+console.log("\x1Bc\n\n")
 
 const Room = class {
   constructor(id) {
@@ -42,6 +46,22 @@ const Room = class {
     if (time) update = { ...update, time: time }
     io.to(this.id).emit("update", update)
   }
+  resume(time) {
+    this.playing = true
+    let update = {
+      playing: this.playing,
+    }
+    if (time) update = { ...update, time: time }
+    io.to(this.id).emit("update", update)
+  }
+  pause(time) {
+    this.playing = false
+    let update = {
+      playing: this.playing,
+    }
+    if (time) update = { ...update, time: time }
+    io.to(this.id).emit("update", update)
+  }
   seekTo(time) {
     this.time = time
     io.to(this.id).emit("update", { time })
@@ -54,8 +74,14 @@ const clients = {}
 
 io.on("connection", client => {
   clients[client.id] = {}
+
+  client.on("dev", () => {
+    if (!dev) console.log("dev mode is now active")
+    dev = true
+  })
+
   client.on("joinroom", ({ id, name }, reply) => {
-    console.log(`joinroom ${client.id} ${name}`)
+    log(`joinroom ${name} ${id}`)
     if (!rooms[id]) rooms[id] = new Room(id)
     client.join(id)
     rooms[id].people[client.id] = name
@@ -65,30 +91,45 @@ io.on("connection", client => {
       name: name,
       room: id,
     }
-    console.log("joined", clients, client.id)
   })
 
   const leave = () => {
-    console.log("leave", clients)
-    if (!clients[client.id]) return
     const { name, room: id } = clients[client.id]
-    console.log(`leave ${name} ${client.id}`, rooms[id])
+    if (!clients[client.id] || !rooms[id]) return
+    log(`leaveroom ${name} ${id}`)
 
-    if (!rooms[id]) return console.log("rrrrr")
     delete rooms[id].people[client.id]
-    console.log(rooms[id].people)
     client.leave(id)
     io.to(id).emit("update", { people: rooms[id].people })
     clients[client.id] = false
-    console.log("left", clients)
   }
   client.on("leaveroom", leave)
   client.on("disconnect", leave)
 
-  client.on("play", ([room, urlid]) => rooms[room].play(urlid))
-  client.on("stop", ([room]) => rooms[room].stop())
-  client.on("playpause", ([room, time]) => rooms[room].playpause(time))
-  client.on("seekTo", ([room, time]) => rooms[room].seekTo(time))
+  client.on("play", ([room, urlid]) => {
+    rooms[room].play(urlid)
+    log(`${clients[client.id].name} play ${urlid}`)
+  })
+  client.on("stop", ([room]) => {
+    rooms[room].stop()
+    log(`${clients[client.id].name} stop`)
+  })
+  client.on("playpause", ([room, time]) => {
+    rooms[room].playpause(time)
+    log(`${clients[client.id].name} playpause ${time}`)
+  })
+  client.on("resume", ([room, time]) => {
+    rooms[room].resume(time)
+    log(`${clients[client.id].name} resume ${time}`)
+  })
+  client.on("pause", ([room, time]) => {
+    rooms[room].pause(time)
+    log(`${clients[client.id].name} pause ${time}`)
+  })
+  client.on("seekTo", ([room, time]) => {
+    rooms[room].seekTo(time)
+    log(`${clients[client.id].name} seekTo ${time}`)
+  })
 })
 
 io.listen(1169)
