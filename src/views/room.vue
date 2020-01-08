@@ -3,22 +3,27 @@
   .player(:class="{ novideo: urlid === '' }")
     .url
       .input
-        input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off"
+        input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off" ref="urlinput"
           autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
         span
       button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
     .video(:class="{ ispaused }" ref="video")
+
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
+
       .volume(@pointerdown="volume_click")
-        .bar(:style="{height: `${volume}%`}")
+        .bar(:style="{height: `${volume}%`}" :class="{ notrans: volumechanging }")
+
       .overlay(@click="overlay_click" ref="overlay")
         h1.paused paused
         i.material-icons.fullscreen {{fullscreen ? "fullscreen_exit" : "fullscreen"}}
+
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @paused="paused")
+
     .queue
       .video
         .thumb
@@ -65,9 +70,11 @@ export default {
     urlinput: "",
     progress: 0,
     volume: ls("volume") || 50,
+    volumechanging: false,
     ispaused: true,
     people: [],
     fullscreen: false,
+    lastSkippedTo: 0,
     pv: {
       autoplay: 0,
       controls: 0,
@@ -132,6 +139,9 @@ export default {
       } else if (keyCode === 32) {
         self.overlay_click()
       }
+      else if (keyCode === 70) {
+        self.toggle_fullscreen()
+      }
     }
 
     const update = async ({ urlid, time, playing, people }) => {
@@ -149,8 +159,12 @@ export default {
         self.urlid = ""
       }
       if (typeof time === "number") {
-        p.seekTo(time)
-        self.play_loop()
+        console.log(this.lastSkippedTo, time)
+        if (this.lastSkippedTo !== time) {
+          console.log(`seekTo ${time}`)
+          p.seekTo(time)
+          self.play_loop()
+        }
       }
       if (typeof playing === "boolean") {
         if (playing === ((await this.p.getPlayerState()) === 1)) return
@@ -160,12 +174,11 @@ export default {
       }
       if (typeof people === "object")
         self.people = Object.entries(people).reverse()
-      // .map(a => a[1])
     }
 
     const { name } = self.$store.state
 
-    self.socket.emit("joinroom", { id: self.id, name }, update)
+    self.socket.emit("joinroom", { room: self.id, name }, update)
     self.socket.on("update", update)
   },
   beforeDestroy() {
@@ -196,18 +209,23 @@ export default {
     },
     volume_click({ offsetY, target }) {
       const self = this
+      self.volumechanging = true
       self.volume = (1 - offsetY / target.offsetHeight) * 100
       self.p.setVolume(self.volume)
       ls("volume", self.volume)
 
-      target.onpointermove = throttle(({ offsetY: oy, target: t }) => {
-        self.volume = (1 - oy / t.offsetHeight) * 100
-        self.p.setVolume(self.volume)
-        ls("volume", self.volume)
-      }, 250)
+      document.onpointermove = throttle(
+        ({ clientY, offsetY: oy, target: t }) => {
+          self.volume = (1 - oy / t.offsetHeight) * 100
+          self.p.setVolume(self.volume)
+          ls("volume", self.volume)
+        },
+        1000 / 60
+      )
       document.onpointerup = () => {
+        self.volumechanging = false
         document.onpointerup = null
-        target.onpointermove = null
+        document.onpointermove = null
       }
     },
     cleanurl: self => {
@@ -228,8 +246,12 @@ export default {
       let update = [this.id]
       if (e && e.target.classList.contains("fullscreen"))
         return this.toggle_fullscreen()
-      if ((await this.p.getPlayerState()) === 1)
-        update = [...update, await this.p.getCurrentTime()]
+
+      if ((await this.p.getPlayerState()) === 1) {
+        const current = await this.p.getCurrentTime()
+        this.lastSkippedTo = current
+        update = [...update, current]
+      }
 
       this.ignoreNextStateChange = true
       if (this.ispaused) this.socket.emit("resume", update)
@@ -270,7 +292,6 @@ export default {
       if (this.ignoreNextStateChange)
         return (this.ignoreNextStateChange = false)
 
-      this.ignoreNextStateChange = false
       this.socket.emit("pause", [this.id, await this.p.getCurrentTime()])
     },
   },
@@ -372,12 +393,17 @@ export default {
         z-index: 0
 
         >.bar
-          transition: 0.25s
+          transition: 0.2s
+          transition-property: width, background-color, height
           width: 7px
-          height: 20%
-          background: #FFF
+          height: 50%
+          background-color: #FFF
           pointer-events: none
           border-radius: 0 5px 5px 0
+
+          &.notrans
+            transition-property: width, background-color
+            width: 10px
 
         &:hover
           >.bar
@@ -395,7 +421,7 @@ export default {
         overflow: hidden
 
         >.bar
-          transition: 0.25s
+          transition: 0.2s
           transition-property: height, box-shadow
           height: 2px
           width: 50%
@@ -429,7 +455,7 @@ export default {
           right: 25px
           font-size: 2em
           text-shadow: 0 0 5px black
-          cursor: pointer
+          pointer-events: none
 
         >h1
           color: rgba(255, 255, 255, 0.75)
@@ -464,8 +490,13 @@ export default {
         >.overlay
           opacity: 1
 
+          >i
+            cursor: pointer
+            pointer-events: auto
+
         >.volume>.bar
           box-shadow: 0 -1px 0 1px black
+          background-color: #ccc
 
     &.novideo
       >button

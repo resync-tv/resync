@@ -1,31 +1,10 @@
 # w2g
 
-## Project setup
-```
-yarn install
-```
+## changelog
 
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
-
-### Compiles and minifies for production
-```
-yarn run build
-```
-
-### Run your tests
-```
-yarn run test
-```
-
-### Lints and fixes files
-```
-yarn run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
-test
+08.01.2020
+  - Press F to fullscreen
+  - Made volume progress bar feel a little more natural, but not quite fully.
+  - Removed cases of unnecessary double-invocation of player.seekTo
+  - Removed some backend spaghetti
+  - You can now use /r/ instead of /room/. Actually /r/ is the default now.

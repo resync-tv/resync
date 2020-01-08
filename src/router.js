@@ -8,9 +8,13 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     {
-      path: "/room/:id",
+      path: "/r/:id",
       name: "room",
       component: require("./views/room.vue").default,
+    },
+    {
+      path: "/room/:id",
+      redirect: "/r/:id",
     },
     {
       path: "/signup",
