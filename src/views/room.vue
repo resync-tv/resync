@@ -75,6 +75,7 @@ export default {
     people: [],
     fullscreen: false,
     lastSkippedTo: 0,
+    newVideo: false,
     pv: {
       autoplay: 0,
       controls: 0,
@@ -84,6 +85,7 @@ export default {
       loop: 0,
       modestbranding: 1,
       rel: 0,
+      start: 0,
     },
     ignoreNextStateChange: false,
   }),
@@ -138,8 +140,7 @@ export default {
         ls("volume", self.volume)
       } else if (keyCode === 32) {
         self.overlay_click()
-      }
-      else if (keyCode === 70) {
+      } else if (keyCode === 70) {
         self.toggle_fullscreen()
       }
     }
@@ -159,9 +160,7 @@ export default {
         self.urlid = ""
       }
       if (typeof time === "number") {
-        console.log(this.lastSkippedTo, time)
         if (this.lastSkippedTo !== time) {
-          console.log(`seekTo ${time}`)
           p.seekTo(time)
           self.play_loop()
         }
@@ -184,9 +183,7 @@ export default {
   beforeDestroy() {
     window.onkeydown = null
     this.socket.off("upadate")
-    console.log(this.$store.state.lastroom)
     this.socket.emit("leaveroom")
-    console.log("before destroy")
   },
   methods: {
     paste(e) {
@@ -261,6 +258,7 @@ export default {
     playurl() {
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
+      this.newVideo = true
       this.socket.emit("play", [
         this.id,
         this.$youtube.getIdFromUrl(this.urlinput),
@@ -275,10 +273,14 @@ export default {
 
       if ((await this.p.getPlayerState()) === 1) setTimeout(this.play_loop, 50)
     },
-    playing() {
+    async playing() {
       this.play_loop()
       this.p.setVolume(this.volume)
       this.ispaused = false
+      if (this.newVideo) {
+        this.newVideo = false
+        if ((await this.p.getCurrentTime()) !== 0) this.p.seekTo(0)
+      }
 
       if (this.ignoreNextStateChange)
         return (this.ignoreNextStateChange = false)

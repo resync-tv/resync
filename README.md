@@ -8,3 +8,4 @@
   - Removed cases of unnecessary double-invocation of player.seekTo
   - Removed some backend spaghetti
   - You can now use /r/ instead of /room/. Actually /r/ is the default now.
+  - Prevent video from starting whereever youtube wants. This is for longer videos that you've started watching on youtube already.
