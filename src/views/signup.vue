@@ -22,6 +22,7 @@ export default {
     signup() {
       if (this.nameinput === "") return
       this.$store.commit("set", ["name", this.nameinput])
+      this.initsentry()
       this.$router.push(this.$route.query.returnto || "/", () => {
         location.reload()
       })

@@ -1,5 +1,5 @@
 <template lang="pug">
-main.w2g(:class="{ fullnav, frontpage: $route.path === '/' }")
+main.w2g(:class="{ offline, frontpage: $route.path === '/' }")
   nav.bar
     span(@click="$router.push('/')") W2G
   .route
@@ -11,7 +11,7 @@ main.w2g(:class="{ fullnav, frontpage: $route.path === '/' }")
 export default {
   name: "w2g",
   data: () => ({
-    fullnav: true,
+    offline: true,
   }),
   mounted() {
     window.vue = this
@@ -26,8 +26,8 @@ export default {
       })
 
     this.socket.on("reconnect", () => location.reload())
-    this.socket.on("connect", () => (self.fullnav = false))
-    this.socket.on("connect_error", () => (self.fullnav = true))
+    this.socket.on("connect", () => (self.offline = false))
+    this.socket.on("connect_error", () => (self.offline = true))
   },
   beforeDestroy() {
     this.socket.off("connect")
@@ -171,16 +171,16 @@ main.w2g
       margin-bottom: 5%
 
       >span
-        font-size: 6em
+        font-size: 10em
         transition-delay: 0.25s
 
-  &.fullnav
+  &.offline
     nav.bar
       height: 100%
       box-shadow: none
 
       >span
-        font-size: 10em
+        font-size: 15em
         transition-delay: 0.25s
 
     .route

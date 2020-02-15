@@ -23,8 +23,9 @@
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @paused="paused")
+    .grow
 
-    .queue
+    //- .queue
       .video
         .thumb
         .info
@@ -91,7 +92,7 @@ export default {
   }),
   computed: {
     p() {
-      return this.$refs.youtube.player
+      return this.$refs.youtube.player || false
     },
     id() {
       return this.$route.params.id
@@ -334,7 +335,8 @@ export default {
     display: flex
     flex-direction: column
     align-items: center
-    padding-top: 32px
+    // padding-top: 32px
+    justify-content: center
 
     >button
       font-size: 4em
@@ -349,6 +351,7 @@ export default {
       justify-content: center
       align-items: center
       transition: 1s
+      padding-top: 16px
 
       >button
         box-shadow: none !important
@@ -371,6 +374,7 @@ export default {
     >.video
       width: 1280px
       height: 720px
+      max-width: 100vw
       position: relative
       border-radius: 5px
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
@@ -500,16 +504,21 @@ export default {
           box-shadow: 0 -1px 0 1px black
           background-color: #ccc
 
+    >.grow
+      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      flex-grow: 1
+
     &.novideo
+      // height: 0
       >button
         max-height: var(--max-height)
         opacity: 1
-        margin: 75px 0
-        padding: 2.5px 7.5px
+        margin-top: 25px
+        padding: 0
 
       >.url
         width: 95%
-        padding-top: 25vh
+        padding-top: 0
 
         >.input
           >input
@@ -528,8 +537,12 @@ export default {
         // height: 0
         box-shadow: none
         opacity: 0
+        height: 0
 
         >.overlay
           opacity: 0
+
+      >.grow
+        flex-grow: 0
 </style>
 

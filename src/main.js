@@ -15,10 +15,13 @@ Sentry.init({
     new Integrations.Vue({ Vue, attachProps: true, logErrors: true }),
   ],
 })
-
-Sentry.configureScope(function(scope) {
-  scope.setUser({ username: store.state.name || "no name set yet" })
-})
+const initsentry = () => {
+  Sentry.configureScope(function(scope) {
+    scope.setUser({ username: store.state.name || "no name set yet" })
+  })
+}
+initsentry()
+Vue.initsentry = Vue.prototype.initsentry = initsentry
 
 const dev = process.env.NODE_ENV === "development"
 

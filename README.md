@@ -2,6 +2,10 @@
 
 ## changelog
 
+15.02.2020
+  - centered url input
+  - improved sentry support
+
 08.01.2020
   - Press F to fullscreen
   - Made volume progress bar feel a little more natural, but not quite fully.
