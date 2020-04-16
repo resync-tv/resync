@@ -23,14 +23,29 @@
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @paused="paused")
-    .grow
 
-    //- .queue
-      .video
-        .thumb
-        .info
-          .title
-          .uploader
+    .queue(v-show="!hidequeue")
+      .wrap
+        .video
+          .thumb
+            img(src="https://i.ytimg.com/vi/aNycEsAN5ys/mqdefault.jpg")
+          .info
+            .title Try to break this tablet. I DARE you - Dell Latitude Rugged Tablet
+            .uploader ShortCircuit
+        .video
+          .thumb
+            img(src="https://i.ytimg.com/vi/Yv3v9SsoDMw/mqdefault.jpg")
+          .info
+            .title You Suck at Producing: Warmth
+            .uploader You Suck at Producing
+        .video(v-for="i in 5")
+          .thumb
+            img(src="https://i.ytimg.com/vi/If1v7xlg_9c/mqdefault.jpg")
+          .info
+            .title MKBHD Full Interview - His Expanding Tech Empire, 10 Mil Subscribers & Are We At "Peak Smartphone"? MKBHD Full Interview - His Expanding Tech Empire, 10 Mil Subscribers & Are We At "Peak Smartphone"?
+            .uploader That Creative Life Podcast
+
+    .grow
   transition-group(name="person" tag="div").people
     .person(v-for="person in people" :key="person[0]") {{person[1]}}
 </template>
@@ -67,6 +82,7 @@ const throttle = (fn, wait) => {
 export default {
   name: "room",
   data: () => ({
+    hidequeue: true,
     urlid: "",
     urlinput: "",
     progress: 0,
@@ -374,7 +390,7 @@ export default {
     >.video
       width: 1280px
       height: 720px
-      max-width: 100vw
+      max-width: 95vw
       position: relative
       border-radius: 5px
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
@@ -503,6 +519,74 @@ export default {
         >.volume>.bar
           box-shadow: 0 -1px 0 1px black
           background-color: #ccc
+
+    >.queue
+      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      max-width: 92.5vw
+      width: 1250px
+      // height: 6rem
+      position: relative
+      overflow: hidden
+      margin-top: 8px
+      height: calc(100vh - 875px)
+
+      @media only screen and (max-width: 1300px)
+        height: calc(100vh - 675px)
+
+      &:after
+        content: ""
+        position: absolute
+        bottom: 0
+        width: 100%
+        height: 1rem
+        background: linear-gradient(to top, #000 0, transparent 100%)
+
+      @media only screen and (max-width: 1300px)
+        width: 900px
+
+      >.wrap
+        overflow-y: scroll
+        overflow-x: hidden
+        height: 100%
+        position: relative
+        width: 100%
+
+        &::-webkit-scrollbar-track
+          background-color: #111
+
+        &::-webkit-scrollbar
+          width: 4px
+          background-color: #111
+
+        &::-webkit-scrollbar-thumb, .g-scrollbar
+          background-color: #FFF
+
+        >.video
+          display: flex
+          align-items: center
+          margin-bottom: 4px
+          cursor: pointer
+
+          &:last-of-type
+            margin-bottom: 1rem
+
+          .thumb > img
+            height: 50px
+            border-radius: 5px
+            margin-right: 8px
+
+          .info
+            max-width: calc(100% - 100px)
+
+            .title, .uploader
+              font-family: "Roboto Mono", monospace
+              font-size: 0.85em
+              white-space: nowrap
+              overflow: hidden
+              text-overflow: ellipsis
+
+            .uploader
+              color: rgba(255, 255, 255, 0.5)
 
     >.grow
       transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
