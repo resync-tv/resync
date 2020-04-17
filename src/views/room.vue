@@ -318,6 +318,10 @@ export default {
 </script>
 
 <style lang="stylus">
+$breakW = 1300px
+$breakH = 850px
+$easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
+
 .room
   height: 100%
   width: 100%
@@ -340,7 +344,7 @@ export default {
       margin-right: 0
 
       &-enter-active, &-leave-active
-        transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+        transition: 1s $easeInOut
 
       &-enter, &-leave-to
         height: 0
@@ -393,13 +397,13 @@ export default {
       max-width: 95vw
       position: relative
       border-radius: 5px
-      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      transition: 1s $easeInOut
       opacity: 1
 
       &:fullscreen
         border-radius: 0
 
-      @media only screen and (max-width: 1300px)
+      @media only screen and (max-width: $breakW), (max-height: $breakH)
         width: 928px
         height: 522px
 
@@ -521,7 +525,7 @@ export default {
           background-color: #ccc
 
     >.queue
-      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      transition: 1s $easeInOut
       max-width: 92.5vw
       width: 1250px
       // height: 6rem
@@ -530,8 +534,9 @@ export default {
       margin-top: 8px
       height: calc(100vh - 875px)
 
-      @media only screen and (max-width: 1300px)
+      @media only screen and (max-width: $breakW), (max-height: $breakH)
         height: calc(100vh - 675px)
+        width: 900px
 
       &:after
         content: ""
@@ -540,9 +545,6 @@ export default {
         width: 100%
         height: 1rem
         background: linear-gradient(to top, #000 0, transparent 100%)
-
-      @media only screen and (max-width: 1300px)
-        width: 900px
 
       >.wrap
         overflow-y: scroll
@@ -589,7 +591,7 @@ export default {
               color: rgba(255, 255, 255, 0.5)
 
     >.grow
-      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      transition: 1s $easeInOut
       flex-grow: 1
 
     &.novideo

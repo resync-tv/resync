@@ -37,6 +37,8 @@ export default {
 </script>
 
 <style lang="stylus">
+$easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
+
 body, html, main
   margin: 0
   height: 100vh
@@ -44,6 +46,12 @@ body, html, main
   position: relative
   background: #000
   overflow: hidden
+
+  &.aprilfools
+    filter: invert(1)
+
+    img, iframe
+      filter: invert(1)
 
 *
   -webkit-font-smoothing: antialiased
@@ -137,20 +145,20 @@ button.flat
 
 main.w2g
   nav.bar
-    transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+    transition: 1s $easeInOut
     height: 5%
     display: flex
     justify-content: center
     align-items: center
 
     >span
-      transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+      transition: 1s $easeInOut
       font-family: corporation_games
       font-size: 3em
       cursor: pointer
 
   .route
-    transition: 1s cubic-bezier(0.77, 0, 0.175, 1)
+    transition: 1s $easeInOut
     height: 95%
     position: relative
 
