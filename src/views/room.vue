@@ -1,19 +1,19 @@
 <template lang="pug">
 .room
   .player(:class="{ novideo: urlid === '' }")
-    .url
+    .url(:class="{ hidequeue }")
       .input
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off" ref="urlinput"
           autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
         span
       button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
-    .video(:class="{ ispaused }" ref="video")
+    .video(:class="{ ispaused, hidequeue }" ref="video")
 
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
 
-      .volume(@pointerdown="volume_click")
+      .volume(@pointerdown="volume_click" :class="{ hidequeue }")
         .bar(:style="{height: `${volume}%`}" :class="{ notrans: volumechanging }")
 
       .overlay(@click="overlay_click" ref="overlay")
@@ -24,26 +24,12 @@
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @paused="paused")
 
-    .queue(v-show="!hidequeue")
-      .wrap
-        .video
-          .thumb
-            img(src="https://i.ytimg.com/vi/aNycEsAN5ys/mqdefault.jpg")
-          .info
-            .title Try to break this tablet. I DARE you - Dell Latitude Rugged Tablet
-            .uploader ShortCircuit
-        .video
-          .thumb
-            img(src="https://i.ytimg.com/vi/Yv3v9SsoDMw/mqdefault.jpg")
-          .info
-            .title You Suck at Producing: Warmth
-            .uploader You Suck at Producing
-        .video(v-for="i in 5")
-          .thumb
-            img(src="https://i.ytimg.com/vi/If1v7xlg_9c/mqdefault.jpg")
-          .info
-            .title MKBHD Full Interview - His Expanding Tech Empire, 10 Mil Subscribers & Are We At "Peak Smartphone"? MKBHD Full Interview - His Expanding Tech Empire, 10 Mil Subscribers & Are We At "Peak Smartphone"?
-            .uploader That Creative Life Podcast
+      .queue(:class="{ hidequeue }")
+        .wrap
+          .video(v-for="video in queue")
+            img(:src="`https://i.ytimg.com/vi/${video}/mqdefault.jpg`" draggable="false")
+        i.material-icons.volume(@click="hidequeue = true") volume_up
+        i.material-icons.playlist(@click="hidequeue = false") playlist_play
 
     .grow
   transition-group(name="person" tag="div").people
@@ -83,6 +69,28 @@ export default {
   name: "room",
   data: () => ({
     hidequeue: true,
+    queue: [
+      "aNycEsAN5ys",
+      "Yv3v9SsoDMw",
+      "If1v7xlg_9c",
+      "Eh17H0a8SXw",
+      "iffi5-RZgbg",
+      "aNycEsAN5ys",
+      "Yv3v9SsoDMw",
+      "If1v7xlg_9c",
+      "Eh17H0a8SXw",
+      "iffi5-RZgbg",
+      "aNycEsAN5ys",
+      "Yv3v9SsoDMw",
+      "If1v7xlg_9c",
+      "Eh17H0a8SXw",
+      "iffi5-RZgbg",
+      "aNycEsAN5ys",
+      "Yv3v9SsoDMw",
+      "If1v7xlg_9c",
+      "Eh17H0a8SXw",
+      "iffi5-RZgbg",
+    ],
     urlid: "",
     urlinput: "",
     progress: 0,
@@ -159,6 +167,8 @@ export default {
         self.overlay_click()
       } else if (keyCode === 70) {
         self.toggle_fullscreen()
+      } else if (keyCode === 81 || keyCode === 86) {
+        self.hidequeue = !self.hidequeue
       }
     }
 
@@ -175,6 +185,7 @@ export default {
         if (playing) self.pv.autoplay = 1
       } else if (urlid === "") {
         self.urlid = ""
+        self.urlinput = ""
       }
       if (typeof time === "number") {
         if (this.lastSkippedTo !== time) {
@@ -320,6 +331,10 @@ export default {
 <style lang="stylus">
 $breakW = 1300px
 $breakH = 850px
+$largeW = 1280px
+$largeH = 720px
+$smallW = 928px
+$smallH = 522px
 $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
 
 .room
@@ -355,7 +370,6 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
     display: flex
     flex-direction: column
     align-items: center
-    // padding-top: 32px
     justify-content: center
 
     >button
@@ -366,12 +380,15 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
       padding: 0
 
     >.url
-      width: 75%
+      width: calc(75% - 95px)
       display: flex
       justify-content: center
       align-items: center
-      transition: 1s
+      transition: 1000ms $easeInOut
       padding-top: 16px
+
+      &.hidequeue
+        width: 75%
 
       >button
         box-shadow: none !important
@@ -392,31 +409,40 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
             color: #FFF
 
     >.video
-      width: 1280px
-      height: 720px
-      max-width: 95vw
+      width: $largeW
+      height: $largeH
+      max-width: calc(90vw - 95px)
       position: relative
       border-radius: 5px
       transition: 1s $easeInOut
       opacity: 1
+      margin-right: 95px
 
       &:fullscreen
         border-radius: 0
 
       @media only screen and (max-width: $breakW), (max-height: $breakH)
-        width: 928px
-        height: 522px
+        width: $smallW
+        height: $smallH
+
+      &.hidequeue
+        margin-right: 0
+        max-width: 90vw
 
       >.volume
         position: absolute
-        left: calc(100% - 5px)
+        transition: 1s $easeInOut
+        left: calc(100% - 25px)
         bottom: 0
         height: 100%
         width: 25px
         display: flex
         align-items: flex-end
         background: transparent
-        z-index: 0
+        z-index: 1
+
+        &.hidequeue
+          left: calc(100% - 5px)
 
         >.bar
           transition: 0.2s
@@ -472,7 +498,7 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
         justify-content: center
         align-items: center
         opacity: 0
-        background: rgba(0, 0, 0, 0.5)
+        background: rgba(0, 0, 0, 0.75)
         border-radius: 5px
 
         >i
@@ -496,8 +522,8 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
       >.player
         overflow: hidden
         border-radius: 5px
-        height: 720px
-        z-index: 1
+        height: $largeH
+        z-index: 2
         position: absolute
         height: 100%
         width: 100%
@@ -508,7 +534,7 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
         iframe
           width: 100%
           height: 100%
-          z-index: 1
+          z-index: 2
 
       &.ispaused
         box-shadow: 0 0 0 3px #FFF
@@ -524,71 +550,82 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
           box-shadow: 0 -1px 0 1px black
           background-color: #ccc
 
-    >.queue
-      transition: 1s $easeInOut
-      max-width: 92.5vw
-      width: 1250px
-      // height: 6rem
-      position: relative
-      overflow: hidden
-      margin-top: 8px
-      height: calc(100vh - 875px)
-
-      @media only screen and (max-width: $breakW), (max-height: $breakH)
-        height: calc(100vh - 675px)
-        width: 900px
-
-      &:after
-        content: ""
+      >.queue
         position: absolute
-        bottom: 0
-        width: 100%
-        height: 1rem
-        background: linear-gradient(to top, #000 0, transparent 100%)
-
-      >.wrap
-        overflow-y: scroll
-        overflow-x: hidden
+        left: calc(100% + 5px)
+        width: 95px
         height: 100%
-        position: relative
-        width: 100%
+        z-index: 0
+        overflow: hidden
+        transition: 1000ms $easeInOut
+        transition-delay: 100ms
+        overflow: hidden
+        display: flex
+        align-items: center
+        flex-direction: column
 
-        &::-webkit-scrollbar-track
-          background-color: #111
+        >.wrap
+          opacity: 1
+          width: 95px
+          transition: 1000ms $easeInOut
+          transition-delay: 100ms
+          max-height: calc(100% - 24px)
+          overflow-y: scroll
+          overflow-x: hidden
+          scrollbar-width: none
 
-        &::-webkit-scrollbar
-          width: 4px
-          background-color: #111
+          &::-webkit-scrollbar
+            width: 0
 
-        &::-webkit-scrollbar-thumb, .g-scrollbar
-          background-color: #FFF
+          &:after
+            content: ""
+            position: absolute
+            bottom: 24px
+            width: 100%
+            height: 25%
+            background: linear-gradient(to top, #000 0, transparent 100%)
 
-        >.video
-          display: flex
-          align-items: center
-          margin-bottom: 4px
+          >.video
+            display: flex
+            justify-content: center
+            padding-bottom: 5px
+
+            >img
+              height: 50px
+              border-radius: 5px
+              cursor: pointer
+
+        >i.material-icons
+          position: absolute
+          bottom: 0
+          width: 24px
+          opacity: 1
+          transition: 1000ms $easeInOut
           cursor: pointer
+          z-index: 3
 
-          &:last-of-type
-            margin-bottom: 1rem
+          &.playlist
+            width: 0
+            opacity: 0
+            pointer-events: none
 
-          .thumb > img
-            height: 50px
-            border-radius: 5px
-            margin-right: 8px
+        &.hidequeue
+          width: 24px
+          left: calc(100% + 20px)
 
-          .info
-            max-width: calc(100% - 100px)
+          >.wrap
+            width: 0
+            opacity: 0
 
-            .title, .uploader
-              font-family: "Roboto Mono", monospace
-              font-size: 0.85em
-              white-space: nowrap
-              overflow: hidden
-              text-overflow: ellipsis
+          >i.playlist
+            width: 24px
+            opacity: 1
+            pointer-events: unset
 
-            .uploader
-              color: rgba(255, 255, 255, 0.5)
+          >i.volume
+            width: 0
+            opacity: 0
+            pointer-events: none
 
     >.grow
       transition: 1s $easeInOut

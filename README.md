@@ -7,6 +7,7 @@
   - [ ] add queue
   - [ ] add synced volume
   - [ ] add display of who did what
+  - [ ] actually fix volume
 
 ## changelog
 
