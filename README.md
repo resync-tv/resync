@@ -5,7 +5,7 @@
 
 ### Watch YouTube videos with your friends.
 
-> I got annoyed by watch2gether.com, so I built this thing which is more simple and less cluttered. Not intended for public use yet and still missing a lot of stuff. I will clean this up later maybe. Please don't look at my backend spaghetti, I can do better but it works. please don't look at room.vue ok?
+> I got annoyed by watch2gether.com, so I built this thing which is more simple and less cluttered. Not intended for public use yet and still missing a lot of stuff. I will clean this up later maybe. Please don't look at room.vue ok?
 
 ## how to use
 
