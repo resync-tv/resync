@@ -33,6 +33,10 @@ const Room = class {
     this.queue.push(urlid)
     io.to(this.id).emit("update", { queue: this.queue })
   }
+  removequeue(index) {
+    this.queue.splice(index, 1)
+    io.to(this.id).emit("update", { queue: this.queue })
+  }
   playqueue(index) {
     console.log("playqueue")
     this.play(this.queue.splice(index, 1)[0])
@@ -122,6 +126,7 @@ io.on("connection", client => {
   ![
     "play",
     "addqueue",
+    "removequeue",
     "playqueue",
     "ended",
     "stop",

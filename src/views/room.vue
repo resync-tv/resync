@@ -1,7 +1,7 @@
 <template lang="pug">
 .room
   .player(:class="{ novideo: urlid === '' }")
-    .url(:class="{ hidequeue }")
+    .url(:class="{ hidequeue: hidequeue || !queue.length }")
       .input
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off" ref="urlinput"
           autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
@@ -10,12 +10,12 @@
         @click="playurl" :class="{ disabled: !validlink}") play
     button.flat(title="right click to add to queue" ref="searchbutton1" @click.right="addqueue"
       @click="playurl" :class="{ disabled: !validlink}") play
-    .video(:class="{ ispaused, hidequeue }" ref="video")
+    .video(:class="{ ispaused, hidequeue: hidequeue || !queue.length }" ref="video")
 
       .progress(@pointerdown="progress_click")
         .bar(:style="{width: `${progress * 100}%`}")
 
-      .volume(@pointerdown="volume_click" :class="{ hidequeue }")
+      .volume(@pointerdown="volume_click" :class="{ hidequeue: hidequeue || !queue.length }")
         .bar(:style="{height: `${volume}%`}" :class="{ notrans: volumechanging }")
 
       .overlay(@click="overlay_click" ref="overlay")
@@ -26,10 +26,10 @@
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
           :fitParent="true" @playing="playing" @paused="paused" @ended="ended")
 
-      .queue(:class="{ hidequeue }")
-        .wrap
-          .video(v-for="(id, index) in queue")
-            img(@click="playqueue(index)" :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`" draggable="false")
+      .queue(:class="{ hidequeue: hidequeue || !queue.length }")
+        transition-group(name="video" tag="div").wrap
+          .video(v-for="(id, index) in queue" :key="queue.filter(e => e === id).length > 1 ? id + index : id")
+            img(@click="playqueue(index)" @click.right="removequeue($event, index)" :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`" draggable="false")
         i.material-icons.volume(@click="hidequeue = true") volume_up
         i.material-icons.playlist(@click="hidequeue = false") playlist_play
 
@@ -70,7 +70,7 @@ const throttle = (fn, wait) => {
 export default {
   name: "room",
   data: () => ({
-    hidequeue: !true,
+    hidequeue: true,
     queue: [],
     hasended: false,
     urlid: "",
@@ -180,7 +180,10 @@ export default {
       if (typeof people === "object")
         self.people = Object.entries(people).reverse()
 
-      if (typeof queue === "object") self.queue = queue
+      if (typeof queue === "object") {
+        self.queue = queue
+        if (queue.length > 0) self.hidequeue = false
+      }
 
       if (typeof playing === "boolean") {
         if (playing === ((await this.p.getPlayerState()) === 1)) return
@@ -203,6 +206,7 @@ export default {
   methods: {
     ended() {
       console.log("ended")
+      this.hasended = true
       this.socket.emit("ended", [this.id])
     },
     playqueue(index) {
@@ -216,6 +220,10 @@ export default {
         this.id,
         this.$youtube.getIdFromUrl(this.urlinput),
       ])
+    },
+    removequeue(e, index) {
+      e.preventDefault()
+      this.socket.emit("removequeue", [this.id, index])
     },
     paste(e) {
       const self = this
@@ -316,6 +324,7 @@ export default {
       if (this.ignoreNextStateChange)
         return (this.ignoreNextStateChange = false)
 
+      console.log("resume hasended:", this.hasended)
       if (!this.hasended) this.socket.emit("resume", [this.id])
       else this.hasended = false
     },
@@ -594,6 +603,17 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
             display: flex
             justify-content: center
             padding-bottom: 5px
+            height: 50px
+            overflow: hidden
+            opacity: 1
+
+            &-enter-active, &-leave-active
+              transition: 1s $easeInOut
+
+            &-enter, &-leave-to
+              height: 0
+              opacity: 0
+              padding-bottom: 0
 
             >img
               height: 50px
