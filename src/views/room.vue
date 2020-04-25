@@ -127,7 +127,9 @@ export default {
         if (keyCode === 27) target.blur()
         else return
 
-      if (keyCode === 37)
+      if (keyCode === 83) {
+        self.$refs.urlinput.focus()
+      } else if (keyCode === 37)
         self.socket.emit("seekTo", [
           self.id,
           (await self.p.getCurrentTime()) - 5,
@@ -155,7 +157,6 @@ export default {
     }
 
     const update = async ({ urlid, time, playing, people, queue }) => {
-      console.log({ urlid, time, playing, people, queue })
       const { p } = self
       if (urlid) {
         self.urlid = urlid
@@ -205,7 +206,6 @@ export default {
   },
   methods: {
     ended() {
-      console.log("ended")
       this.hasended = true
       this.socket.emit("ended", [this.id])
     },
@@ -324,7 +324,6 @@ export default {
       if (this.ignoreNextStateChange)
         return (this.ignoreNextStateChange = false)
 
-      console.log("resume hasended:", this.hasended)
       if (!this.hasended) this.socket.emit("resume", [this.id])
       else this.hasended = false
     },

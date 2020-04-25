@@ -38,7 +38,6 @@ const Room = class {
     io.to(this.id).emit("update", { queue: this.queue })
   }
   playqueue(index) {
-    console.log("playqueue")
     this.play(this.queue.splice(index, 1)[0])
   }
   ended() {
@@ -55,7 +54,6 @@ const Room = class {
     this.time = 0
     this.urlid = ""
     this.queue = []
-    console.log("sop")
     io.to(this.id).emit("update", rooms[this.id].state)
   }
   playpause(time) {
@@ -138,7 +136,6 @@ io.on("connection", client => {
     client.on(action, ([room, arg]) => {
       rooms[room][action](arg)
       log(`[${room}] ${clients[client.id].name}: ${action} ${arg || ""}`)
-      log(rooms[room].state)
     })
   })
 })
