@@ -1,4 +1,7 @@
-# w2g
+<p align="center">
+  <img src="https://w2g.vaaski.com/banner.png">
+</p>
+<hr>
 
 ### Watch YouTube videos with your friends.
 
@@ -26,10 +29,10 @@
 
 ## todo
 
-- [ ] add queue
+- [x] add queue
 - [ ] add synced volume
 - [ ] add display of who did what
-- [ ] actually fix volume
+- [ ] actually fix volume slider
 
 ## changelog
 
