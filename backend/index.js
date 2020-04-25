@@ -12,6 +12,7 @@ const Room = class {
     this.time = 0
     this.queue = []
     this.people = {}
+    this.endedFor = 0
   }
   get state() {
     return {
@@ -19,6 +20,7 @@ const Room = class {
       playing: this.playing,
       time: this.time,
       people: this.people,
+      queue: this.queue,
     }
   }
   play(urlid) {
@@ -27,11 +29,29 @@ const Room = class {
     this.time = 0
     io.to(this.id).emit("update", rooms[this.id].state)
   }
+  addqueue(urlid) {
+    this.queue.push(urlid)
+    io.to(this.id).emit("update", { queue: this.queue })
+  }
+  playqueue(index) {
+    console.log("playqueue")
+    this.play(this.queue.splice(index, 1)[0])
+  }
+  ended() {
+    this.endedFor++
+    if (this.endedFor >= Object.keys(this.people).length) {
+      this.endedFor = 0
+      if (this.queue.length > 0) this.playqueue(0)
+      else this.stop()
+    }
+  }
   stop() {
     this.playing = false
-    this.urlid = ""
+    this.index = ""
     this.time = 0
+    this.urlid = ""
     this.queue = []
+    console.log("sop")
     io.to(this.id).emit("update", rooms[this.id].state)
   }
   playpause(time) {
@@ -99,39 +119,23 @@ io.on("connection", client => {
   client.on("leaveroom", leave)
   client.on("disconnect", leave)
 
-  !["play", "stop", "playpause", "resume", "pause", "seekTo"].forEach(
-    action => {
-      client.on(action, ([room, arg]) => {
-        rooms[room][action](arg)
-        log(`[${room}] ${clients[client.id].name}: ${action} ${arg || ""}`)
-      })
-    }
-  )
-
-  // client.on("play", ([room, urlid]) => {
-  //   rooms[room].play(urlid)
-  //   log(`${clients[client.id].name} play ${urlid}`)
-  // })
-  // client.on("stop", ([room]) => {
-  //   rooms[room].stop()
-  //   log(`${clients[client.id].name} stop`)
-  // })
-  // client.on("playpause", ([room, time]) => {
-  //   rooms[room].playpause(time)
-  //   log(`${clients[client.id].name} playpause ${time}`)
-  // })
-  // client.on("resume", ([room, time]) => {
-  //   rooms[room].resume(time)
-  //   log(`${clients[client.id].name} resume ${time}`)
-  // })
-  // client.on("pause", ([room, time]) => {
-  //   rooms[room].pause(time)
-  //   log(`${clients[client.id].name} pause ${time}`)
-  // })
-  // client.on("seekTo", ([room, time]) => {
-  //   rooms[room].seekTo(time)
-  //   log(`${clients[client.id].name} seekTo ${time}`)
-  // })
+  ![
+    "play",
+    "addqueue",
+    "playqueue",
+    "ended",
+    "stop",
+    "playpause",
+    "resume",
+    "pause",
+    "seekTo",
+  ].forEach(action => {
+    client.on(action, ([room, arg]) => {
+      rooms[room][action](arg)
+      log(`[${room}] ${clients[client.id].name}: ${action} ${arg || ""}`)
+      log(rooms[room].state)
+    })
+  })
 })
 
 io.listen(1169)

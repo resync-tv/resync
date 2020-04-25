@@ -6,8 +6,10 @@
         input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off" ref="urlinput"
           autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
         span
-      button.flat(ref="searchbutton" @click="playurl" :class="{ disabled: !validlink}") play
-    button.flat(ref="searchbutton1" @click="playurl" :class="{ disabled: !validlink}") play
+      button.flat(title="right click to add to queue" ref="searchbutton" @click.right="addqueue"
+        @click="playurl" :class="{ disabled: !validlink}") play
+    button.flat(title="right click to add to queue" ref="searchbutton1" @click.right="addqueue"
+      @click="playurl" :class="{ disabled: !validlink}") play
     .video(:class="{ ispaused, hidequeue }" ref="video")
 
       .progress(@pointerdown="progress_click")
@@ -22,12 +24,12 @@
 
       .player
         youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
-          :fitParent="true" @playing="playing" @paused="paused")
+          :fitParent="true" @playing="playing" @paused="paused" @ended="ended")
 
       .queue(:class="{ hidequeue }")
         .wrap
-          .video(v-for="video in queue")
-            img(:src="`https://i.ytimg.com/vi/${video}/mqdefault.jpg`" draggable="false")
+          .video(v-for="(id, index) in queue")
+            img(@click="playqueue(index)" :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`" draggable="false")
         i.material-icons.volume(@click="hidequeue = true") volume_up
         i.material-icons.playlist(@click="hidequeue = false") playlist_play
 
@@ -68,29 +70,9 @@ const throttle = (fn, wait) => {
 export default {
   name: "room",
   data: () => ({
-    hidequeue: true,
-    queue: [
-      "aNycEsAN5ys",
-      "Yv3v9SsoDMw",
-      "If1v7xlg_9c",
-      "Eh17H0a8SXw",
-      "iffi5-RZgbg",
-      "aNycEsAN5ys",
-      "Yv3v9SsoDMw",
-      "If1v7xlg_9c",
-      "Eh17H0a8SXw",
-      "iffi5-RZgbg",
-      "aNycEsAN5ys",
-      "Yv3v9SsoDMw",
-      "If1v7xlg_9c",
-      "Eh17H0a8SXw",
-      "iffi5-RZgbg",
-      "aNycEsAN5ys",
-      "Yv3v9SsoDMw",
-      "If1v7xlg_9c",
-      "Eh17H0a8SXw",
-      "iffi5-RZgbg",
-    ],
+    hidequeue: !true,
+    queue: [],
+    hasended: false,
     urlid: "",
     urlinput: "",
     progress: 0,
@@ -172,10 +154,12 @@ export default {
       }
     }
 
-    const update = async ({ urlid, time, playing, people }) => {
+    const update = async ({ urlid, time, playing, people, queue }) => {
+      console.log({ urlid, time, playing, people, queue })
       const { p } = self
       if (urlid) {
         self.urlid = urlid
+        self.hasended = false
         p.loadVideoById({
           videoId: urlid,
           startSeconds: 0,
@@ -187,20 +171,23 @@ export default {
         self.urlid = ""
         self.urlinput = ""
       }
-      if (typeof time === "number") {
-        if (this.lastSkippedTo !== time) {
-          p.seekTo(time)
-          self.play_loop()
-        }
+
+      if (typeof time === "number" && this.lastSkippedTo !== time) {
+        p.seekTo(time)
+        self.play_loop()
       }
+
+      if (typeof people === "object")
+        self.people = Object.entries(people).reverse()
+
+      if (typeof queue === "object") self.queue = queue
+
       if (typeof playing === "boolean") {
         if (playing === ((await this.p.getPlayerState()) === 1)) return
         self.ignoreNextStateChange = true
         if (playing) await p.playVideo()
         else await p.pauseVideo()
       }
-      if (typeof people === "object")
-        self.people = Object.entries(people).reverse()
     }
 
     const { name } = self.$store.state
@@ -214,6 +201,22 @@ export default {
     this.socket.emit("leaveroom")
   },
   methods: {
+    ended() {
+      console.log("ended")
+      this.socket.emit("ended", [this.id])
+    },
+    playqueue(index) {
+      this.socket.emit("playqueue", [this.id, index])
+    },
+    addqueue(e) {
+      e.preventDefault()
+      if (this.urlinput === "") return this.socket.emit("stop", [this.id])
+      if (!this.$youtube.getIdFromUrl(this.urlinput)) return
+      this.socket.emit("addqueue", [
+        this.id,
+        this.$youtube.getIdFromUrl(this.urlinput),
+      ])
+    },
     paste(e) {
       const self = this
       e.preventDefault()
@@ -222,7 +225,10 @@ export default {
         .then(text => {
           self.urlinput = text
           const urlid = self.$youtube.getIdFromUrl(self.urlinput)
-          if (urlid) self.playurl()
+          if (urlid) {
+            if (e.shiftKey) self.addqueue(e)
+            else self.playurl(e)
+          }
         })
         .catch(console.log)
     },
@@ -282,8 +288,8 @@ export default {
       if (this.ispaused) this.socket.emit("resume", update)
       else this.socket.emit("pause", update)
     },
-    async playerStateChange(n) {},
-    playurl() {
+    playurl(e) {
+      if (e.shiftKey) return this.addqueue(e)
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
       this.newVideo = true
@@ -291,9 +297,6 @@ export default {
         this.id,
         this.$youtube.getIdFromUrl(this.urlinput),
       ])
-    },
-    queueurl() {
-      console.log(this.$youtube.getIdFromUrl(this.urlinput))
     },
     async play_loop() {
       this.progress =
@@ -313,7 +316,8 @@ export default {
       if (this.ignoreNextStateChange)
         return (this.ignoreNextStateChange = false)
 
-      this.socket.emit("resume", [this.id])
+      if (!this.hasended) this.socket.emit("resume", [this.id])
+      else this.hasended = false
     },
     async paused() {
       if (this.ispaused) return
@@ -584,6 +588,7 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
             width: 100%
             height: 25%
             background: linear-gradient(to top, #000 0, transparent 100%)
+            pointer-events: none
 
           >.video
             display: flex
