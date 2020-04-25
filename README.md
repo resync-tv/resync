@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://w2g.vaaski.com/banner.png">
+  <a href="https://w2g.vaaski.com" target="_blank">
+    <img src="https://w2g.vaaski.com/banner.png">
+  </a>
 </p>
 <hr>
 
