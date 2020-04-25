@@ -30,8 +30,8 @@
         transition-group(name="video" tag="div").wrap
           .video(v-for="(id, index) in queue" :key="queue.filter(e => e === id).length > 1 ? id + index : id")
             img(@click="playqueue(index)" @click.right="removequeue($event, index)" :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`" draggable="false")
-        i.material-icons.volume(@click="hidequeue = true") volume_up
-        i.material-icons.playlist(@click="hidequeue = false") playlist_play
+        i.material-icons.volume(@click="hidequeue = true" :class="{ queueempty: queue.length === 0}") volume_up
+        i.material-icons.playlist(@click="hidequeue = false" :class="{ queueempty: queue.length === 0}") playlist_play
 
     .grow
   transition-group(name="person" tag="div").people
@@ -129,6 +129,8 @@ export default {
 
       if (keyCode === 83) {
         self.$refs.urlinput.focus()
+      } else if (keyCode === 78) {
+        self.playqueue(0)
       } else if (keyCode === 37)
         self.socket.emit("seekTo", [
           self.id,
@@ -632,6 +634,11 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
             width: 0
             opacity: 0
             pointer-events: none
+
+          &.queueempty
+            width: 0 !important
+            opacity: 0 !important
+            pointer-events: none !important
 
         &.hidequeue
           width: 24px

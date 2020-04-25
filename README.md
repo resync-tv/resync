@@ -14,6 +14,7 @@
 - you'll then be redirected to your room where you can **paste a url** and **click play** _or_ **right click** the input to paste & play a video (chrome only).
 - feel free to share the url of your room to let other people join. people in the room are displayed on the top right corner.
 - to queue a video to play after the current one, paste a url and **right click** the play button _or_ simply **shift right-click** the url input.
+- to play a video from the queue, left click it. to remove a video from the queue simply right click it.
 - to adjust volume, use the slider on the right to the video or the keyboard shortcuts.
 - the current keyboard shortcuts are:
 
@@ -22,6 +23,7 @@
   | arrow right/left | skip 5s                     |
   | arrow up/down    | adjust volume by 5%         |
   | space            | play/pause the video        |
+  | N                | play next video             |
   | Q or V           | toggle queue/volume display |
   | F                | toggle fullscreen           |
   | S                | focus the url bar           |
@@ -39,7 +41,7 @@
 - 25.04.2020
 
   - added a queue feature
-  - added usage info to readme
+  - added usage instructions to readme
 
 - 15.02.2020
 
