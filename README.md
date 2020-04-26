@@ -34,7 +34,7 @@
 ## todo
 
 - [x] add queue
-- [ ] add synced volume
+- [ ] make tampermonkey script for youtube to add videos cross-tab and capture media key input for video skipping or seeking
 - [ ] add display of who did what
 - [ ] actually fix volume slider
 
