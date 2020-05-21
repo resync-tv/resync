@@ -17,7 +17,11 @@ export default {
     window.vue = this
     const self = this
 
-    if (!self.$store.state.name && self.$route.path !== "/signup")
+    if (
+      !self.$store.state.name &&
+      self.$route.path !== "/signup" &&
+      self.$route.path !== "/iframe"
+    )
       self.$router.push({
         path:
           self.$route.fullPath === "/"

@@ -26,6 +26,10 @@ export default new Router({
       component: require("./views/frontpage.vue").default,
     },
     {
+      path: "/iframe",
+      component: require("./views/iframe.vue").default,
+    },
+    {
       path: "*",
       redirect: "/",
     },
