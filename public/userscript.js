@@ -3,7 +3,7 @@
 // @namespace    https://w2g.vaaski.com
 // @version      0.2
 // @description  extended controls for https://w2g.vaaski.com
-// @author       You
+// @author       vaaski
 // @match        https://*.youtube.com/*
 // @grant        none
 // ==/UserScript==
@@ -21,7 +21,7 @@
 
     const logoStyles = document.createElement("style")
     logoStyles.innerText =
-      "@font-face{src:url('https://w2g.vaaski.com/corporation_games.ttf');font-family:corporation_games}#logo.ytd-topbar-logo-renderer,#country-code.ytd-topbar-logo-renderer{display:none}"
+      "@font-face{src:url('https://cdn.jsdelivr.net/gh/vaaski/w2g/src/assets/corporation_games.ttf');font-family:corporation_games}#logo.ytd-topbar-logo-renderer,#country-code.ytd-topbar-logo-renderer{display:none}"
     document.body.appendChild(logoStyles)
     const w2glogo = document.createElement("div")
     w2glogo.innerText = "W2G"
