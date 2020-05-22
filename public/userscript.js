@@ -1,16 +1,13 @@
 // ==UserScript==
 // @name         w2g extended
 // @namespace    https://w2g.vaaski.com
-// @version      0.1
+// @version      0.2
 // @description  extended controls for https://w2g.vaaski.com
 // @author       You
 // @match        https://*.youtube.com/*
 // @grant        none
 // ==/UserScript==
 
-
-// todo make addedText work on moving thumbnails
-// todo replace youtube logo
 !(async () => {
   "use strict"
   if (/\/embed\//gi.exec(window.location.href)) return
@@ -22,9 +19,21 @@
     iframe.src = "https://w2g.vaaski.com/iframe"
     document.body.appendChild(iframe)
 
+    const logoStyles = document.createElement("style")
+    logoStyles.innerText =
+      "@font-face{src:url('https://w2g.vaaski.com/corporation_games.ttf');font-family:corporation_games}#logo.ytd-topbar-logo-renderer,#country-code.ytd-topbar-logo-renderer{display:none}"
+    document.body.appendChild(logoStyles)
+    const w2glogo = document.createElement("div")
+    w2glogo.innerText = "W2G"
+    w2glogo.setAttribute(
+      "style",
+      "color:#FFF;font-size:32px;font-family:corporation_games;"
+    )
+    document.querySelector("ytd-topbar-logo-renderer#logo").appendChild(w2glogo)
+
     document.body.oncontextmenu = async e => {
       const video = e.target.closest(
-        "ytd-grid-video-renderer, ytd-rich-item-renderer"
+        "ytd-grid-video-renderer,ytd-rich-item-renderer,ytd-video-renderer"
       )
 
       if (!video) return
@@ -45,10 +54,10 @@
       addedText.innerText = "added"
       added.setAttribute(
         "style",
-        "font-size:32px;position:absolute;height:100%;width:100%;top:0;left:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);transition:100ms;opacity:0"
+        "color:#fff;font-size:32px;position:absolute;height:100%;width:100%;top:0;left:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);transition:100ms;opacity:0"
       )
       added.appendChild(addedText)
-      video.querySelector("yt-img-shadow").appendChild(added)
+      video.querySelector("ytd-thumbnail").appendChild(added)
 
       await wait(100)
       added.style.opacity = 1
