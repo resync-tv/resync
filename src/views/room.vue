@@ -431,6 +431,7 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
       transition: 1s $easeInOut
       opacity: 1
       margin-right: 95px
+      -webkit-backface-visibility: hidden
 
       &:fullscreen
         border-radius: 0
