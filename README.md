@@ -46,6 +46,10 @@
 
 ## changelog
 
+- 23.05.2020
+
+  - added bookmarklet to the website instead of repo readme
+
 - 22.05.2020
 
   - added bookmarklet for YouTube
