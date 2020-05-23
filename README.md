@@ -34,15 +34,8 @@
 ## bookmarklet
 
 - right-click videos to add them to the queue of the last room you were in, directly on YouTube.
-- create a new bookmark, set a name of your choice and paste the following into the URL field:
-
-```
-javascript:(async function()%7Bconst%20r%20%3D%20await%20fetch(%22https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fvaaski%2Fw2g%2Fpublic%2Fuserscript.min.js%22)%0Aconst%20t%20%3D%20await%20r.text()%0Aconst%20s%20%3D%20document.createElement(%22script%22)%0As.innerHTML%20%3D%20t%0Adocument.body.appendChild(s)%7D)()%3B
-```
-
-(this loads the [userscript.js](https://github.com/vaaski/w2g/blob/master/public/userscript.js) via [jsdelivr](https://jsdelivr.com) into the YouTube page)
-
-- then just click the bookmark while on YouTube to activate it. reload the page to remove it.
+- just click the bookmark while on YouTube to activate it. reload the page to remove it.
+- to install the w2g bookmarklet, simply drag the bookmark icon in the top left corner of a room into your bookmark bar.
 
 ## todo
 

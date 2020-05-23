@@ -1,6 +1,9 @@
 <template lang="pug">
 main.w2g(:class="{ offline, frontpage: $route.path === '/' }")
   nav.bar
+    a.icon(title="drag to your bookmark bar and open while on youtube. click to learn more." @click="bookmark_click" href="javascript:!(async()=%3E%7Bconst%20a=await%20fetch(%22https://raw.githubusercontent.com/vaaski/w2g/master/public/userscript.js%22),b=await%20a.text(),c=document.createElement(%22script%22);c.innerHTML=b,document.body.appendChild(c)%7D)()")
+      span YT-W2G
+    i.material-icons.icon.nopointer bookmark_border
     span(@click="$router.push('/')") W2G
   .route
     transition(name="opacity")
@@ -12,6 +15,7 @@ export default {
   name: "w2g",
   data: () => ({
     offline: true,
+    bookdrag: false,
   }),
   mounted() {
     window.vue = this
@@ -36,6 +40,12 @@ export default {
   beforeDestroy() {
     this.socket.off("connect")
     this.socket.off("connect_error")
+  },
+  methods: {
+    bookmark_click(e) {
+      e.preventDefault()
+      window.open("https://github.com/vaaski/w2g#bookmarklet", "_blank")
+    },
   },
 }
 </script>
@@ -155,10 +165,32 @@ main.w2g
     justify-content: center
     align-items: center
 
+    >.icon
+      fill: rgba(255, 255, 255, 0.25)
+      color: rgba(255, 255, 255, 0.25)
+      height: 24px
+      font-size: 24px
+      left: 0
+      position: absolute
+      margin: 0 12px
+      cursor: pointer
+      opacity: 1
+      transition: 1s $easeInOut
+
+      &.nopointer
+        pointer-events: none
+
+    >a.icon
+      position: absolute
+      width: 24px
+      height: 24px
+      overflow: hidden
+      opacity: 0
+
     >span
       transition: 1s $easeInOut
       font-family: corporation_games
-      font-size: 3em
+      font-size: 4vh
       cursor: pointer
 
   .route
@@ -186,6 +218,9 @@ main.w2g
         font-size: 10em
         transition-delay: 0.25s
 
+      >.icon
+        opacity: 0
+
   &.offline
     nav.bar
       height: 100%
@@ -194,6 +229,9 @@ main.w2g
       >span
         font-size: 15em
         transition-delay: 0.25s
+
+      >.icon
+        opacity: 0
 
     .route
       height: 0
