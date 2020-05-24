@@ -34,7 +34,7 @@
         return null
       }
 
-      const socket = io("http://localhost:1169")
+      const socket = io("https://colo.vaaski.com", { path: "/w2g" })
       window.onmessage = ({ data }) => {
         if (data.type !== "w2g") return
         const store = JSON.parse(localStorage.getItem("store"))
