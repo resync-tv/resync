@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>w2g-iframe</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/socket.io-client@2.3.0/dist/socket.io.js"></script>
+    <script>
+      const youtubeID = (url, opts = { fuzzy: true }) => {
+        if (/youtu\.?be/.test(url)) {
+          const patterns = [
+            /youtu\.be\/([^#\&\?]{11})/,
+            /\?v=([^#\&\?]{11})/,
+            /\&v=([^#\&\?]{11})/,
+            /embed\/([^#\&\?]{11})/,
+            /\/v\/([^#\&\?]{11})/,
+          ]
+          for (i = 0; i < patterns.length; ++i) {
+            if (patterns[i].test(url)) {
+              return patterns[i].exec(url)[1]
+            }
+          }
+          if (opts.fuzzy) {
+            const tokens = url.split(/[\/\&\?=#\.\s]/g)
+            for (i = 0; i < tokens.length; ++i) {
+              if (/^[^#\&\?]{11}$/.test(tokens[i])) {
+                return tokens[i]
+              }
+            }
+          }
+        }
+        return null
+      }
+
+      const socket = io("http://localhost:1169")
+      window.onmessage = ({ data }) => {
+        if (data.type !== "w2g") return
+        const store = JSON.parse(localStorage.getItem("store"))
+
+        if (data.action === "addqueue") {
+          socket.emit("addqueue", [store.lastroom, youtubeID(data.url)])
+        }
+      }
+    </script>
+    <style>
+      body,
+      html {
+        background: black;
+      }
+    </style>
+  </body>
+</html>

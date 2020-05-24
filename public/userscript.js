@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         w2g extended
 // @namespace    https://w2g.vaaski.com
-// @version      0.4
+// @version      0.5
 // @description  extended controls for https://w2g.vaaski.com
 // @author       vaaski
 // @match        https://*.youtube.com/*
@@ -12,13 +12,13 @@
   "use strict"
   if (/\/embed\//gi.exec(window.location.href)) return
   if (window.w2g) return
-  const version = "v0.4"
+  const version = "v0.5"
 
   console.log(`w2g extended ${version}`)
   window.w2g = true
   const wait = t => new Promise(r => setTimeout(r, t))
   const iframe = document.createElement("iframe")
-  iframe.src = "https://w2g.vaaski.com/iframe"
+  iframe.src = "http://localhost/iframe.html"
   document.body.appendChild(iframe)
 
   const logoStyles = document.createElement("style")
