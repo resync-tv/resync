@@ -18,7 +18,7 @@
   window.w2g = true
   const wait = t => new Promise(r => setTimeout(r, t))
   const iframe = document.createElement("iframe")
-  iframe.src = "http://localhost/iframe.html"
+  iframe.src = "https://w2g.vaaski.com/iframe.html"
   document.body.appendChild(iframe)
 
   const logoStyles = document.createElement("style")
