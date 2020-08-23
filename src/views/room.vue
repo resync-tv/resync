@@ -1,90 +1,105 @@
-<template lang="pug">
-.room
-  .player(:class="{ novideo: urlid === '' }")
-    .url(:class="{ hidequeue: hidequeue || !queue.length }")
-      .input
-        input(
-          v-model="urlinput",
-          type="text",
-          placeholder="url",
-          autocomplete="off",
-          autocorrect="off",
-          ref="urlinput",
-          autocapitalize="off",
-          spellcheck="false",
-          :class="{ validlink }",
-          @keydown.enter="playurl",
-          @click.right="paste"
-        )
-        span
-      button.flat(
-        title="right click to add to queue",
-        ref="searchbutton",
-        @click.right="addqueue",
-        @click="playurl",
+<template>
+  <div class="room">
+    <div class="player" :class="{ novideo: urlid === '' }">
+      <div class="url" :class="{ hidequeue: hidequeue || !queue.length }">
+        <div class="input">
+          <input
+            v-model="urlinput"
+            type="text"
+            placeholder="url"
+            autocomplete="off"
+            autocorrect="off"
+            ref="urlinput"
+            autocapitalize="off"
+            spellcheck="false"
+            :class="{ validlink }"
+            @keydown.enter="playurl"
+            @click.right="paste"
+          />
+          <span></span>
+        </div>
+        <button
+          class="flat"
+          title="right click to add to queue"
+          ref="searchbutton"
+          @click.right="addqueue"
+          @click="playurl"
+          :class="{ disabled: !validlink }"
+        >play</button>
+      </div>
+      <button
+        class="flat"
+        title="right click to add to queue"
+        ref="searchbutton1"
+        @click.right="addqueue"
+        @click="playurl"
         :class="{ disabled: !validlink }"
-      ) play
-    button.flat(
-      title="right click to add to queue",
-      ref="searchbutton1",
-      @click.right="addqueue",
-      @click="playurl",
-      :class="{ disabled: !validlink }"
-    ) play
-    .video(
-      :class="{ ispaused, hidequeue: hidequeue || !queue.length, 'no-overlay': noOverlay }",
-      ref="video"
-    )
-      .progress(@pointerdown="progress_click")
-        .bar(:style="{ width: `${progress * 100}%` }")
-
-      .volume(
-        @pointerdown="volume_click",
-        :class="{ hidequeue: hidequeue || !queue.length }"
-      )
-        .bar(:style="{ height: `${volume}%` }", :class="{ notrans: volumechanging }")
-
-      .overlay(@click="overlay_click", ref="overlay")
-        h1.paused paused
-        i.material-icons.fullscreen {{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}
-
-      .player
-        youtube(
-          :video-id="urlid",
-          ref="youtube",
-          :player-vars="pv",
-          width="100%",
-          height="100%",
-          :fitParent="true",
-          @playing="playing",
-          @paused="paused",
-          @ended="ended"
-        )
-
-      .queue(:class="{ hidequeue: hidequeue || !queue.length }")
-        transition-group.wrap(name="video", tag="div")
-          .video(
-            v-for="(id, index) in queue",
-            :key="queue.filter((e) => e === id).length > 1 ? id + index : id"
-          )
-            img(
-              @click="playqueue(index)",
-              @click.right="removequeue($event, index)",
-              :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`",
-              draggable="false"
-            )
-        i.material-icons.volume(
-          @click="hidequeue = true",
-          :class="{ queueempty: queue.length === 0 }"
-        ) volume_up
-        i.material-icons.playlist(
-          @click="hidequeue = false",
-          :class="{ queueempty: queue.length === 0 }"
-        ) playlist_play
-
-    .grow
-  transition-group.people(name="person", tag="div")
-    .person(v-for="person in people", :key="person[0]") {{ person[1] }}
+      >play</button>
+      <div
+        class="video"
+        :class="{ ispaused, hidequeue: hidequeue || !queue.length, 'no-overlay': noOverlay }"
+        ref="video"
+      >
+        <div class="progress" @pointerdown="progress_click">
+          <div class="bar" :style="{ width: `${progress * 100}%` }"></div>
+        </div>
+        <div
+          class="volume"
+          @pointerdown="volume_click"
+          :class="{ hidequeue: hidequeue || !queue.length }"
+        >
+          <div class="bar" :style="{ height: `${volume}%` }" :class="{ notrans: volumechanging }"></div>
+        </div>
+        <div class="overlay" @click="overlay_click" ref="overlay">
+          <h1 class="paused">paused</h1>
+          <i class="material-icons fullscreen">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</i>
+        </div>
+        <div class="player">
+          <youtube
+            :video-id="urlid"
+            ref="youtube"
+            :player-vars="pv"
+            width="100%"
+            height="100%"
+            :fitParent="true"
+            @playing="playing"
+            @paused="paused"
+            @ended="ended"
+          ></youtube>
+        </div>
+        <div class="queue" :class="{ hidequeue: hidequeue || !queue.length }">
+          <transition-group class="wrap" name="video" tag="div">
+            <div
+              class="video"
+              v-for="(id, index) in queue"
+              :key="queue.filter((e) =&gt; e === id).length &gt; 1 ? id + index : id"
+            >
+              <img
+                @click="playqueue(index)"
+                @click.right="removequeue($event, index)"
+                :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`"
+                draggable="false"
+              />
+            </div>
+          </transition-group>
+          <i
+            class="material-icons volume"
+            @click="hidequeue = true"
+            :class="{ queueempty: queue.length === 0 }"
+          >volume_up</i>
+          <i
+            class="material-icons playlist"
+            @click="hidequeue = false"
+            :class="{ queueempty: queue.length === 0 }"
+          >playlist_play</i>
+        </div>
+      </div>
+      <div class="grow"></div>
+    </div>
+    <transition-group class="people" name="person" tag="div">
+      <div class="person" v-for="person in people" :key="person[0]">{{ person[1] }}</div>
+    </transition-group>
+  </div>
 </template>
 
 <script>
