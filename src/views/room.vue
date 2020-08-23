@@ -3,53 +3,102 @@
   .player(:class="{ novideo: urlid === '' }")
     .url(:class="{ hidequeue: hidequeue || !queue.length }")
       .input
-        input(v-model="urlinput" type="text" placeholder="url" autocomplete="off" autocorrect="off" ref="urlinput"
-          autocapitalize="off" spellcheck="false" :class="{ validlink }" @keydown.enter="playurl" @click.right="paste")
+        input(
+          v-model="urlinput",
+          type="text",
+          placeholder="url",
+          autocomplete="off",
+          autocorrect="off",
+          ref="urlinput",
+          autocapitalize="off",
+          spellcheck="false",
+          :class="{ validlink }",
+          @keydown.enter="playurl",
+          @click.right="paste"
+        )
         span
-      button.flat(title="right click to add to queue" ref="searchbutton" @click.right="addqueue"
-        @click="playurl" :class="{ disabled: !validlink}") play
-    button.flat(title="right click to add to queue" ref="searchbutton1" @click.right="addqueue"
-      @click="playurl" :class="{ disabled: !validlink}") play
-    .video(:class="{ ispaused, hidequeue: hidequeue || !queue.length }" ref="video")
-
+      button.flat(
+        title="right click to add to queue",
+        ref="searchbutton",
+        @click.right="addqueue",
+        @click="playurl",
+        :class="{ disabled: !validlink }"
+      ) play
+    button.flat(
+      title="right click to add to queue",
+      ref="searchbutton1",
+      @click.right="addqueue",
+      @click="playurl",
+      :class="{ disabled: !validlink }"
+    ) play
+    .video(
+      :class="{ ispaused, hidequeue: hidequeue || !queue.length, 'no-overlay': noOverlay }",
+      ref="video"
+    )
       .progress(@pointerdown="progress_click")
-        .bar(:style="{width: `${progress * 100}%`}")
+        .bar(:style="{ width: `${progress * 100}%` }")
 
-      .volume(@pointerdown="volume_click" :class="{ hidequeue: hidequeue || !queue.length }")
-        .bar(:style="{height: `${volume}%`}" :class="{ notrans: volumechanging }")
+      .volume(
+        @pointerdown="volume_click",
+        :class="{ hidequeue: hidequeue || !queue.length }"
+      )
+        .bar(:style="{ height: `${volume}%` }", :class="{ notrans: volumechanging }")
 
-      .overlay(@click="overlay_click" ref="overlay")
+      .overlay(@click="overlay_click", ref="overlay")
         h1.paused paused
-        i.material-icons.fullscreen {{fullscreen ? "fullscreen_exit" : "fullscreen"}}
+        i.material-icons.fullscreen {{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}
 
       .player
-        youtube(:video-id="urlid" ref="youtube" :player-vars="pv" width="100%" height="100%"
-          :fitParent="true" @playing="playing" @paused="paused" @ended="ended")
+        youtube(
+          :video-id="urlid",
+          ref="youtube",
+          :player-vars="pv",
+          width="100%",
+          height="100%",
+          :fitParent="true",
+          @playing="playing",
+          @paused="paused",
+          @ended="ended"
+        )
 
       .queue(:class="{ hidequeue: hidequeue || !queue.length }")
-        transition-group(name="video" tag="div").wrap
-          .video(v-for="(id, index) in queue" :key="queue.filter(e => e === id).length > 1 ? id + index : id")
-            img(@click="playqueue(index)" @click.right="removequeue($event, index)" :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`" draggable="false")
-        i.material-icons.volume(@click="hidequeue = true" :class="{ queueempty: queue.length === 0}") volume_up
-        i.material-icons.playlist(@click="hidequeue = false" :class="{ queueempty: queue.length === 0}") playlist_play
+        transition-group.wrap(name="video", tag="div")
+          .video(
+            v-for="(id, index) in queue",
+            :key="queue.filter((e) => e === id).length > 1 ? id + index : id"
+          )
+            img(
+              @click="playqueue(index)",
+              @click.right="removequeue($event, index)",
+              :src="`https://i.ytimg.com/vi/${id}/mqdefault.jpg`",
+              draggable="false"
+            )
+        i.material-icons.volume(
+          @click="hidequeue = true",
+          :class="{ queueempty: queue.length === 0 }"
+        ) volume_up
+        i.material-icons.playlist(
+          @click="hidequeue = false",
+          :class="{ queueempty: queue.length === 0 }"
+        ) playlist_play
 
     .grow
-  transition-group(name="person" tag="div").people
-    .person(v-for="person in people" :key="person[0]") {{person[1]}}
+  transition-group.people(name="person", tag="div")
+    .person(v-for="person in people", :key="person[0]") {{ person[1] }}
 </template>
 
 <script>
 import ls from "local-storage"
 const debounce = (fn, ms = 0) => {
   let timeoutId
-  return function(...args) {
+  return function (...args) {
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn.apply(this, args), ms)
   }
 }
 const throttle = (fn, wait) => {
   let inThrottle, lastFn, lastTime
-  return function() {
+  return function () {
     const context = this,
       args = arguments
     if (!inThrottle) {
@@ -58,7 +107,7 @@ const throttle = (fn, wait) => {
       inThrottle = true
     } else {
       clearTimeout(lastFn)
-      lastFn = setTimeout(function() {
+      lastFn = setTimeout(function () {
         if (Date.now() - lastTime >= wait) {
           fn.apply(context, args)
           lastTime = Date.now()
@@ -70,6 +119,7 @@ const throttle = (fn, wait) => {
 export default {
   name: "room",
   data: () => ({
+    noOverlay: ls("w2g-preferences").noOverlay,
     hidequeue: true,
     queue: [],
     hasended: false,
@@ -132,15 +182,9 @@ export default {
       } else if (keyCode === 78) {
         self.playqueue(0)
       } else if (keyCode === 37)
-        self.socket.emit("seekTo", [
-          self.id,
-          (await self.p.getCurrentTime()) - 5,
-        ])
+        self.socket.emit("seekTo", [self.id, (await self.p.getCurrentTime()) - 5])
       else if (keyCode === 39)
-        self.socket.emit("seekTo", [
-          self.id,
-          (await self.p.getCurrentTime()) + 5,
-        ])
+        self.socket.emit("seekTo", [self.id, (await self.p.getCurrentTime()) + 5])
       else if (keyCode === 38) {
         self.volume = Math.min(100, self.volume + 5)
         self.p.setVolume(self.volume)
@@ -180,8 +224,7 @@ export default {
         self.play_loop()
       }
 
-      if (typeof people === "object")
-        self.people = Object.entries(people).reverse()
+      if (typeof people === "object") self.people = Object.entries(people).reverse()
 
       if (typeof queue === "object") {
         self.queue = queue
@@ -218,10 +261,7 @@ export default {
       e.preventDefault()
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
-      this.socket.emit("addqueue", [
-        this.id,
-        this.$youtube.getIdFromUrl(this.urlinput),
-      ])
+      this.socket.emit("addqueue", [this.id, this.$youtube.getIdFromUrl(this.urlinput)])
     },
     removequeue(e, index) {
       e.preventDefault()
@@ -243,8 +283,7 @@ export default {
         .catch(console.log)
     },
     async progress_click(e) {
-      const time =
-        (e.offsetX / e.target.offsetWidth) * (await this.p.getDuration())
+      const time = (e.offsetX / e.target.offsetWidth) * (await this.p.getDuration())
       this.socket.emit("seekTo", [this.id, time])
       this.play_loop()
     },
@@ -255,14 +294,11 @@ export default {
       self.p.setVolume(self.volume)
       ls("volume", self.volume)
 
-      document.onpointermove = throttle(
-        ({ clientY, offsetY: oy, target: t }) => {
-          self.volume = (1 - oy / t.offsetHeight) * 100
-          self.p.setVolume(self.volume)
-          ls("volume", self.volume)
-        },
-        1000 / 60
-      )
+      document.onpointermove = throttle(({ clientY, offsetY: oy, target: t }) => {
+        self.volume = (1 - oy / t.offsetHeight) * 100
+        self.p.setVolume(self.volume)
+        ls("volume", self.volume)
+      }, 1000 / 60)
       document.onpointerup = () => {
         self.volumechanging = false
         document.onpointerup = null
@@ -285,8 +321,7 @@ export default {
     },
     async overlay_click(e) {
       let update = [this.id]
-      if (e && e.target.classList.contains("fullscreen"))
-        return this.toggle_fullscreen()
+      if (e && e.target.classList.contains("fullscreen")) return this.toggle_fullscreen()
 
       if ((await this.p.getPlayerState()) === 1) {
         const current = await this.p.getCurrentTime()
@@ -303,14 +338,10 @@ export default {
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
       this.newVideo = true
-      this.socket.emit("play", [
-        this.id,
-        this.$youtube.getIdFromUrl(this.urlinput),
-      ])
+      this.socket.emit("play", [this.id, this.$youtube.getIdFromUrl(this.urlinput)])
     },
     async play_loop() {
-      this.progress =
-        (await this.p.getCurrentTime()) / (await this.p.getDuration())
+      this.progress = (await this.p.getCurrentTime()) / (await this.p.getDuration())
 
       if ((await this.p.getPlayerState()) === 1) setTimeout(this.play_loop, 50)
     },
@@ -323,8 +354,7 @@ export default {
         if ((await this.p.getCurrentTime()) !== 0) this.p.seekTo(0)
       }
 
-      if (this.ignoreNextStateChange)
-        return (this.ignoreNextStateChange = false)
+      if (this.ignoreNextStateChange) return (this.ignoreNextStateChange = false)
 
       if (!this.hasended) this.socket.emit("resume", [this.id])
       else this.hasended = false
@@ -333,8 +363,7 @@ export default {
       if (this.ispaused) return
       this.ispaused = true
 
-      if (this.ignoreNextStateChange)
-        return (this.ignoreNextStateChange = false)
+      if (this.ignoreNextStateChange) return (this.ignoreNextStateChange = false)
 
       this.socket.emit("pause", [this.id, await this.p.getCurrentTime()])
     },
@@ -533,6 +562,9 @@ $easeInOut = cubic-bezier(0.76, 0, 0.24, 1)
           background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.125) 0, rgba(255, 255, 255, 0.25) 25%, rgba(255, 255, 255, 1) 100%)
           -webkit-background-clip: text
           -webkit-text-fill-color: transparent
+
+      &.no-overlay>.overlay
+        opacity: 0 !important
 
       >.player
         overflow: hidden

@@ -31,6 +31,10 @@
     "stylus-loader": "^3.0.2",
     "vue-template-compiler": "^2.6.10"
   },
+  "resolutions": {
+    "terser-webpack-plugin/serialize-javascript": "^3.1.0",
+    "copy-webpack-plugin/serialize-javascript": "^3.1.0"
+  },
   "postcss": {
     "plugins": {
       "autoprefixer": {}
