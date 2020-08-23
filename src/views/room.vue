@@ -135,6 +135,7 @@ export default {
   name: "room",
   data: () => ({
     noOverlay: ls("w2g-preferences").noOverlay,
+    disableTimestamp: ls("w2g-preferences").disableTimestamp,
     hidequeue: true,
     queue: [],
     hasended: false,
@@ -173,9 +174,9 @@ export default {
     },
   },
   watch: {
-    urlinput(n) {
+    progress: throttle(function (n) {
       this.cleanurl(this)
-    },
+    }, 250),
   },
   mounted() {
     const self = this
@@ -227,7 +228,7 @@ export default {
           startSeconds: 0,
           suggestedQuality: "hd720",
         })
-        self.urlinput = `https://youtu.be/${urlid}`
+        self.urlinput = `youtu.be/${urlid}`
         if (playing) self.pv.autoplay = 1
       } else if (urlid === "") {
         self.urlid = ""
@@ -277,6 +278,7 @@ export default {
       if (this.urlinput === "") return this.socket.emit("stop", [this.id])
       if (!this.$youtube.getIdFromUrl(this.urlinput)) return
       this.socket.emit("addqueue", [this.id, this.$youtube.getIdFromUrl(this.urlinput)])
+      this.cleanurl(this)
     },
     removequeue(e, index) {
       e.preventDefault()
@@ -290,6 +292,7 @@ export default {
         .then(text => {
           self.urlinput = text
           const urlid = self.$youtube.getIdFromUrl(self.urlinput)
+          self.cleanurl(self)
           if (urlid) {
             if (e.shiftKey) self.addqueue(e)
             else self.playurl(e)
@@ -320,9 +323,13 @@ export default {
         document.onpointermove = null
       }
     },
-    cleanurl: self => {
-      const urlid = self.$youtube.getIdFromUrl(self.urlinput)
-      if (urlid) self.urlinput = `https://youtu.be/${urlid}`
+    cleanurl: async self => {
+      // why the fuck is vue itself an arg why was i like this
+      const urlid = self.urlid //self.$youtube.getIdFromUrl(self.urlinput)
+      const current = Math.floor(self.progress * (await self.p.getDuration()))
+      if (urlid)
+        if (isNaN(current) || self.disableTimestamp) self.urlinput = `youtu.be/${urlid}`
+        else self.urlinput = `youtu.be/${urlid}?t=${current}`
     },
     async toggle_fullscreen() {
       const self = this

@@ -11,9 +11,12 @@ const prefStore = "w2g-preferences"
 if (!ls(prefStore)) ls(prefStore, {})
 
 window.w2gPreferences = {}
-const preferences = ["noOverlay"]
+const preferences = ["noOverlay", "disableTimestamp"]
 preferences.forEach(pref => {
-  window.w2gPreferences[pref] = p => ls(prefStore, { ...ls(prefStore), [pref]: p })
+  window.w2gPreferences[pref] = p => {
+    ls(prefStore, { ...ls(prefStore), [pref]: p })
+    console.info("setting saved, reload to apply.")
+  }
 })
 
 import * as Sentry from "@sentry/browser"
