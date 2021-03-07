@@ -1,7 +1,7 @@
 {
-  "watch": ["src", "types"],
+  "watch": ["backend", "types"],
   "ext": "ts, json",
-  "exec": "npx ts-node ./src/index.ts",
+  "exec": "npx ts-node ./backend/index.ts",
   "events": {
     "start": "node -e console.clear()"
   }

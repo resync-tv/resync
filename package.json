@@ -12,10 +12,10 @@
   "license": "MIT",
   "author": "vaaski <admin@vaa.ski>",
   "scripts": {
-    "build": "rimraf lib && tsc",
+    "back:build": "rimraf lib && tsc",
+    "back:dev": "nodemon",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
-    "dev": "nodemon",
     "commit": "cz -S"
   },
   "files": [
