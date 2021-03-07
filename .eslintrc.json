@@ -8,7 +8,7 @@
     "sourceType": "module",
     "ecmaVersion": 2020
   },
-  "plugins": ["ava"],
+  "plugins": [],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",

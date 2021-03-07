@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["esnext", "ES2020", "DOM", "DOM.Iterable"],
     "outDir": "lib",
     "allowJs": true,
     "strict": true,
@@ -11,7 +11,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true
+    "declaration": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "types": ["vite/client"]
   },
-  "include": ["backend"]
+  "include": ["backend", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

@@ -5,6 +5,5 @@
   "printWidth": 95,
   "tabWidth": 2,
   "useTabs": false,
-  "singleQuote": false,
-  "endOfLine": "crlf"
+  "singleQuote": false
 }
