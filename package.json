@@ -1,6 +1,7 @@
 {
   "name": "w2g",
   "description": "Watch YouTube videos with your friends.",
+  "private": true,
   "keywords": [
     "youtube",
     "watch",
@@ -12,13 +13,12 @@
   "license": "MIT",
   "author": "vaaski <admin@vaa.ski>",
   "scripts": {
+    "dev": "concurrently npm:back:dev npm:front:dev",
     "back:build": "rimraf lib && tsc",
     "back:dev": "nodemon",
     "front:dev": "vite --port 8080",
     "front:build": "vite build",
     "front:serve": "vite preview",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm test",
     "commit": "cz -S"
   },
   "files": [
@@ -34,6 +34,7 @@
     "@vitejs/plugin-vue": "^1.1.5",
     "@vue/compiler-sfc": "^3.0.5",
     "commitizen": "^4.2.2",
+    "concurrently": "^6.0.0",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
