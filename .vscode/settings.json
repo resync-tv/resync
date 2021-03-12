@@ -1,8 +1,6 @@
 {
-  "[vue]": {
-    "editor.defaultFormatter": "johnsoncodehk.volar"
-  },
-  "volar.tsPlugin": true,
   "cSpell.words": ["Windi", "windicss"],
-  "windicss.sortOnSave": true
+  "windicss.sortOnSave": true,
+  "windicss.enableCodeFolding": false,
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }

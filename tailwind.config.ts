@@ -5,9 +5,12 @@ export default defineConfig({
   theme: {
     extend: {
       colors: {
-        bg: "#291d22",
-        fg: "#f4bc20",
+        bg: "#1a1817",
+        fg: "#ffffff",
+        accent: "#e50150",
+        "accent-alt": "#30AFD9",
       },
     },
   },
+  plugins: [require("windicss/plugin/aspect-ratio")],
 })
