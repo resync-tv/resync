@@ -13,7 +13,6 @@
   "license": "MIT",
   "author": "vaaski <admin@vaa.ski>",
   "scripts": {
-    "dev": "concurrently npm:back:dev npm:front:dev",
     "back:build": "rimraf lib && tsc",
     "back:dev": "nodemon",
     "front:dev": "vite --port 8080",
@@ -25,7 +24,8 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "vue": "^3.0.5"
+    "vue": "^3.0.5",
+    "vue-router": "^4.0.4"
   },
   "devDependencies": {
     "@types/node": "^14.14.32",
@@ -34,7 +34,6 @@
     "@vitejs/plugin-vue": "^1.1.5",
     "@vue/compiler-sfc": "^3.0.5",
     "commitizen": "^4.2.2",
-    "concurrently": "^6.0.0",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",

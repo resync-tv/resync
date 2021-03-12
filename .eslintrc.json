@@ -24,6 +24,12 @@
       }
     ],
     "@typescript-eslint/indent": ["error", 2],
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
+      }
+    ]
   }
 }
