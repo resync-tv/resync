@@ -10,6 +10,9 @@ export default defineConfig({
         accent: "#e50150",
         "accent-alt": "#30AFD9",
       },
+      fontFamily: {
+        DEFAULT: ["Manrope"],
+      },
     },
   },
   plugins: [require("windicss/plugin/aspect-ratio")],

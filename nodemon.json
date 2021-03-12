@@ -4,5 +4,8 @@
   "exec": "npx ts-node -r dotenv/config ./backend/index.ts",
   "events": {
     "start": "node -e console.clear()"
+  },
+  "env": {
+    "NODE_ENV": "development"
   }
 }

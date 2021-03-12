@@ -9,10 +9,9 @@ export default defineComponent({
     const { roomID } = route.params as Record<string, string>
 
     const socket = inject<Socket>("socket")
+    if (!socket) throw new Error("socket injection failed")
 
-    socket?.emit("ping", "test string", console.log)
-
-    return { roomID, socket }
+    return { roomID }
   },
 })
 </script>
@@ -20,6 +19,5 @@ export default defineComponent({
 <template>
   <main class="flex flex-col h-full justify-center items-center">
     <h1>room: {{ roomID }}</h1>
-    <h1>socket: {{ typeof socket }}</h1>
   </main>
 </template>
