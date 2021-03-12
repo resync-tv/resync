@@ -10,11 +10,10 @@ import { io } from "socket.io-client"
 export default defineComponent({
   name: "w2g-next",
   setup() {
-    // @ts-expect-error it works
-    const backendAddress = import.meta.env.VITE_BACKEND_ADDRESS as string
-    if (!backendAddress) throw new Error("no backend address found")
+    const development = process.env.NODE_ENV === "development"
 
-    const socket = io(backendAddress)
+    // TODO change when deploying to prod
+    const socket = development ? io("http://localhost:3020") : io("http://localhost:3020")
     const socketConnected = ref(false)
 
     socket.on("connect", () => (socketConnected.value = true))
@@ -24,8 +23,9 @@ export default defineComponent({
 
     onBeforeUnmount(() => socket.close())
 
+    // TODO remove once stable
     // @ts-expect-error nothing relies on this, purely for debugging
-    if (process.env.NODE_ENV === "development") window.socket = socket
+    if (development) window.socket = socket
 
     return { socketConnected }
   },
