@@ -1,50 +1,81 @@
 import type { Server } from "socket.io"
+import type { MediaSource } from "../types/mediaSource"
 
-import ytdl, { videoFormat } from "ytdl-core"
-import { promisify, dev } from "./util"
+import ytdl from "ytdl-core"
+import { promisify, dev, average } from "./util"
 
-const getCombinedStreamRaw = async (id: string) => {
-  dev.log(`fetching fresh combined stream for ${id}`)
+const urlExpire = (url: string): number => {
+  const { searchParams } = new URL(url)
+  const expires = searchParams.get("expire")
+  if (!expires) throw new Error("no expire parameter found in stream url")
 
+  return Number(expires)
+}
+
+const transformFormat = (format: ytdl.videoFormat): MediaSource => {
+  return {
+    url: format.url,
+    quality: format.hasVideo ? format.qualityLabel : `${format.audioBitrate} kbps`,
+  }
+}
+
+interface Cached {
+  formats: ytdl.videoFormat[]
+  expires: Date
+}
+const cached: Record<string, Cached> = {}
+
+const fetchFormats = async (source: string) => {
+  const id = ytdl.getVideoID(source)
+
+  if (cached[id]) {
+    dev.log(`cached formats found for ${id}`)
+
+    if (new Date() > cached[id].expires) delete cached[id]
+    else return cached[id]
+  }
+
+  dev.log(`fetching formats for ${id}`)
   const { formats } = await ytdl.getInfo(id)
+  const averageExpire = average(...formats.map(f => urlExpire(f.url)))
+  const expires = new Date(averageExpire * 1e3)
+
+  cached[id] = { formats, expires }
+
+  return cached[id]
+}
+
+export const getCombinedStream = async (source: string): Promise<MediaSource> => {
+  const { formats } = await fetchFormats(source)
 
   const combined = formats.filter(f => f.hasAudio && f.hasVideo)
   const [best] = combined.sort((a, b) => (b.height || 0) - (a.height || 0))
 
-  return best
+  return transformFormat(best)
 }
 
-interface VideoFormatWithExpiration extends videoFormat {
-  expires: Date
+interface SeperateStreams {
+  audio: MediaSource[]
+  video: MediaSource[]
 }
 
-const combinedCached: Record<string, VideoFormatWithExpiration> = {}
+export const getSeperateStreams = async (source: string): Promise<SeperateStreams> => {
+  const { formats } = await fetchFormats(source)
 
-const getCombinedStream = async (source: string) => {
-  const id = ytdl.getVideoID(source)
+  const audios = formats.filter(f => f.hasAudio && !f.hasVideo)
+  const audio = audios.sort((a, b) => (b.audioBitrate || 0) - (a.audioBitrate || 0))
 
-  dev.log(`getting combined stream for ${id}`)
+  const videos = formats.filter(f => !f.hasAudio && f.hasVideo)
+  const video = videos.sort((a, b) => (b.height || 0) - (a.height || 0))
 
-  if (combinedCached[id]) {
-    dev.log(`combined stream in cache for ${id}`)
-    if (combinedCached[id].expires < new Date()) delete combinedCached[id]
-    else return combinedCached[id]
+  return {
+    audio: audio.map(f => transformFormat(f)),
+    video: video.map(f => transformFormat(f)),
   }
-
-  const best = await getCombinedStreamRaw(id)
-  const url = new URL(best.url)
-  const expires = Number(url.searchParams.get("expire"))
-
-  combinedCached[id] = {
-    ...best,
-    expires: new Date(expires * 1e3),
-  }
-
-  return combinedCached[id]
 }
 
-const include = [getCombinedStream]
+const include = [getCombinedStream, getSeperateStreams]
 
 export default (io: Server): void => {
-  io.on("connect", client => include.map(fn => client.on(fn.name, promisify(fn))))
+  io.on("connect", client => include.forEach(fn => client.on(fn.name, promisify(fn))))
 }
