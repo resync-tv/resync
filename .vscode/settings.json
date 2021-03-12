@@ -1,0 +1,6 @@
+{
+  "[vue]": {
+    "editor.defaultFormatter": "johnsoncodehk.volar"
+  },
+  "volar.tsPlugin": true
+}
