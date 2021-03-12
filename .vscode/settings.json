@@ -2,5 +2,7 @@
   "[vue]": {
     "editor.defaultFormatter": "johnsoncodehk.volar"
   },
-  "volar.tsPlugin": true
+  "volar.tsPlugin": true,
+  "cSpell.words": ["Windi", "windicss"],
+  "windicss.sortOnSave": true
 }
