@@ -13,7 +13,8 @@
   "license": "MIT",
   "author": "vaaski <admin@vaa.ski>",
   "scripts": {
-    "back:build": "rimraf lib && tsc",
+    "start": "node -r dotenv/config lib",
+    "back:build": "rimraf lib && tsc -p tsconfig.backend.json",
     "back:dev": "nodemon",
     "front:dev": "vite --port 8080",
     "front:build": "vite build",
@@ -24,8 +25,11 @@
     "lib/**/*"
   ],
   "dependencies": {
+    "socket.io": "^4.0.0",
+    "socket.io-client": "^4.0.0",
     "vue": "^3.0.5",
-    "vue-router": "^4.0.4"
+    "vue-router": "^4.0.4",
+    "ytdl-core": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.32",
@@ -35,6 +39,7 @@
     "@vue/compiler-sfc": "^3.0.5",
     "@vuedx/typescript-plugin-vue": "^0.6.3",
     "commitizen": "^4.2.2",
+    "dotenv": "^8.2.0",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",

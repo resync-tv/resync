@@ -1,5 +1,6 @@
 <script lang="ts">
-import { defineComponent } from "vue"
+import { Socket } from "socket.io"
+import { defineComponent, inject } from "vue"
 import { useRoute } from "vue-router"
 
 export default defineComponent({
@@ -7,11 +8,18 @@ export default defineComponent({
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
 
-    return { roomID }
+    const socket = inject<Socket>("socket")
+
+    socket?.emit("ping", "test string", console.log)
+
+    return { roomID, socket }
   },
 })
 </script>
 
 <template>
-  <h1>room {{ roomID }}</h1>
+  <main class="flex flex-col h-full justify-center items-center">
+    <h1>room: {{ roomID }}</h1>
+    <h1>socket: {{ typeof socket }}</h1>
+  </main>
 </template>
