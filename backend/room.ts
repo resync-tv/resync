@@ -4,7 +4,8 @@ import type { MediaSourceAny } from "../types/mediaSource"
 import type { PlayContentArg, RoomArg, RoomState } from "../types/room"
 import { resolveContent } from "./content"
 
-import { dev } from "./util"
+import debug from "debug"
+const log = debug("w2g:room")
 
 const rooms: Record<string, Room> = {}
 
@@ -18,7 +19,7 @@ class Room {
   private source: MediaSourceAny | undefined
 
   constructor(roomID: string, io: Server) {
-    dev.log(`constructing room ${roomID}`)
+    log(`constructing room ${roomID}`)
 
     this.roomID = roomID
     this.io = io
@@ -26,13 +27,13 @@ class Room {
   }
 
   leave(client: Socket) {
-    dev.log(`client ${client.id} left room ${this.roomID}`)
+    log(`client ${client.id} left room ${this.roomID}`)
 
     client.leave(this.roomID)
     delete this.members[client.id]
   }
   join(client: Socket) {
-    dev.log(`client ${client.id} joined room ${this.roomID}`)
+    log(`client ${client.id} joined room ${this.roomID}`)
 
     this.members[client.id] = client
     client.join(this.roomID)

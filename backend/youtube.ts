@@ -1,7 +1,10 @@
 import type { MediaSource } from "../types/mediaSource"
 
 import ytdl from "ytdl-core"
-import { dev, average } from "./util"
+import { average } from "./util"
+
+import debug from "debug"
+const log = debug("w2g:youtube")
 
 const urlExpire = (url: string): number => {
   const { searchParams } = new URL(url)
@@ -29,13 +32,13 @@ const fetchVideo = async (source: string) => {
   const id = ytdl.getVideoID(source)
 
   if (cached[id]) {
-    dev.log(`cached formats found for ${id}`)
+    log(`cached formats found for ${id}`)
 
     if (new Date() > cached[id].expires) delete cached[id]
     else return cached[id]
   }
 
-  dev.log(`fetching formats for ${id}`)
+  log(`fetching formats for ${id}`)
   const { formats, videoDetails } = await ytdl.getInfo(id)
   const averageExpire = average(...formats.map(f => urlExpire(f.url)))
   const expires = new Date(averageExpire * 1e3)
