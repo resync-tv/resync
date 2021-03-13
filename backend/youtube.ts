@@ -59,7 +59,6 @@ export const getCombinedStream = async (source: string): Promise<MediaSource[]> 
 
 export const getTitle = async (source: string): Promise<string> => {
   const { videoDetails } = await fetchVideo(source)
-
   return videoDetails.title
 }
 

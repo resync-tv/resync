@@ -6,10 +6,13 @@ import type { MediaSourceAny } from "../../types/mediaSource"
 import { defineComponent, inject, onBeforeUnmount, ref } from "vue"
 import { useRoute } from "vue-router"
 
+import VideoPlayer from "../components/VideoPlayer"
+
 import debug from "debug"
 const log = debug("w2g:room")
 
 export default defineComponent({
+  components: { VideoPlayer },
   setup() {
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
@@ -19,10 +22,14 @@ export default defineComponent({
     const socket = inject<Socket>("socket")
     if (!socket) throw new Error("socket injection failed")
 
-    socket.emit("joinRoom", { roomID }, (state: RoomState) => {
-      log("initial room state", state)
-      roomState.value = state
-    })
+    const joinRoom = () => {
+      socket.emit("joinRoom", { roomID }, (state: RoomState) => {
+        log("initial room state", state)
+        roomState.value = state
+      })
+    }
+    joinRoom()
+    socket.on("connect", joinRoom)
 
     socket.on("source", (source: MediaSourceAny) => {
       log("new source", source)
@@ -33,6 +40,8 @@ export default defineComponent({
     onBeforeUnmount(() => {
       log("left room")
       socket.emit("leaveRoom", { roomID })
+      socket.off("connect", joinRoom)
+      socket.off("source")
     })
 
     return { roomID, roomState }
@@ -42,7 +51,8 @@ export default defineComponent({
 
 <template>
   <main class="flex flex-col h-full justify-center items-center">
-    <h1>room: {{ roomID }}</h1>
-    <h2>roomState: {{ roomState }}</h2>
+    <span>room: {{ roomID }}</span>
+    <code class="font-mono">roomState: {{ roomState }}</code>
+    <VideoPlayer v-if="roomState.source" :source="roomState.source" />
   </main>
 </template>

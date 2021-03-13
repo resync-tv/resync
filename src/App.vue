@@ -37,7 +37,7 @@ export default defineComponent({
   @apply text-accent-alt;
   @apply underline;
 }
-#app * {
+* {
   @apply font;
 }
 </style>
