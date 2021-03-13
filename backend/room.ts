@@ -1,7 +1,8 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { DefaultEventsMap } from "socket.io/dist/typed-events"
 import type { MediaSourceAny } from "../types/mediaSource"
-import type { RoomState } from "../types/room"
+import type { PlayContentArg, RoomArg, RoomState } from "../types/room"
+import { resolveContent } from "./content"
 
 import { dev } from "./util"
 
@@ -44,20 +45,31 @@ class Room {
       source: this.source,
     }
   }
+
+  async playContent(source: string, startFrom: number) {
+    this.source = await resolveContent(source, startFrom)
+    this.broadcast.emit("source", this.source)
+  }
 }
 
 export default (io: Server): void => {
+  const getRoom = (roomID: string) => {
+    if (!rooms[roomID]) rooms[roomID] = new Room(roomID, io)
+    return rooms[roomID]
+  }
+
   io.on("connect", client => {
-    client.on("joinRoom", ({ roomID }, reply) => {
-      if (!rooms[roomID]) rooms[roomID] = new Room(roomID, io)
+    client.on("joinRoom", ({ roomID }: RoomArg, reply) => {
+      const room = getRoom(roomID)
+      room.join(client)
 
-      rooms[roomID].join(client)
-
-      reply(rooms[roomID].state)
+      reply(room.state)
     })
 
-    client.on("leaveRoom", ({ roomID }) => {
-      if (rooms[roomID]) rooms[roomID].leave(client)
+    client.on("leaveRoom", ({ roomID }: RoomArg) => getRoom(roomID).leave(client))
+
+    client.on("playContent", ({ roomID, source, startFrom = 0 }: PlayContentArg) => {
+      getRoom(roomID).playContent(source, startFrom)
     })
   })
 }

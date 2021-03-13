@@ -8,6 +8,8 @@ export interface MediaSource {
 export interface MediaBase {
   platform: Platform
   startFrom: number
+  title: string
+  thumb?: string
 }
 
 export interface MediaAudio extends MediaBase {

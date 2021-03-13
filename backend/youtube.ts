@@ -21,10 +21,11 @@ const transformFormat = (format: ytdl.videoFormat): MediaSource => {
 interface Cached {
   formats: ytdl.videoFormat[]
   expires: Date
+  videoDetails: ytdl.MoreVideoDetails
 }
 const cached: Record<string, Cached> = {}
 
-const fetchFormats = async (source: string) => {
+const fetchVideo = async (source: string) => {
   const id = ytdl.getVideoID(source)
 
   if (cached[id]) {
@@ -35,22 +36,28 @@ const fetchFormats = async (source: string) => {
   }
 
   dev.log(`fetching formats for ${id}`)
-  const { formats } = await ytdl.getInfo(id)
+  const { formats, videoDetails } = await ytdl.getInfo(id)
   const averageExpire = average(...formats.map(f => urlExpire(f.url)))
   const expires = new Date(averageExpire * 1e3)
 
-  cached[id] = { formats, expires }
+  cached[id] = { formats, videoDetails, expires }
 
   return cached[id]
 }
 
-export const getCombinedStream = async (source: string): Promise<MediaSource> => {
-  const { formats } = await fetchFormats(source)
+export const getCombinedStream = async (source: string): Promise<MediaSource[]> => {
+  const { formats } = await fetchVideo(source)
 
   const combined = formats.filter(f => f.hasAudio && f.hasVideo)
-  const [best] = combined.sort((a, b) => (b.height || 0) - (a.height || 0))
+  const sorted = combined.sort((a, b) => (b.height || 0) - (a.height || 0))
 
-  return transformFormat(best)
+  return sorted.map(transformFormat)
+}
+
+export const getTitle = async (source: string): Promise<string> => {
+  const { videoDetails } = await fetchVideo(source)
+
+  return videoDetails.title
 }
 
 interface SeperateStreams {
@@ -59,7 +66,7 @@ interface SeperateStreams {
 }
 
 export const getSeperateStreams = async (source: string): Promise<SeperateStreams> => {
-  const { formats } = await fetchFormats(source)
+  const { formats } = await fetchVideo(source)
 
   const audios = formats.filter(f => f.hasAudio && !f.hasVideo)
   const audio = audios.sort((a, b) => (b.audioBitrate || 0) - (a.audioBitrate || 0))
@@ -68,7 +75,7 @@ export const getSeperateStreams = async (source: string): Promise<SeperateStream
   const video = videos.sort((a, b) => (b.height || 0) - (a.height || 0))
 
   return {
-    audio: audio.map(f => transformFormat(f)),
-    video: video.map(f => transformFormat(f)),
+    audio: audio.map(transformFormat),
+    video: video.map(transformFormat),
   }
 }

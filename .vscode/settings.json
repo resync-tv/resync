@@ -1,5 +1,9 @@
 {
-  "cSpell.words": ["Windi", "windicss"],
+  "cSpell.words": [
+    "Windi",
+    "windicss",
+    "youtu"
+  ],
   "windicss.sortOnSave": true,
   "windicss.enableCodeFolding": false,
   "typescript.tsdk": "node_modules\\typescript\\lib"
