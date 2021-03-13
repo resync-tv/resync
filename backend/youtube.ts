@@ -1,8 +1,7 @@
-import type { Server } from "socket.io"
 import type { MediaSource } from "../types/mediaSource"
 
 import ytdl from "ytdl-core"
-import { promisify, dev, average } from "./util"
+import { dev, average } from "./util"
 
 const urlExpire = (url: string): number => {
   const { searchParams } = new URL(url)
@@ -72,10 +71,4 @@ export const getSeperateStreams = async (source: string): Promise<SeperateStream
     audio: audio.map(f => transformFormat(f)),
     video: video.map(f => transformFormat(f)),
   }
-}
-
-const include = [getCombinedStream, getSeperateStreams]
-
-export default (io: Server): void => {
-  io.on("connect", client => include.forEach(fn => client.on(fn.name, promisify(fn))))
 }

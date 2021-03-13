@@ -19,3 +19,5 @@ export interface MediaVideo extends MediaBase {
 }
 
 export interface MediaAudioVideo extends MediaAudio, MediaVideo {}
+
+export type MediaSourceAny = MediaAudio | MediaVideo | MediaAudioVideo

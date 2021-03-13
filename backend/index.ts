@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
+import room from "./room"
 
-import youtube from "./youtube"
 import { dev } from "./util"
 
 const httpServer = createServer()
@@ -22,6 +22,6 @@ io.on("connection", client => {
   })
 })
 
-youtube(io)
+room(io)
 
 httpServer.listen(port).on("listening", () => console.log(`w2g-next listening on ${port}`))
