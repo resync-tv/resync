@@ -14,8 +14,6 @@ interface Member {
   client: Socket
 }
 
-type Callback = (...x: any) => any
-
 class Room {
   readonly roomID: string
   private io: Server
@@ -63,7 +61,8 @@ class Room {
     client.leave(this.roomID)
     delete this.members[client.id]
 
-    this.log(`member amount: ${Object.keys(this.members).length}`)
+    const memberAmount = Object.keys(this.members).length
+    if (memberAmount <= 0) this.paused = true
   }
 
   async playContent(client: Socket, source: string, startFrom: number) {
@@ -99,7 +98,7 @@ class Room {
     return this
   }
 
-  async requestTime(client: Socket, cb: Callback) {
+  async requestTime(client: Socket) {
     const requestTimeLog = this.log.extend("requestTime")
     requestTimeLog("requested time")
 
@@ -112,11 +111,13 @@ class Room {
     const times = []
 
     for (const id of otherClients) {
-      if (!this.members[id])
-        return requestTimeLog.extend("error")(`id ${id} not found in clients`)
+      if (!this.members[id]) {
+        requestTimeLog.extend("error")(`id ${id} not found in clients`)
+        continue
+      }
 
       const time = await getTime(this.members[id].client)
-      requestTimeLog(`id ${id} time ${time}`)
+      requestTimeLog(`${id} responded with time ${time}`)
       times.push(time)
     }
 
@@ -124,7 +125,14 @@ class Room {
 
     requestTimeLog("times", times, "avg", avg)
 
-    cb(avg)
+    return avg
+  }
+
+  async resync(client: Socket) {
+    this.pause(client)
+    const avg = await this.requestTime(client)
+    this.seekTo(client, avg)
+    this.resume(client)
   }
 }
 
@@ -159,8 +167,7 @@ export default (io: Server): void => {
     client.on("seekTo", ({ roomID, currentTime }) => {
       getRoom(roomID).seekTo(client, currentTime)
     })
-    client.on("requestTime", ({ roomID }, cb) => {
-      getRoom(roomID).requestTime(client, cb)
-    })
+
+    client.on("resync", ({ roomID }) => getRoom(roomID).resync(client))
   })
 }

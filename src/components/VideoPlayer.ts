@@ -42,27 +42,7 @@ export default defineComponent({
 
       video.value.volume = 0.1
       if (state.value.paused) video.value.currentTime = state.value.lastSeekedTo
-      else {
-        // TODO pause upon resync request and let the server resume playback
-        const start = performance.now()
-        const requestedTime = await w2gify.requestTime()
-        const initialCorrectedTime = requestedTime + (performance.now() - start) / 1e3
-
-        log(`requested time ${requestedTime}, corrected ${initialCorrectedTime}`)
-
-        const correctTime = () => {
-          if (!video.value) return
-          const correctedTime = requestedTime + (performance.now() - start) / 1e3
-          log(`load correction ${correctedTime}`)
-          video.value.currentTime = correctedTime
-          video.value.removeEventListener("play", correctTime)
-        }
-
-        video.value.currentTime = initialCorrectedTime
-        video.value.play()
-
-        video.value.addEventListener("play", correctTime)
-      }
+      else w2gify.resync()
 
       const offPause = w2gify.onPause(() => {
         logRemote("onPause")

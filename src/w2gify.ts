@@ -12,9 +12,9 @@ type W2GListener<T = NoArgumentsNorReturn> = (x: T) => SocketOff
 export interface W2Gify {
   playContent: (source: string) => void
   pause: (currentTime: number) => void
-  resume: () => void
+  resume: GenericFn
   seekTo: (currentTime: number) => void
-  requestTime: () => Promise<number>
+  resync: GenericFn
   onPause: W2GListener
   onResume: W2GListener
   onSeekTo: W2GListener<GenericFn<number>>
@@ -27,7 +27,7 @@ export const w2gify = (socket: Socket, roomEmit: RoomEmit): W2Gify => {
     pause: currentTime => roomEmit("pause", { currentTime }),
     resume: () => roomEmit("resume"),
     seekTo: currentTime => roomEmit("seekTo", { currentTime }),
-    requestTime: () => new Promise(res => roomEmit("requestTime", {}, res)),
+    resync: () => roomEmit("resync"),
     onPause: fn => {
       socket.on("pause", fn)
       log(`registered onPause handler`)
