@@ -1,5 +1,5 @@
 import type { Socket } from "socket.io-client"
-import type { RoomEmit } from "$/room"
+import type { EventNotifiy, RoomEmit } from "$/room"
 
 import debug from "debug"
 const log = debug("w2g:w2gify")
@@ -19,9 +19,10 @@ export interface W2Gify {
   onResume: W2GListener
   onSeekTo: W2GListener<GenericFn<number>>
   onRequestTime: W2GListener<GenericFn<GenericFn<number>>>
+  onNotify: W2GListener<GenericFn<EventNotifiy>>
 }
 
-export const w2gify = (socket: Socket, roomEmit: RoomEmit): W2Gify => {
+export default (socket: Socket, roomEmit: RoomEmit): W2Gify => {
   return {
     playContent: (source: string) => roomEmit("playContent", { source }),
     pause: currentTime => roomEmit("pause", { currentTime }),
@@ -62,6 +63,15 @@ export const w2gify = (socket: Socket, roomEmit: RoomEmit): W2Gify => {
       return () => {
         socket.off("requestTime", fn)
         log(`unregistered onRequestTime handler`)
+      }
+    },
+    onNotify: fn => {
+      socket.on("notifiy", fn)
+      log(`registered onNotify handler`)
+
+      return () => {
+        socket.off("notifiy", fn)
+        log(`unregistered onNotify handler`)
       }
     },
   }

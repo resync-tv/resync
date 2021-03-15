@@ -1,7 +1,7 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { DefaultEventsMap } from "socket.io/dist/typed-events"
 import type { MediaSourceAny } from "../types/mediaSource"
-import type { PlayContentArg, RoomState } from "../types/room"
+import type { EventNotifiy, NotifiedEvents, PlayContentArg, RoomState } from "../types/room"
 import { resolveContent } from "./content"
 
 import debug from "debug"
@@ -34,9 +34,14 @@ class Room {
     this.log = log.extend(roomID)
   }
 
-  private notify(event: string, client: Socket) {
+  private notify(event: NotifiedEvents, client: Socket, additional?: any) {
     const { id } = client
-    this.broadcast.emit("notifiy", { event, id })
+    let name = id
+    if (this.members[id]) name = this.members[id].name
+
+    const eventNotification: EventNotifiy = { event, id, name, additional }
+    this.broadcast.emit("notifiy", eventNotification)
+    this.log(`[${event}](${name})`, additional || "")
   }
 
   get state(): RoomState {
@@ -46,17 +51,17 @@ class Room {
       lastSeekedTo: this.lastSeekedTo,
     }
   }
-  join(client: Socket) {
-    this.log(`client ${client.id} joined room ${this.roomID}`)
-
-    // TODO set name
-    this.members[client.id] = { client, name: "undefined" }
+  join(client: Socket, name: string) {
+    this.members[client.id] = { client, name }
     client.join(this.roomID)
+
+    this.notify("join", client)
+
     client.on("disconnect", () => this.leave(client))
   }
 
   leave(client: Socket) {
-    this.log(`client ${client.id} left room ${this.roomID}`)
+    this.notify("leave", client)
 
     client.leave(this.roomID)
     delete this.members[client.id]
@@ -66,7 +71,7 @@ class Room {
   }
 
   async playContent(client: Socket, source: string, startFrom: number) {
-    this.log("playContent", source, "starting from", startFrom)
+    this.notify("playContent", client, { source, startFrom })
 
     this.source = await resolveContent(source, startFrom)
     this.lastSeekedTo = startFrom
@@ -75,7 +80,7 @@ class Room {
   }
 
   pause(client: Socket) {
-    this.log("pause")
+    this.notify("pause", client)
 
     this.paused = true
     this.broadcast.emit("pause")
@@ -83,7 +88,7 @@ class Room {
   }
 
   resume(client: Socket) {
-    this.log("resume")
+    this.notify("resume", client)
 
     this.paused = false
     this.broadcast.emit("resume")
@@ -91,7 +96,7 @@ class Room {
   }
 
   seekTo(client: Socket, seconds: number) {
-    this.log(`seekTo ${seconds}`)
+    this.notify("seekTo", client, { seconds })
 
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
@@ -129,6 +134,8 @@ class Room {
   }
 
   async resync(client: Socket) {
+    this.notify("resync", client)
+
     this.pause(client)
     const avg = await this.requestTime(client)
     this.seekTo(client, avg)
@@ -145,7 +152,7 @@ export default (io: Server): void => {
   io.on("connect", client => {
     client.on("joinRoom", ({ roomID, name }, reply) => {
       const room = getRoom(roomID)
-      room.join(client)
+      room.join(client, name)
 
       reply(room.state)
     })

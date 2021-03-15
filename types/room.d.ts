@@ -16,3 +16,19 @@ export interface PlayContentArg extends RoomArg {
 }
 
 export type RoomEmit = (event: string, arg?: Record<string, any> | undefined, cb?: any) => void
+
+export type NotifiedEvents =
+  | "join"
+  | "leave"
+  | "playContent"
+  | "pause"
+  | "resume"
+  | "seekTo"
+  | "resync"
+
+export interface EventNotifiy {
+  event: NotifiedEvents
+  id: string
+  name: string
+  additional?: any
+}

@@ -7,7 +7,7 @@ import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from
 import { useRoute } from "vue-router"
 
 import VideoPlayer from "@/components/VideoPlayer"
-import { w2gify } from "@/w2gify"
+import W2Gify from "@/w2gify"
 
 import debug from "debug"
 const log = debug("w2g:room")
@@ -38,16 +38,18 @@ export default defineComponent({
       socket.emit(event, { roomID, ...arg }, cb)
     }
 
-    const W2Gify = w2gify(socket, roomEmit)
-    const { playContent } = W2Gify
-    provide("w2gify", W2Gify)
+    const w2gify = W2Gify(socket, roomEmit)
+    const { playContent } = w2gify
+    provide("w2gify", w2gify)
 
     if (log.enabled)
       // @ts-expect-error for manual testing
-      window.w2gify = W2Gify
+      window.w2gify = w2gify
 
     const joinRoom = () => {
-      roomEmit("joinRoom", {}, (state: RoomState) => {
+      const name = localStorage.getItem("w2g-name") || "default"
+
+      roomEmit("joinRoom", { name }, (state: RoomState) => {
         log("initial room state", state)
         roomState.value = state
       })
@@ -61,11 +63,16 @@ export default defineComponent({
       roomState.value.source = source
     })
 
+    const offNotifiy = w2gify.onNotify(({ event, name, additional }) => {
+      log.extend("notify")(`[${event}](${name})`, additional || "")
+    })
+
     onBeforeUnmount(() => {
       log("left room")
       roomEmit("leaveRoom")
       socket.off("connect", joinRoom)
       socket.off("source")
+      offNotifiy()
     })
 
     return { roomID, roomState, sourceInput, sourceValid, playContent }
