@@ -1,8 +1,9 @@
 import type { MediaSourceAny } from "./mediaSource"
 
-export interface RoomState {
+export interface RoomState<S = MediaSourceAny> {
   paused: boolean
-  source: MediaSourceAny | undefined
+  source: S | undefined
+  lastSeekedTo: number
 }
 
 export interface RoomArg {

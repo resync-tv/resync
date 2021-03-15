@@ -26,7 +26,7 @@ export default defineComponent({
   setup() {
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
-    const roomState = ref<RoomState>({ paused: true, source: undefined })
+    const roomState = ref<RoomState>({ paused: true, source: undefined, lastSeekedTo: 0 })
     const sourceInput = ref("")
     const sourceValid = computed(() => isURL(sourceInput.value))
     log("roomState ref", roomState)
@@ -79,7 +79,7 @@ export default defineComponent({
     <div class="mb-2">
       <input
         v-model="sourceInput"
-        class="rounded ring-accent-alt mr-2 text-bg p-1 w-3xl focus:outline-none focus:ring-2"
+        class="rounded ring-accent-alt mr-2 text-bg p-1 px-2 w-3xl focus:outline-none focus:ring-2"
         :class="{ 'ring-red-600': !sourceValid }"
         type="text"
         placeholder="url"
@@ -91,6 +91,6 @@ export default defineComponent({
         play
       </button>
     </div>
-    <VideoPlayer v-if="roomState.source" :source="roomState.source" />
+    <VideoPlayer v-if="roomState.source" :state="roomState" />
   </main>
 </template>
