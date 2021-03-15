@@ -1,6 +1,6 @@
-import type { W2Gify, SocketOff } from "../w2gify"
-import type { MediaVideo } from "../../types/mediaSource"
-import type { RoomState } from "../../types/room"
+import type { W2Gify, SocketOff } from "@/w2gify"
+import type { MediaVideo } from "$/mediaSource"
+import type { RoomState } from "$/room"
 
 import {
   computed,

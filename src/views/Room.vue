@@ -1,13 +1,13 @@
 <script lang="ts">
 import type { Socket } from "socket.io-client"
-import type { RoomEmit, RoomState } from "../../types/room"
-import type { MediaSourceAny } from "../../types/mediaSource"
+import type { RoomEmit, RoomState } from "$/room"
+import type { MediaSourceAny } from "$/mediaSource"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
 
-import VideoPlayer from "../components/VideoPlayer"
-import { w2gify } from "../w2gify"
+import VideoPlayer from "@/components/VideoPlayer"
+import { w2gify } from "@/w2gify"
 
 import debug from "debug"
 const log = debug("w2g:room")

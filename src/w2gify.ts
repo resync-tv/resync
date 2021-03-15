@@ -1,5 +1,5 @@
 import type { Socket } from "socket.io-client"
-import type { RoomEmit } from "../types/room"
+import type { RoomEmit } from "$/room"
 
 import debug from "debug"
 const log = debug("w2g:w2gify")

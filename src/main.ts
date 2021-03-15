@@ -3,7 +3,7 @@ import App from "./App.vue"
 import router from "./router"
 import "virtual:windi.css"
 
-import type { MediaMetadata, MediaSession } from "../types/MediaSession"
+import type { MediaMetadata, MediaSession } from "$/MediaSession"
 
 declare global {
   interface Navigator {
