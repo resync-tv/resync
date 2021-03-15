@@ -1,30 +1,56 @@
 import type { Socket } from "socket.io-client"
 import type { RoomEmit } from "../types/room"
 
-type AnyFunction = (...x: any[]) => any
-type SocketOff = () => void
-type W2GListener = (x: AnyFunction) => SocketOff
+import debug from "debug"
+const log = debug("w2g:w2gify")
+
+type GenericFn<T = void> = (x: T) => void
+export type SocketOff = GenericFn
+type NoArgumentsNorReturn = GenericFn
+type W2GListener<T = NoArgumentsNorReturn> = (x: T) => SocketOff
 
 export interface W2Gify {
   playContent: (source: string) => void
-  pause: () => void
+  pause: (currentTime: number) => void
+  seekTo: (currentTime: number) => void
   resume: () => void
   onPause: W2GListener
   onResume: W2GListener
+  onSeekTo: W2GListener<GenericFn<number>>
 }
 
 export const w2gify = (socket: Socket, roomEmit: RoomEmit): W2Gify => {
   return {
     playContent: (source: string) => roomEmit("playContent", { source }),
-    pause: () => roomEmit("pause"),
+    pause: currentTime => roomEmit("pause", { currentTime }),
+    seekTo: currentTime => roomEmit("seekTo", { currentTime }),
     resume: () => roomEmit("resume"),
     onPause: fn => {
       socket.on("pause", fn)
-      return () => socket.off("pause", fn)
+      log(`registered onPause handler`)
+
+      return () => {
+        socket.off("pause", fn)
+        log(`unregistered onPause handler`)
+      }
     },
     onResume: fn => {
       socket.on("resume", fn)
-      return () => socket.off("resume", fn)
+      log(`registered onResume handler`)
+
+      return () => {
+        socket.off("resume", fn)
+        log(`unregistered onResume handler`)
+      }
+    },
+    onSeekTo: fn => {
+      socket.on("seekTo", fn)
+      log(`registered onSeekTo handler`)
+
+      return () => {
+        socket.off("seekTo", fn)
+        log(`unregistered onSeekTo handler`)
+      }
     },
   }
 }

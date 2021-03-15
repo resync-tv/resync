@@ -42,6 +42,10 @@ export default defineComponent({
     const { playContent } = W2Gify
     provide("w2gify", W2Gify)
 
+    if (log.enabled)
+      // @ts-expect-error for manual testing
+      window.w2gify = W2Gify
+
     const joinRoom = () => {
       roomEmit("joinRoom", {}, (state: RoomState) => {
         log("initial room state", state)
@@ -76,6 +80,7 @@ export default defineComponent({
       <input
         v-model="sourceInput"
         class="rounded ring-accent-alt mr-2 text-bg p-1 w-3xl focus:outline-none focus:ring-2"
+        :class="{ 'ring-red-600': !sourceValid }"
         type="text"
         placeholder="url"
       />

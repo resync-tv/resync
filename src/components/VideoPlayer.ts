@@ -1,6 +1,16 @@
-import type { W2Gify } from "../w2gify"
+import type { W2Gify, SocketOff } from "../w2gify"
 
-import { computed, defineComponent, h, inject, onMounted, PropType, ref, toRefs } from "vue"
+import {
+  computed,
+  defineComponent,
+  h,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  PropType,
+  ref,
+  toRefs,
+} from "vue"
 import { MediaVideo } from "../../types/mediaSource"
 
 import debug from "debug"
@@ -18,6 +28,8 @@ export default defineComponent({
     const video = ref<null | HTMLVideoElement>(null)
     const paused = ref(true)
 
+    const socketHandlers: SocketOff[] = []
+
     const w2gify = inject<W2Gify>("w2gify")
     if (!w2gify) throw new Error("w2gify injection failed")
 
@@ -25,15 +37,27 @@ export default defineComponent({
       if (!video.value) throw new Error("video ref is null")
 
       video.value.volume = 0.1
+      const currentTime = () => video.value?.currentTime || 0
 
-      w2gify.onPause(() => {
+      const offPause = w2gify.onPause(() => {
         logRemote("onPause")
         video.value?.pause()
       })
-      w2gify.onResume(() => {
+      socketHandlers.push(offPause)
+
+      const offResume = w2gify.onResume(() => {
         logRemote("onResume")
         video.value?.play()
       })
+      socketHandlers.push(offResume)
+
+      const offSeekTo = w2gify.onSeekTo(seconds => {
+        logRemote(`onSeekTo: ${seconds}`)
+        if (!video.value) throw new Error("video ref is null (at onSeekTo)")
+
+        video.value.currentTime = seconds
+      })
+      socketHandlers.push(offSeekTo)
 
       video.value.onpause = () => {
         logLocal(`paused: ${paused.value}`)
@@ -44,13 +68,16 @@ export default defineComponent({
         paused.value = false
       }
 
-      video.value.onclick = () => (paused.value ? w2gify.resume() : w2gify.pause())
+      video.value.onclick = () =>
+        paused.value ? w2gify.resume() : w2gify.pause(currentTime())
 
       if (navigator.mediaSession) {
         navigator.mediaSession.setActionHandler("play", () => w2gify.resume())
-        navigator.mediaSession.setActionHandler("pause", () => w2gify.pause())
+        navigator.mediaSession.setActionHandler("pause", () => w2gify.pause(currentTime()))
       }
     })
+
+    onBeforeUnmount(() => socketHandlers.forEach(h => h()))
 
     return () =>
       h("video", {
