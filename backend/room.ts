@@ -48,8 +48,24 @@ class Room {
   }
 
   async playContent(source: string, startFrom: number) {
+    log("playContent", source, "starting from", startFrom)
+
     this.source = await resolveContent(source, startFrom)
     this.broadcast.emit("source", this.source)
+  }
+
+  async pause() {
+    log("pause")
+
+    this.paused = true
+    this.broadcast.emit("pause")
+  }
+
+  async resume() {
+    log("resume")
+
+    this.paused = false
+    this.broadcast.emit("resume")
   }
 }
 
@@ -72,5 +88,8 @@ export default (io: Server): void => {
     client.on("playContent", ({ roomID, source, startFrom = 0 }: PlayContentArg) => {
       getRoom(roomID).playContent(source, startFrom)
     })
+
+    client.on("pause", ({ roomID }) => getRoom(roomID).pause())
+    client.on("resume", ({ roomID }) => getRoom(roomID).resume())
   })
 }
