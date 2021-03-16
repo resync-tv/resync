@@ -13,7 +13,9 @@ export default defineComponent({
     const development = process.env.NODE_ENV === "development"
 
     // TODO change when deploying to prod
-    const socket = development ? io("http://localhost:3020") : io("http://localhost:3020")
+    const socket = development
+      ? io("http://localhost:3020")
+      : io("https://w2g-backend.vaaski.dev", { path: "/w2g" })
     const socketConnected = ref(false)
 
     socket.on("connect", () => (socketConnected.value = true))
