@@ -86,6 +86,7 @@ export default defineComponent({
       const offResume = w2gify.onResume(() => {
         logRemote("onResume")
         autoplay.value = true
+        muted.value = false
         video.value?.play().catch(onPlaybackError)
       })
       socketHandlers.push(offResume)
