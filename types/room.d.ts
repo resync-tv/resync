@@ -25,6 +25,7 @@ export type NotifiedEvents =
   | "resume"
   | "seekTo"
   | "resync"
+  | "playbackError"
 
 export interface EventNotifiy {
   event: NotifiedEvents

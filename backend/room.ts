@@ -76,30 +76,34 @@ class Room {
     this.source = await resolveContent(source, startFrom)
     this.lastSeekedTo = startFrom
     this.broadcast.emit("source", this.source)
+
     return this
   }
 
-  pause(client: Socket) {
-    this.notify("pause", client)
+  pause(client?: Socket) {
+    if (client) this.notify("pause", client)
 
     this.paused = true
     this.broadcast.emit("pause")
+
     return this
   }
 
-  resume(client: Socket) {
-    this.notify("resume", client)
+  resume(client?: Socket) {
+    if (client) this.notify("resume", client)
 
     this.paused = false
     this.broadcast.emit("resume")
+
     return this
   }
 
-  seekTo(client: Socket, seconds: number) {
-    this.notify("seekTo", client, { seconds })
+  seekTo({ client, seconds }: { client?: Socket; seconds: number }) {
+    if (client) this.notify("seekTo", client, { seconds })
 
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
+
     return this
   }
 
@@ -138,8 +142,14 @@ class Room {
 
     this.pause(client)
     const avg = await this.requestTime(client)
-    this.seekTo(client, avg)
+    this.seekTo({ client, seconds: avg })
     this.resume(client)
+  }
+
+  playbackError({ client, reason, name }: { client: Socket; reason: string; name: string }) {
+    this.notify("playbackError", client, { reason, name })
+
+    return this
   }
 }
 
@@ -165,16 +175,23 @@ export default (io: Server): void => {
     })
 
     client.on("pause", ({ roomID, currentTime }) => {
-      getRoom(roomID).pause(client).seekTo(client, currentTime)
+      getRoom(roomID).pause(client).seekTo({ seconds: currentTime })
     })
     client.on("resume", ({ roomID }) => {
       getRoom(roomID).resume(client)
     })
 
     client.on("seekTo", ({ roomID, currentTime }) => {
-      getRoom(roomID).seekTo(client, currentTime)
+      getRoom(roomID).seekTo({ client, seconds: currentTime })
     })
 
     client.on("resync", ({ roomID }) => getRoom(roomID).resync(client))
+
+    client.on("playbackError", ({ roomID, reason, currentTime, name }) => {
+      getRoom(roomID)
+        .playbackError({ client, reason, name })
+        .pause()
+        .seekTo({ seconds: currentTime })
+    })
   })
 }

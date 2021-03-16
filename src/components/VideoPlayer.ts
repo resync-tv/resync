@@ -52,7 +52,13 @@ export default defineComponent({
 
       const offResume = w2gify.onResume(() => {
         logRemote("onResume")
-        video.value?.play()
+        video.value?.play().catch((err: DOMException) => {
+          log(`${err.name}: ${err.message}`)
+
+          const reason = err.message.split(". ")[0]
+          const { name } = err
+          w2gify.playbackError({ reason, name }, currentTime())
+        })
       })
       socketHandlers.push(offResume)
 

@@ -4,7 +4,7 @@ import type { EventNotifiy, RoomEmit } from "$/room"
 import debug from "debug"
 const log = debug("w2g:w2gify")
 
-type GenericFn<T = void> = (x: T) => void
+type GenericFn<T = void, T2 = void> = (x: T, y: T2) => void
 export type SocketOff = GenericFn
 type NoArgumentsNorReturn = GenericFn
 type W2GListener<T = NoArgumentsNorReturn> = (x: T) => SocketOff
@@ -15,6 +15,7 @@ export interface W2Gify {
   resume: GenericFn
   seekTo: (currentTime: number) => void
   resync: GenericFn
+  playbackError: GenericFn<{ reason: string; name: string }, number>
   onPause: W2GListener
   onResume: W2GListener
   onSeekTo: W2GListener<GenericFn<number>>
@@ -29,6 +30,9 @@ export default (socket: Socket, roomEmit: RoomEmit): W2Gify => {
     resume: () => roomEmit("resume"),
     seekTo: currentTime => roomEmit("seekTo", { currentTime }),
     resync: () => roomEmit("resync"),
+    playbackError: ({ reason, name }, currentTime) => {
+      roomEmit("playbackError", { reason, name, currentTime })
+    },
     onPause: fn => {
       socket.on("pause", fn)
       log(`registered onPause handler`)
