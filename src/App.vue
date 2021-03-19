@@ -15,7 +15,7 @@ export default defineComponent({
     const socketConnected = ref(false)
     const socket = development
       ? io("http://localhost:3020")
-      : io("https://oracle.vaaski.dev", { path: "/resync" })
+      : io("https://hetzner.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
     socket.on("disconnect", () => (socketConnected.value = false))
