@@ -3,7 +3,7 @@ import { Server } from "socket.io"
 import room from "./room"
 
 import debug from "debug"
-const log = debug("w2g:index")
+const log = debug("resync:index")
 
 const httpServer = createServer()
 const io = new Server(httpServer, {
@@ -25,4 +25,4 @@ io.on("connection", client => {
 
 room(io)
 
-httpServer.listen(port).on("listening", () => console.log(`w2g-next listening on ${port}`))
+httpServer.listen(port).on("listening", () => console.log(`resync listening on ${port}`))

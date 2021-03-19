@@ -7,10 +7,10 @@ import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from
 import { useRoute } from "vue-router"
 
 import VideoPlayer from "@/components/VideoPlayer"
-import W2Gify from "@/w2gify"
+import Resync from "@/resync"
 
 import debug from "debug"
-const log = debug("w2g:room")
+const log = debug("resync:room")
 
 const isURL = (str: string) => {
   try {
@@ -38,16 +38,16 @@ export default defineComponent({
       socket.emit(event, { roomID, ...arg }, cb)
     }
 
-    const w2gify = W2Gify(socket, roomEmit)
-    const { playContent } = w2gify
-    provide("w2gify", w2gify)
+    const resync = Resync(socket, roomEmit)
+    const { playContent } = resync
+    provide("resync", resync)
 
     if (log.enabled)
       // @ts-expect-error for manual testing
-      window.w2gify = w2gify
+      window.resync = resync
 
     const joinRoom = () => {
-      const name = localStorage.getItem("w2g-name") || "default"
+      const name = localStorage.getItem("resync-name") || "default"
 
       roomEmit("joinRoom", { name }, (state: RoomState) => {
         log("initial room state", state)
@@ -63,7 +63,7 @@ export default defineComponent({
       roomState.value.source = source
     })
 
-    const offNotifiy = w2gify.onNotify(({ event, name, additional }) => {
+    const offNotifiy = resync.onNotify(({ event, name, additional }) => {
       log.extend("notify")(`[${event}](${name})`, additional || "")
     })
 

@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       script: "./lib/index.js",
-      name: "w2g-next",
+      name: "resync",
       node_args: "-r dotenv/config",
     },
   ],

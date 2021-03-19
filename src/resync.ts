@@ -2,28 +2,28 @@ import type { Socket } from "socket.io-client"
 import type { EventNotifiy, RoomEmit } from "$/room"
 
 import debug from "debug"
-const log = debug("w2g:w2gify")
+const log = debug("resync:resync.ts")
 
 type GenericFn<T = void, T2 = void> = (x: T, y: T2) => void
 export type SocketOff = GenericFn
 type NoArgumentsNorReturn = GenericFn
-type W2GListener<T = NoArgumentsNorReturn> = (x: T) => SocketOff
+type ResyncListener<T = NoArgumentsNorReturn> = (x: T) => SocketOff
 
-export interface W2Gify {
+export interface Resync {
   playContent: (source: string) => void
   pause: (currentTime: number) => void
   resume: GenericFn
   seekTo: (currentTime: number) => void
   resync: GenericFn
   playbackError: GenericFn<{ reason: string; name: string }, number>
-  onPause: W2GListener
-  onResume: W2GListener
-  onSeekTo: W2GListener<GenericFn<number>>
-  onRequestTime: W2GListener<GenericFn<GenericFn<number>>>
-  onNotify: W2GListener<GenericFn<EventNotifiy>>
+  onPause: ResyncListener
+  onResume: ResyncListener
+  onSeekTo: ResyncListener<GenericFn<number>>
+  onRequestTime: ResyncListener<GenericFn<GenericFn<number>>>
+  onNotify: ResyncListener<GenericFn<EventNotifiy>>
 }
 
-export default (socket: Socket, roomEmit: RoomEmit): W2Gify => {
+export default (socket: Socket, roomEmit: RoomEmit): Resync => {
   return {
     playContent: (source: string) => roomEmit("playContent", { source }),
     pause: currentTime => roomEmit("pause", { currentTime }),

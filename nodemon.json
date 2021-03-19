@@ -7,6 +7,6 @@
   },
   "env": {
     "NODE_ENV": "development",
-    "DEBUG": "w2g*"
+    "DEBUG": "resync*"
   }
 }

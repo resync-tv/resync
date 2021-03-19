@@ -8,15 +8,14 @@ import { defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { io } from "socket.io-client"
 
 export default defineComponent({
-  name: "w2g-next",
+  name: "resync",
   setup() {
     const development = process.env.NODE_ENV === "development"
 
-    // TODO change when deploying to prod
+    const socketConnected = ref(false)
     const socket = development
       ? io("http://localhost:3020")
-      : io("https://w2g-backend.vaaski.dev", { path: "/w2g" })
-    const socketConnected = ref(false)
+      : io("https://oracle.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
     socket.on("disconnect", () => (socketConnected.value = false))

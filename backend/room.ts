@@ -6,7 +6,7 @@ import { resolveContent } from "./content"
 
 import debug from "debug"
 import { average } from "./util"
-const log = debug("w2g:room")
+const log = debug("resync:room")
 
 const rooms: Record<string, Room> = {}
 interface Member {

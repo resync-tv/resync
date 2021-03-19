@@ -1,4 +1,4 @@
-import type { W2Gify, SocketOff } from "@/w2gify"
+import type { Resync, SocketOff } from "@/resync"
 import type { MediaVideo } from "$/mediaSource"
 import type { RoomState } from "$/room"
 
@@ -15,7 +15,7 @@ import {
 } from "vue"
 
 import debug from "debug"
-const log = debug("w2g:videoplayer")
+const log = debug("resync:videoplayer")
 const logRemote = log.extend("remote")
 const logLocal = log.extend("local")
 
@@ -37,8 +37,8 @@ export default defineComponent({
 
     const socketHandlers: SocketOff[] = []
 
-    const w2gify = inject<W2Gify>("w2gify")
-    if (!w2gify) throw new Error("w2gify injection failed")
+    const resync = inject<Resync>("resync")
+    if (!resync) throw new Error("resync injection failed")
 
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
@@ -50,7 +50,7 @@ export default defineComponent({
         video.value.currentTime = state.value.lastSeekedTo
       } else {
         autoplay.value = true
-        w2gify.resync()
+        resync.resync()
       }
 
       const onPlaybackError = async (err: DOMException): Promise<any> => {
@@ -73,17 +73,17 @@ export default defineComponent({
         error("playback still failed when muted")
         const reason = err.message.split(". ")[0]
         const { name } = err
-        w2gify.playbackError({ reason, name }, currentTime())
+        resync.playbackError({ reason, name }, currentTime())
       }
 
-      const offPause = w2gify.onPause(() => {
+      const offPause = resync.onPause(() => {
         logRemote("onPause")
         autoplay.value = false
         video.value?.pause()
       })
       socketHandlers.push(offPause)
 
-      const offResume = w2gify.onResume(() => {
+      const offResume = resync.onResume(() => {
         logRemote("onResume")
         autoplay.value = true
         muted.value = false
@@ -91,7 +91,7 @@ export default defineComponent({
       })
       socketHandlers.push(offResume)
 
-      const offSeekTo = w2gify.onSeekTo(seconds => {
+      const offSeekTo = resync.onSeekTo(seconds => {
         logRemote(`onSeekTo: ${seconds}`)
         if (!video.value) throw new Error("video ref is null (at onSeekTo)")
 
@@ -99,7 +99,7 @@ export default defineComponent({
       })
       socketHandlers.push(offSeekTo)
 
-      const offRequestTime = w2gify.onRequestTime(callback => {
+      const offRequestTime = resync.onRequestTime(callback => {
         logRemote(`onRequestTime`)
         if (!video.value) throw new Error("video ref is null (at onRequestTime)")
 
@@ -117,11 +117,11 @@ export default defineComponent({
       }
 
       video.value.onclick = () =>
-        paused.value ? w2gify.resume() : w2gify.pause(currentTime())
+        paused.value ? resync.resume() : resync.pause(currentTime())
 
       if (navigator.mediaSession) {
-        navigator.mediaSession.setActionHandler("play", () => w2gify.resume())
-        navigator.mediaSession.setActionHandler("pause", () => w2gify.pause(currentTime()))
+        navigator.mediaSession.setActionHandler("play", () => resync.resume())
+        navigator.mediaSession.setActionHandler("pause", () => resync.pause(currentTime()))
       }
     })
 

@@ -4,10 +4,14 @@ import ytdl from "ytdl-core"
 import { average } from "./util"
 
 import debug from "debug"
-const log = debug("w2g:youtube")
+const log = debug("resync:youtube")
 
 const urlExpire = (url: string): number => {
+  log(`url expire check for ${url}`)
+
   const { searchParams } = new URL(url)
+  log(`searchParams: ${url}`)
+
   const expires = searchParams.get("expire")
   if (!expires) throw new Error("no expire parameter found in stream url")
 
