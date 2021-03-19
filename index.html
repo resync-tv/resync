@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="h-full" lang="en">
   <head>
-    <style>
-      html,
-      body,
-      #app {
-        margin: 0;
-        height: 100%;
-        width: 100%;
+    <script>
+      window.onload = () => {
+        const dark = window.matchMedia("(prefers-color-scheme:dark)")
+        const activateDarkMode = bool => {
+          document.body.classList.add(bool ? "dark" : "light")
+          document.body.classList.remove(bool ? "light" : "dark")
+        }
+
+        activateDarkMode(dark.matches)
+        dark.onchange = ({ matches }) => activateDarkMode(matches)
       }
-    </style>
+    </script>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope&display=swap"
@@ -20,8 +23,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>resync</title>
   </head>
-  <body>
-    <div id="app" class="bg-bg text-fg"></div>
+  <body class="h-full">
+    <div id="app" class="h-full"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

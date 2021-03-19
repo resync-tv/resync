@@ -28,7 +28,7 @@ export default defineComponent({
     const { roomID } = route.params as Record<string, string>
     const roomState = ref<RoomState>({ paused: true, source: undefined, lastSeekedTo: 0 })
     const sourceInput = ref("")
-    const sourceValid = computed(() => isURL(sourceInput.value))
+    const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
     log("roomState ref", roomState)
 
     const socket = inject<Socket>("socket")
@@ -82,21 +82,15 @@ export default defineComponent({
 
 <template>
   <main class="flex flex-col h-full justify-center items-center">
-    <span>room: {{ roomID }}</span>
     <div class="mb-2">
       <input
         v-model="sourceInput"
-        class="rounded ring-accent-alt mr-2 text-bg p-1 px-2 w-3xl focus:outline-none focus:ring-2"
-        :class="{ 'ring-red-600': !sourceValid }"
+        class="resync-input"
+        :class="{ invalid: !sourceValid }"
         type="text"
         placeholder="url"
       />
-      <button
-        @click="playContent(sourceInput)"
-        class="rounded p-1 px-4 transition-colors hover:bg-accent"
-      >
-        play
-      </button>
+      <button @click="playContent(sourceInput)" class="resync-button">play</button>
     </div>
     <VideoPlayer v-if="roomState.source" :state="roomState" />
   </main>

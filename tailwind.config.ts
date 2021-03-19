@@ -5,13 +5,22 @@ export default defineConfig({
   theme: {
     extend: {
       colors: {
-        bg: "#1a1817",
-        fg: "#ffffff",
-        accent: "#e50150",
-        "accent-alt": "#30AFD9",
+        black: "#0C151D",
+        white: "#FCFCFC",
+        accent: "#BD4089",
+        error: "#E3170A",
       },
       fontFamily: {
         DEFAULT: ["Manrope"],
+      },
+      height: {
+        nav: "56px",
+      },
+      inset: {
+        half: "50%",
+      },
+      spacing: {
+        half: "50%",
       },
     },
   },

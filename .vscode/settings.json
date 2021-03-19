@@ -1,11 +1,7 @@
 {
-  "cSpell.words": [
-    "Windi",
-    "gify",
-    "windicss",
-    "youtu"
-  ],
+  "cSpell.words": ["Windi", "windicss", "youtu"],
   "windicss.sortOnSave": true,
   "windicss.enableCodeFolding": false,
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "vetur.validation.style": false
 }

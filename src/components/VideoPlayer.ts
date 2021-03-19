@@ -130,10 +130,10 @@ export default defineComponent({
     return () =>
       h("video", {
         src: src.value,
-        class: ["max-w-3xl"],
+        class: ["max-w-3xl", "rounded"],
         ref: video,
         disablePictureInPicture: true,
-        preload: true,
+        preload: "auto",
         muted: muted.value,
         autoplay: autoplay.value,
       })
