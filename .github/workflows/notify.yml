@@ -1,0 +1,17 @@
+name: notify
+on: push
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: notify about commit on telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: html
+          message: |
+            ⚙ <a href="https://github.com/vaaski/resync/commit/${{ github.event.after }}">new commit</a> by ${{ github.event.pusher.name }}.
+            ${{ github.event.head_commit.message }}
+          disable_web_page_preview: true
