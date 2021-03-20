@@ -73,7 +73,7 @@ class Room {
   async playContent(client: Socket, source: string, startFrom: number) {
     this.notify("playContent", client, { source, startFrom })
 
-    this.source = await resolveContent(source, startFrom)
+    this.source = source ? await resolveContent(source, startFrom) : undefined
     this.lastSeekedTo = startFrom
     this.broadcast.emit("source", this.source)
 
