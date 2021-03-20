@@ -82,7 +82,7 @@ export default defineComponent({
 
 <template>
   <main class="flex flex-col h-full justify-center items-center">
-    <div class="mb-2">
+    <div class="flex mb-3 w-1/2">
       <input
         v-model="sourceInput"
         class="resync-input"
@@ -90,8 +90,14 @@ export default defineComponent({
         type="text"
         placeholder="url"
       />
-      <button @click="playContent(sourceInput)" class="resync-button">play</button>
+      <button
+        @click="playContent(sourceInput)"
+        class="resync-button"
+        :class="{ invalid: !sourceValid }"
+      >
+        play
+      </button>
     </div>
-    <VideoPlayer v-if="roomState.source" :state="roomState" />
+    <VideoPlayer v-if="roomState.source" :state="roomState" class="light:shadow" />
   </main>
 </template>

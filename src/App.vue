@@ -40,7 +40,7 @@ export default defineComponent({
 <style>
 :root {
   --clr-black: #0c151d;
-  --clr-light-black: #305473;
+  --clr-light-black: #0c151d85;
   --clr-white: #fcfcfc;
   --clr-light-white: #fcfcfc85;
   --clr-accent: #bd4089;
@@ -57,8 +57,8 @@ export default defineComponent({
 }
 
 *::selection {
-  background: var(--clr-light-black);
-  color: var(--clr-black);
+  background: #305473;
+  color: var(--clr-white);
 }
 
 *:not(input) {
@@ -92,20 +92,33 @@ export default defineComponent({
 .resync-button {
   @apply px-4 py-2;
   @apply rounded outline-none transition-all;
-  @apply dark:(text-light-white text-opacity-50);
+  @apply dark:(text-white text-opacity-50);
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
   @apply hover:light:shadow-md
   @apply active:light:shadow;
 }
 
+.dark .resync-button {
+  box-shadow: 0 1px var(--clr-light-white);
+}
+
 .dark .resync-button:hover {
-  box-shadow: 0 1px var(--clr-white);
+  box-shadow: 0 2px var(--clr-white);
   @apply text-white;
 }
 
 .dark .resync-button:active {
   box-shadow: 0 0 0 2px var(--clr-white);
   @apply duration-50 text-white;
+}
+
+.resync-button.invalid {
+  @apply text-light-black;
+}
+
+.dark .resync-button.invalid {
+  @apply text-light-white;
+  box-shadow: 0 0 var(--clr-light-white);
 }
 </style>

@@ -6,6 +6,7 @@ export default defineConfig({
     extend: {
       colors: {
         black: "var(--clr-black)",
+        "light-black": "var(--clr-light-black)",
         white: "var(--clr-white)",
         "light-white": "var(--clr-light-white)",
         accent: "var(--clr-accent)",
