@@ -5,10 +5,11 @@ export default defineConfig({
   theme: {
     extend: {
       colors: {
-        black: "#0C151D",
-        white: "#FCFCFC",
-        accent: "#BD4089",
-        error: "#E3170A",
+        black: "var(--clr-black)",
+        white: "var(--clr-white)",
+        "light-white": "var(--clr-light-white)",
+        accent: "var(--clr-accent)",
+        error: "var(--clr-error)",
       },
       fontFamily: {
         DEFAULT: ["Manrope"],

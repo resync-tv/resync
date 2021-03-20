@@ -38,6 +38,15 @@ export default defineComponent({
 </script>
 
 <style>
+:root {
+  --clr-black: #0c151d;
+  --clr-light-black: #305473;
+  --clr-white: #fcfcfc;
+  --clr-light-white: #fcfcfc85;
+  --clr-accent: #bd4089;
+  --clr-error: #e3170a;
+}
+
 #app a {
   @apply text-accent-alt;
   @apply underline;
@@ -48,8 +57,8 @@ export default defineComponent({
 }
 
 *::selection {
-  background: #305473;
-  color: #0c151d;
+  background: var(--clr-light-black);
+  color: var(--clr-black);
 }
 
 *:not(input) {
@@ -61,7 +70,19 @@ export default defineComponent({
   @apply rounded outline-none transition-all;
   @apply bg-white text-black;
   @apply light:(shadow focus:shadow-md);
-  @apply dark:(bg-black text-white text-opacity-50 ring-white focus:ring-1 shadow-md focus:text-opacity-100);
+  @apply dark:(bg-black text-white text-opacity-50 focus:text-opacity-100);
+}
+
+.dark .resync-input {
+  box-shadow: 0 1px var(--clr-light-white);
+}
+
+.dark .resync-input:hover {
+  box-shadow: 0 2px var(--clr-white);
+}
+
+.dark input.resync-input:focus {
+  box-shadow: 0 0 0 2px var(--clr-white);
 }
 
 .resync-input.invalid {
@@ -70,11 +91,21 @@ export default defineComponent({
 
 .resync-button {
   @apply px-4 py-2;
-  @apply rounded outline-none transition-all delay-75;
-  @apply ring-black;
-  @apply dark:(ring-white text-white text-opacity-50);
-  @apply hover:ring-1 hover:dark:text-opacity-100;
+  @apply rounded outline-none transition-all;
+  @apply dark:(text-light-white text-opacity-50);
+  @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
-  @apply hover:active:(px-3 py-1 m-1 ring-2 delay-0);
+  @apply hover:light:shadow-md
+  @apply active:light:shadow;
+}
+
+.dark .resync-button:hover {
+  box-shadow: 0 1px var(--clr-white);
+  @apply text-white;
+}
+
+.dark .resync-button:active {
+  box-shadow: 0 0 0 2px var(--clr-white);
+  @apply duration-50 text-white;
 }
 </style>
