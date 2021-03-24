@@ -82,7 +82,7 @@ export default defineComponent({
 
 <template>
   <main class="flex flex-col h-full justify-center items-center">
-    <div class="flex mb-3 w-1/2">
+    <div class="flex mb-3 w-1/2 justify-center">
       <input
         v-model="sourceInput"
         class="resync-input"

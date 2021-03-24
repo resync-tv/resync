@@ -13,6 +13,7 @@ export const resolveContent = async (
       video: await getCombinedStream(url),
       title: await getTitle(url),
       thumb: `https://i.ytimg.com/vi/${getVideoID(url)}/mqdefault.jpg`,
+      type: "video",
     }
   }
 
@@ -21,5 +22,6 @@ export const resolveContent = async (
     platform: "other",
     video: [{ quality: "default", url }],
     title: `content from ${new URL(url).hostname}`,
+    type: "video",
   }
 }
