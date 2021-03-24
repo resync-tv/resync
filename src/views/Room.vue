@@ -6,7 +6,7 @@ import type { MediaSourceAny } from "$/mediaSource"
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
 
-import VideoPlayer from "@/components/VideoPlayer"
+import PlayerWrapper from "@/components/PlayerWrapper"
 import Resync from "@/resync"
 
 import debug from "debug"
@@ -22,7 +22,7 @@ const isURL = (str: string) => {
 }
 
 export default defineComponent({
-  components: { VideoPlayer },
+  components: { PlayerWrapper },
   setup() {
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
@@ -81,23 +81,25 @@ export default defineComponent({
 </script>
 
 <template>
-  <main class="flex flex-col h-full justify-center items-center">
-    <div class="flex mb-3 w-1/2 justify-center">
-      <input
-        v-model="sourceInput"
-        class="resync-input"
-        :class="{ invalid: !sourceValid }"
-        type="text"
-        placeholder="url"
-      />
-      <button
-        @click="playContent(sourceInput)"
-        class="resync-button"
-        :class="{ invalid: !sourceValid }"
-      >
-        play
-      </button>
+  <main class="flex flex-col justify-center items-center">
+    <div class="flex relative justify-center">
+      <div class="flex bottom-full mb-3 w-md justify-center absolute" style="max-width: 75vw">
+        <input
+          v-model="sourceInput"
+          class="resync-input"
+          :class="{ invalid: !sourceValid }"
+          type="text"
+          placeholder="url"
+        />
+        <button
+          @click="playContent(sourceInput)"
+          class="resync-button"
+          :class="{ invalid: !sourceValid }"
+        >
+          play
+        </button>
+      </div>
+      <PlayerWrapper v-if="roomState.source" :state="roomState" type="video" />
     </div>
-    <VideoPlayer v-if="roomState.source" :state="roomState" class="light:shadow" />
   </main>
 </template>

@@ -1,6 +1,6 @@
 import type { Resync, SocketOff } from "@/resync"
 import type { MediaVideo } from "$/mediaSource"
-import type { RoomState } from "$/room"
+import type { RoomState, VideoMetadata } from "$/room"
 
 import {
   computed,
@@ -25,7 +25,8 @@ export default defineComponent({
   props: {
     state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
   },
-  setup(props) {
+  emits: ["metadata"],
+  setup(props, { emit }) {
     const { state } = toRefs(props)
     const { source } = toRefs(state.value)
 
@@ -116,6 +117,14 @@ export default defineComponent({
         paused.value = false
       }
 
+      video.value.onloadedmetadata = () => {
+        if (!video.value) throw new Error("video ref is null")
+        const { videoHeight, videoWidth } = video.value
+        const metadata: VideoMetadata = { videoHeight, videoWidth }
+
+        emit("metadata", metadata)
+      }
+
       video.value.onclick = () =>
         paused.value ? resync.resume() : resync.pause(currentTime())
 
@@ -125,12 +134,11 @@ export default defineComponent({
       }
     })
 
-    onBeforeUnmount(() => socketHandlers.forEach(h => h()))
+    onBeforeUnmount(() => socketHandlers.forEach(off => off()))
 
     return () =>
       h("video", {
         src: src.value,
-        class: ["max-w-3xl", "rounded"],
         ref: video,
         disablePictureInPicture: true,
         preload: "auto",

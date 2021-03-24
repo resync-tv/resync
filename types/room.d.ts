@@ -33,3 +33,8 @@ export interface EventNotifiy {
   name: string
   additional?: any
 }
+
+export interface VideoMetadata {
+  videoHeight: number
+  videoWidth: number
+}

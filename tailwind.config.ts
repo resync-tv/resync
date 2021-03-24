@@ -16,7 +16,7 @@ export default defineConfig({
         DEFAULT: ["Manrope"],
       },
       height: {
-        nav: "56px",
+        nav: "var(--nav-height)",
       },
       inset: {
         half: "50%",

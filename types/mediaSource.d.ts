@@ -5,11 +5,14 @@ export interface MediaSource {
   quality: string
 }
 
+export type MediaType = "audio" | "video" | "audiovideo"
+
 export interface MediaBase {
   platform: Platform
   startFrom: number
   title: string
   thumb?: string
+  type: MediaType
 }
 
 export interface MediaAudio extends MediaBase {

@@ -19,7 +19,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav class="flex h-nav shadow-sm w-full transition-all fixed justify-between dark:shadow-md">
+  <nav
+    class="bg-white flex h-nav shadow-sm w-full transition-all z-5 fixed justify-between dark:bg-black dark:shadow-md"
+  >
     <div class="flex h-full opacity-50 pl-5 items-center">room: {{ routeDisplay }}</div>
     <div class="top-half left-half transform -translate-y-half -translate-x-half absolute">
       <ResyncLogo class="h-nav fill-black dark:fill-white" />

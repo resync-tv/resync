@@ -1,8 +1,8 @@
 <template>
-  <main class="bg-white h-full text-black transition-colors dark:bg-black dark:text-white">
+  <div class="bg-white h-full text-black transition-colors dark:(bg-black text-white)">
     <NavBar />
-    <router-view />
-  </main>
+    <router-view style="padding-top: var(--nav-height)" class="h-full" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -45,6 +45,7 @@ export default defineComponent({
   --clr-light-white: #fcfcfc85;
   --clr-accent: #bd4089;
   --clr-error: #e3170a;
+  --nav-height: 56px;
 }
 
 #app a {
@@ -63,6 +64,10 @@ export default defineComponent({
 
 *:not(input) {
   @apply select-none;
+}
+
+.text-shadow {
+  text-shadow: 0 0 2px black;
 }
 
 .resync-input {
