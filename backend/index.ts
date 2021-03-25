@@ -5,12 +5,13 @@ import room from "./room"
 import debug from "debug"
 const log = debug("resync:index")
 
+const isDev = process.env.NODE_ENV === "development"
+log("dev", isDev)
+
+const origin = isDev ? "*" : "https://resync.tv"
 const httpServer = createServer()
 const io = new Server(httpServer, {
-  cors: {
-    // TODO
-    origin: "*",
-  },
+  cors: { origin },
 })
 const port = Number(process.env.BACKEND_PORT || 8888)
 
