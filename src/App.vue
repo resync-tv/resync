@@ -10,6 +10,9 @@ import { defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { io } from "socket.io-client"
 import NavBar from "./components/NavBar.vue"
 
+import debug from "debug"
+const log = debug("resync:app")
+
 export default defineComponent({
   components: { NavBar },
   name: "resync",
@@ -28,9 +31,8 @@ export default defineComponent({
 
     onBeforeUnmount(() => socket.close())
 
-    // TODO remove once stable
     // @ts-expect-error nothing relies on this, purely for debugging
-    if (development) window.socket = socket
+    if (log.enabled) window.socket = socket
 
     return { socketConnected }
   },
