@@ -47,7 +47,10 @@ export default defineComponent({
       window.resync = resync
 
     const joinRoom = () => {
-      const name = localStorage.getItem("resync-name") || "default"
+      const name =
+        localStorage.getItem("resync-name") || window.prompt("enter username") || "default"
+
+      localStorage.setItem("resync-name", name)
 
       roomEmit("joinRoom", { name }, (state: RoomState) => {
         log("initial room state", state)
