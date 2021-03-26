@@ -22,6 +22,7 @@ const logLocal = log.extend("local")
 const wait = (t: number): Promise<void> => new Promise(r => setTimeout(r, t))
 
 export default defineComponent({
+  name: "VideoPlayer",
   props: {
     state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
   },
@@ -45,6 +46,7 @@ export default defineComponent({
       if (!video.value) throw new Error("video ref is null")
       const currentTime = () => video.value?.currentTime || 0
 
+      // TODO: user-adjustable volume
       video.value.volume = 0.1
       if (state.value.paused) {
         autoplay.value = false

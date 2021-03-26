@@ -5,7 +5,7 @@ import { computed, defineComponent, h, PropType, ref, toRefs } from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "./VideoPlayer"
-import PlayerControls from "./PlayerControls"
+import PlayerControls from "./PlayerControls.vue"
 
 import debug from "debug"
 const log = debug("resync:playerwrapper")
@@ -69,7 +69,7 @@ export default defineComponent({
             `height: ${videoH.value * sizeMultiplier.value}px`,
         },
         [
-          // @ts-expect-error i think this correct // TODO open issue
+          // @ts-expect-error it complains when the component expects props i think // TODO open issue
           h(VideoPlayer, {
             state,
             onMetadata,
@@ -80,10 +80,17 @@ export default defineComponent({
           h(
             "div",
             {
-              class: "absolute bottom-0 h-1/3 w-full flex items-end justify-center",
+              class:
+                "absolute bottom-0 h-1/3 w-full flex items-end justify-center pointer-events-none",
               style: "background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)",
             },
-            [h(PlayerControls)]
+            [
+              // @ts-expect-error it complains when the component expects props i think // TODO open issue
+              h(PlayerControls, {
+                state,
+                class: "pointer-events-auto",
+              }),
+            ]
           ),
         ]
       )
