@@ -52,6 +52,7 @@ export default defineComponent({
 
       localStorage.setItem("resync-name", name)
 
+      // TODO document.title
       roomEmit("joinRoom", { name }, (state: RoomState) => {
         log("initial room state", state)
         roomState.value = state

@@ -5,8 +5,10 @@ import type { RoomState } from "$/room"
 import Resync, { SocketOff } from "@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, PropType, ref, toRefs } from "vue"
+import ResyncSlider from "@/components/ResyncSlider.vue"
 
 export default defineComponent({
+  components: { ResyncSlider },
   name: "PlayerControls",
   props: {
     state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
@@ -52,10 +54,18 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="flex h-10 text-white w-full px-1 items-center">
-    <span class="mi player-icon" @click="playIconClick">{{ playStateIcon }}</span>
-    <span class="mi player-icon">skip_next</span>
-    <span class="mi player-icon">{{ volumeStateIcon }}</span>
+  <div class="h-10 text-white w-full relative">
+    <div class="flex px-2 items-center justify-between">
+      <div>
+        <span class="mi player-icon" @click="playIconClick">{{ playStateIcon }}</span>
+        <span class="mi player-icon">skip_next</span>
+        <span class="mi player-icon">{{ volumeStateIcon }}</span>
+      </div>
+      <div>
+        <span class="mi player-icon">fullscreen</span>
+      </div>
+    </div>
+    <ResyncSlider class="bottom-full w-full absolute" />
   </div>
 </template>
 

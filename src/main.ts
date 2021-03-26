@@ -2,7 +2,8 @@ import { createApp } from "vue"
 import App from "@/App.vue"
 import router from "./router"
 import "virtual:windi.css"
-import "./assets/material-icons.css"
+import "@/assets/theme.css"
+import "@/assets/material-icons.css"
 
 import type { MediaMetadata, MediaSession } from "$/MediaSession"
 

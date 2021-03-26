@@ -105,9 +105,7 @@ export default defineComponent({
 
       const offRequestTime = resync.onRequestTime(callback => {
         logRemote(`onRequestTime`)
-        if (!video.value) throw new Error("video ref is null (at onRequestTime)")
-
-        callback(video.value.currentTime)
+        callback(currentTime())
       })
       socketHandlers.push(offRequestTime)
 

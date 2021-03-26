@@ -4,8 +4,8 @@ import type { RoomState, VideoMetadata } from "$/room"
 import { computed, defineComponent, h, PropType, ref, toRefs } from "vue"
 import { debounce } from "ts-debounce"
 
-import VideoPlayer from "./VideoPlayer"
-import PlayerControls from "./PlayerControls.vue"
+import VideoPlayer from "@/components/VideoPlayer"
+import PlayerControls from "@/components/PlayerControls.vue"
 
 import debug from "debug"
 const log = debug("resync:playerwrapper")

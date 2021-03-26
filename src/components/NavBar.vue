@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, defineComponent } from "vue"
 import { useRoute } from "vue-router"
-import ResyncLogo from "./ResyncLogo"
+import ResyncLogo from "@/components/ResyncLogo"
 
 export default defineComponent({
   components: { ResyncLogo },

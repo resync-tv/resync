@@ -8,7 +8,7 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { io } from "socket.io-client"
-import NavBar from "./components/NavBar.vue"
+import NavBar from "@/components/NavBar.vue"
 
 import debug from "debug"
 const log = debug("resync:app")
@@ -41,16 +41,6 @@ export default defineComponent({
 </script>
 
 <style>
-:root {
-  --clr-black: #0c151d;
-  --clr-light-black: #0c151d85;
-  --clr-white: #fcfcfc;
-  --clr-light-white: #fcfcfc85;
-  --clr-accent: #bd4089;
-  --clr-error: #e3170a;
-  --nav-height: 56px;
-}
-
 #app a {
   @apply text-accent-alt;
   @apply underline;
