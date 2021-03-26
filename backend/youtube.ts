@@ -7,13 +7,11 @@ import debug from "debug"
 const log = debug("resync:youtube")
 
 const urlExpire = (url: string): number => {
-  log(`url expire check for ${url}`)
-
   const { searchParams } = new URL(url)
-  log(`searchParams: ${url}`)
-
   const expires = searchParams.get("expire")
-  if (!expires) throw new Error("no expire parameter found in stream url")
+
+  log(`expires: ${expires}`)
+  if (!expires) return NaN
 
   return Number(expires)
 }
@@ -44,7 +42,7 @@ const fetchVideo = async (source: string) => {
 
   log(`fetching formats for ${id}`)
   const { formats, videoDetails } = await ytdl.getInfo(id)
-  const averageExpire = average(...formats.map(f => urlExpire(f.url)))
+  const averageExpire = average(...formats.map(f => urlExpire(f.url)).filter(e => !isNaN(e)))
   const expires = new Date(averageExpire * 1e3)
 
   cached[id] = { formats, videoDetails, expires }
