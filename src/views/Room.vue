@@ -38,7 +38,7 @@ export default defineComponent({
       socket.emit(event, { roomID, ...arg }, cb)
     }
 
-    const resync = Resync(socket, roomEmit)
+    const resync = new Resync(socket, roomEmit)
     const { playContent } = resync
     provide("resync", resync)
 

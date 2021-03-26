@@ -1,6 +1,7 @@
-import type { Resync, SocketOff } from "@/resync"
 import type { MediaVideo } from "$/mediaSource"
 import type { RoomState, VideoMetadata } from "$/room"
+
+import Resync, { SocketOff } from "@/resync"
 
 import {
   computed,

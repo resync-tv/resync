@@ -58,7 +58,6 @@ export default defineComponent({
       return m
     })
 
-    // TODO maybe start using JSX https://github.com/vitejs/vite/tree/main/packages/plugin-vue-jsx
     return () =>
       h(
         "div",
@@ -85,7 +84,7 @@ export default defineComponent({
               style: "background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)",
             },
             [
-              // @ts-expect-error it complains when the component expects props i think // TODO open issue
+              // @ts-expect-error same as above
               h(PlayerControls, {
                 state,
                 class: "pointer-events-auto",

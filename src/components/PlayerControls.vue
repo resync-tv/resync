@@ -1,7 +1,8 @@
 <script lang="ts">
 import type { MediaVideo } from "$/mediaSource"
 import type { RoomState } from "$/room"
-import type { Resync, SocketOff } from "@/resync"
+
+import Resync, { SocketOff } from "@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, PropType, ref, toRefs } from "vue"
 

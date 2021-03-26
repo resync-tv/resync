@@ -22,7 +22,7 @@ export default defineComponent({
     // TODO: provide info to navbar
     const socketConnected = ref(false)
     const socket = development
-      ? io("http://localhost:3020")
+      ? io(`http://${location.hostname}:3020`)
       : io("https://hetzner.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
