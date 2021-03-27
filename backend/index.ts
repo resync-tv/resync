@@ -13,7 +13,7 @@ const httpServer = createServer()
 const io = new Server(httpServer, {
   cors: { origin },
 })
-const port = Number(process.env.BACKEND_PORT || 8888)
+const port = Number(process.env.BACKEND_PORT || 3020)
 
 io.on("connection", client => {
   log("client connected", client.id)
