@@ -7,6 +7,9 @@ import Resync, { SocketOff } from "@/resync"
 import { computed, defineComponent, inject, onBeforeUnmount, PropType, ref, toRefs } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 
+import debug from "debug"
+const log = debug("resync:playercontrols")
+
 export default defineComponent({
   components: { ResyncSlider },
   name: "PlayerControls",
@@ -19,11 +22,21 @@ export default defineComponent({
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
+    const socketHandlers: SocketOff[] = []
     const paused = ref(true)
     const volume = ref(0.1)
-    const socketHandlers: SocketOff[] = []
+    const progress = ref(0)
 
     paused.value = state.value.paused
+
+    const updateProgress = () => {
+      const currentTime = resync.currentTime()
+      const duration = resync.duration()
+      progress.value = Math.max(0, Math.min(1, currentTime / duration))
+
+      if (isNaN(progress.value) || !paused.value) requestAnimationFrame(updateProgress)
+    }
+    updateProgress()
 
     const offPause = resync.onPause(() => {
       paused.value = true
@@ -32,6 +45,7 @@ export default defineComponent({
 
     const offResume = resync.onResume(() => {
       paused.value = false
+      updateProgress()
     })
     socketHandlers.push(offResume)
 
@@ -47,7 +61,7 @@ export default defineComponent({
     const playIconClick = () =>
       paused.value ? resync.resume() : resync.pause(resync.currentTime())
 
-    return { playStateIcon, volumeStateIcon, playIconClick }
+    return { playStateIcon, volumeStateIcon, playIconClick, progress }
   },
 })
 </script>
@@ -64,7 +78,10 @@ export default defineComponent({
         <span class="mi player-icon">fullscreen</span>
       </div>
     </div>
-    <ResyncSlider class="bottom-full w-full absolute" />
+    <ResyncSlider
+      class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
+      :progress="progress"
+    />
   </div>
 </template>
 

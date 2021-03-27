@@ -12,8 +12,12 @@ const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
 export default class Resync {
   private socket: Socket
   private roomEmit: RoomEmit
-  currentTime = (): number => 0
-  duration = (): number => 0
+  currentTime = (): number => NaN
+  duration = (): number => NaN
+  volume = (): number => NaN
+  setVolume = (v: number): void => {
+    v
+  }
 
   constructor(socket: Socket, roomEmit: RoomEmit) {
     this.socket = socket

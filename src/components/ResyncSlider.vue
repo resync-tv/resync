@@ -1,16 +1,28 @@
 <script lang="ts">
-import { defineComponent } from "vue"
+import { defineComponent, toRefs } from "vue"
 
 export default defineComponent({
-  setup() {},
+  props: {
+    progress: {
+      type: Number,
+      required: true,
+    },
+  },
+  emits: ["skipTo"],
+  setup(props) {
+    const { progress } = toRefs(props)
+
+    return { progress }
+  },
 })
 </script>
 
 <template>
-  <div class="slider">
-    <div class="background"></div>
-    <div class="buffer"></div>
-    <div class="progress">
+  <div class="wrap">
+    <div class="slider" :style="`--progress: ${progress};`">
+      <div class="background"></div>
+      <div class="buffer"></div>
+      <div class="progress"></div>
       <div class="handle"></div>
     </div>
   </div>
@@ -18,18 +30,17 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .slider {
-  --buffer: 50%;
-  --progress: 25%;
-  --hover-transition: all 200ms;
+  --buffer: 0%;
+  --progress: 0%;
+  --hover-transition: 200ms;
   --color: var(--clr-white);
 
   position: relative;
   height: 20px;
   cursor: pointer;
-  padding: 0 8px;
   display: flex;
   align-items: center;
-  transform: translateY(-50%);
+  // transform: translateY(-50%);
 
   > div:not(.background) {
     position: absolute;
@@ -37,7 +48,7 @@ export default defineComponent({
 
   > div {
     height: 3px;
-    transition: var(--hover-transition);
+    transition: height var(--hover-transition);
   }
 
   > .background {
@@ -52,26 +63,28 @@ export default defineComponent({
 
   > .progress {
     background: var(--color);
-    width: var(--progress);
+    width: 100%;
+    transform: scaleX(var(--progress));
+    transform-origin: left;
+  }
 
-    > .handle {
-      transition: var(--hover-transition);
-      position: absolute;
-      height: 0px;
-      width: 0px;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: var(--color);
-      left: 100%;
-    }
+  > .handle {
+    transition: height var(--hover-transition), width var(--hover-transition);
+    position: absolute;
+    height: 0px;
+    width: 0px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--color);
+    left: calc(var(--progress) * 100%);
   }
 
   &:hover {
     > div {
       height: 5px;
     }
-    .progress > .handle {
+    > .handle {
       height: 11.5px;
       width: 11.5px;
     }

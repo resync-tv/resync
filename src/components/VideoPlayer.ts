@@ -45,8 +45,10 @@ export default defineComponent({
 
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
-      resync.currentTime = () => video.value?.currentTime || 0
-      resync.duration = () => video.value?.duration || 0
+      resync.currentTime = () => video.value?.currentTime || NaN
+      resync.duration = () => video.value?.duration || NaN
+      resync.volume = () => video.value?.volume || NaN
+      resync.setVolume = volume => video.value && (video.value.volume = volume)
 
       // TODO: user-adjustable volume
       video.value.volume = 0.1
