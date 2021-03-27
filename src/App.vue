@@ -25,6 +25,8 @@ export default defineComponent({
       ? io(`http://${location.hostname}:3020`)
       : io("https://hetzner.vaaski.dev", { path: "/resync" })
 
+    provide("socketConnected", socketConnected)
+
     socket.on("connect", () => (socketConnected.value = true))
     socket.on("disconnect", () => (socketConnected.value = false))
 
