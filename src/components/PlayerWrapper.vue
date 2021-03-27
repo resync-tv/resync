@@ -1,7 +1,8 @@
+<script lang="ts">
 import type { MediaType, MediaVideo } from "$/mediaSource"
 import type { RoomState, VideoMetadata } from "$/room"
 
-import { computed, defineComponent, h, PropType, ref, toRefs } from "vue"
+import { computed, defineComponent, PropType, ref, toRefs } from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
@@ -12,6 +13,10 @@ const log = debug("resync:playerwrapper")
 
 export default defineComponent({
   name: "PlayerWrapper",
+  components: {
+    VideoPlayer,
+    PlayerControls,
+  },
   props: {
     type: {
       type: String as PropType<MediaType>,
@@ -58,40 +63,39 @@ export default defineComponent({
       return m
     })
 
-    return () =>
-      h(
-        "div",
-        {
-          class: "rounded overflow-hidden flex light:shadow relative",
-          style:
-            `width: ${videoW.value * sizeMultiplier.value}px;` +
-            `height: ${videoH.value * sizeMultiplier.value}px`,
-        },
-        [
-          // @ts-expect-error it complains when the component expects props i think // TODO open issue
-          h(VideoPlayer, {
-            state,
-            onMetadata,
-            style:
-              `width: ${videoW.value * sizeMultiplier.value}px;` +
-              `height: ${videoH.value * sizeMultiplier.value}px`,
-          }),
-          h(
-            "div",
-            {
-              class:
-                "absolute bottom-0 h-1/3 w-full flex items-end justify-center pointer-events-none",
-              style: "background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)",
-            },
-            [
-              // @ts-expect-error same as above
-              h(PlayerControls, {
-                state,
-                class: "pointer-events-auto",
-              }),
-            ]
-          ),
-        ]
+    const sizeStyle = computed(() => {
+      return (
+        `width:${videoW.value * sizeMultiplier.value}px;` +
+        `height:${videoH.value * sizeMultiplier.value}px`
       )
+    })
+
+    return {
+      videoW,
+      videoH,
+      sizeMultiplier,
+      state,
+      onMetadata,
+      sizeStyle,
+    }
   },
 })
+</script>
+
+<template>
+  <div class="rounded flex overflow-hidden relative light:shadow" :style="sizeStyle">
+    <VideoPlayer :state="state" @metadata="onMetadata" :style="sizeStyle" />
+    <div class="overlay-gradient">
+      <PlayerControls :state="state" class="pointer-events-auto" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.overlay-gradient {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+
+  @apply flex h-1/4 w-full bottom-0 absolute items-end justify-center;
+  @apply pointer-events-none;
+}
+</style>

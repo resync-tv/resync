@@ -6,7 +6,7 @@ import type { MediaSourceAny } from "$/mediaSource"
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
 
-import PlayerWrapper from "@/components/PlayerWrapper"
+import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import Resync from "@/resync"
 
 import debug from "debug"
@@ -88,6 +88,7 @@ export default defineComponent({
   <main class="flex flex-col justify-center items-center">
     <div class="flex relative justify-center">
       <div class="flex bottom-full mb-3 w-md justify-center absolute" style="max-width: 75vw">
+        <!-- TODO make this into component that accepts right-click as paste -->
         <input
           v-model="sourceInput"
           class="resync-input"

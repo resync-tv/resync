@@ -21,6 +21,7 @@ export default defineComponent({
   --buffer: 50%;
   --progress: 25%;
   --hover-transition: all 200ms;
+  --color: var(--clr-white);
 
   position: relative;
   height: 20px;
@@ -50,7 +51,7 @@ export default defineComponent({
   }
 
   > .progress {
-    background: var(--clr-accent);
+    background: var(--color);
     width: var(--progress);
 
     > .handle {
@@ -61,7 +62,7 @@ export default defineComponent({
       top: 50%;
       transform: translate(-50%, -50%);
       border-radius: 50%;
-      background: var(--clr-accent);
+      background: var(--color);
       left: 100%;
     }
   }

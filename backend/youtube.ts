@@ -10,10 +10,8 @@ const urlExpire = (url: string): number => {
   const { searchParams } = new URL(url)
   const expires = searchParams.get("expire")
 
-  log(`expires: ${expires}`)
   if (!expires) return NaN
-
-  return Number(expires)
+  else return Number(expires)
 }
 
 const transformFormat = (format: ytdl.videoFormat): MediaSource => {
