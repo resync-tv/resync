@@ -33,7 +33,7 @@ export default defineComponent({
       const currentTime = current ?? resync.currentTime()
       const duration = resync.duration()
       progress.value = Math.max(0, Math.min(1, currentTime / duration))
-      log("updateProgress", currentTime, duration)
+      // log("updateProgress", currentTime, duration)
 
       if (!once && (isNaN(progress.value) || !paused.value)) {
         requestAnimationFrame(() => updateProgress())
@@ -66,10 +66,21 @@ export default defineComponent({
       return "volume_up"
     })
 
-    const playIconClick = () =>
+    const onPlayIconClick = () => {
       paused.value ? resync.resume() : resync.pause(resync.currentTime())
+    }
 
-    return { playStateIcon, volumeStateIcon, playIconClick, progress }
+    const onSliderValue = (value: number) => {
+      resync.seekTo(resync.duration() * value)
+    }
+
+    return {
+      playStateIcon,
+      volumeStateIcon,
+      onPlayIconClick,
+      progress,
+      onSliderValue,
+    }
   },
 })
 </script>
@@ -78,7 +89,7 @@ export default defineComponent({
   <div class="h-10 text-white w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div>
-        <span class="mi player-icon" @click="playIconClick">{{ playStateIcon }}</span>
+        <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
         <span class="mi player-icon">skip_next</span>
         <span class="mi player-icon">{{ volumeStateIcon }}</span>
       </div>
@@ -89,6 +100,7 @@ export default defineComponent({
     <ResyncSlider
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
+      @value="onSliderValue"
     />
   </div>
 </template>

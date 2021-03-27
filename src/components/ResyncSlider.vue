@@ -1,5 +1,15 @@
 <script lang="ts">
-import { defineComponent, toRefs } from "vue"
+import { defineComponent, ref, toRefs } from "vue"
+
+export const touchEventOffset = (event: any, target?: any) => {
+  target = target || event.currentTarget
+
+  const cx = event.clientX || 0
+  const cy = event.clientY || 0
+  const rect = target.getBoundingClientRect()
+
+  return [cx - rect.left, cy - rect.top]
+}
 
 export default defineComponent({
   props: {
@@ -8,18 +18,53 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["skipTo"],
-  setup(props) {
+  emits: ["value"],
+  setup(props, { emit }) {
     const { progress } = toRefs(props)
+    const override = ref<number | null>(null)
+    const active = ref(false)
 
-    return { progress }
+    // TODO implement update slack as per https://git.io/JYG6j
+    const mouseDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      const { scrollWidth } = target
+      let { offsetX } = event
+      override.value = event.offsetX / target.scrollWidth
+      active.value = true
+
+      window.onmousemove = (evt: MouseEvent) => {
+        offsetX += evt.movementX
+        override.value = Math.max(0, Math.min(1, offsetX / scrollWidth))
+      }
+
+      window.onmouseup = () => {
+        emit("value", override.value)
+
+        window.onmousemove = null
+        window.onmouseup = null
+        override.value = null
+        active.value = false
+      }
+    }
+
+    return {
+      progress,
+      mouseDown,
+      override,
+      active,
+    }
   },
 })
 </script>
 
 <template>
   <div class="wrap">
-    <div class="slider" :style="`--progress: ${progress};`">
+    <div
+      class="slider"
+      :style="`--progress: ${override ?? progress};`"
+      @mousedown="mouseDown"
+      :class="{ active }"
+    >
       <div class="background"></div>
       <div class="buffer"></div>
       <div class="progress"></div>
@@ -40,7 +85,6 @@ export default defineComponent({
   cursor: pointer;
   display: flex;
   align-items: center;
-  // transform: translateY(-50%);
 
   > div:not(.background) {
     position: absolute;
@@ -49,6 +93,7 @@ export default defineComponent({
   > div {
     height: 3px;
     transition: height var(--hover-transition);
+    pointer-events: none;
   }
 
   > .background {
@@ -80,7 +125,8 @@ export default defineComponent({
     left: calc(var(--progress) * 100%);
   }
 
-  &:hover {
+  &:hover,
+  &.active {
     > div {
       height: 5px;
     }
