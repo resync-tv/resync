@@ -29,12 +29,15 @@ export default defineComponent({
 
     paused.value = state.value.paused
 
-    const updateProgress = () => {
-      const currentTime = resync.currentTime()
+    const updateProgress = (once = false, current?: number) => {
+      const currentTime = current ?? resync.currentTime()
       const duration = resync.duration()
       progress.value = Math.max(0, Math.min(1, currentTime / duration))
+      log("updateProgress", currentTime, duration)
 
-      if (isNaN(progress.value) || !paused.value) requestAnimationFrame(updateProgress)
+      if (!once && (isNaN(progress.value) || !paused.value)) {
+        requestAnimationFrame(() => updateProgress())
+      }
     }
     updateProgress()
 
@@ -48,6 +51,11 @@ export default defineComponent({
       updateProgress()
     })
     socketHandlers.push(offResume)
+
+    const offSeekTo = resync.onSeekTo(to => {
+      updateProgress(true, to)
+    })
+    socketHandlers.push(offSeekTo)
 
     onBeforeUnmount(() => socketHandlers.forEach(off => off()))
 
