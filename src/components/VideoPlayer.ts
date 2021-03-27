@@ -45,7 +45,8 @@ export default defineComponent({
 
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
-      const currentTime = () => video.value?.currentTime || 0
+      resync.currentTime = () => video.value?.currentTime || 0
+      resync.duration = () => video.value?.duration || 0
 
       // TODO: user-adjustable volume
       video.value.volume = 0.1
@@ -77,7 +78,7 @@ export default defineComponent({
         error("playback still failed when muted")
         const reason = err.message.split(". ")[0]
         const { name } = err
-        resync.playbackError({ reason, name }, currentTime())
+        resync.playbackError({ reason, name }, resync.currentTime())
       }
 
       const offPause = resync.onPause(() => {
@@ -105,7 +106,7 @@ export default defineComponent({
 
       const offRequestTime = resync.onRequestTime(callback => {
         logRemote(`onRequestTime`)
-        callback(currentTime())
+        callback(resync.currentTime())
       })
       socketHandlers.push(offRequestTime)
 
@@ -127,11 +128,13 @@ export default defineComponent({
       }
 
       video.value.onclick = () =>
-        paused.value ? resync.resume() : resync.pause(currentTime())
+        paused.value ? resync.resume() : resync.pause(resync.currentTime())
 
       if (navigator.mediaSession) {
         navigator.mediaSession.setActionHandler("play", () => resync.resume())
-        navigator.mediaSession.setActionHandler("pause", () => resync.pause(currentTime()))
+        navigator.mediaSession.setActionHandler("pause", () =>
+          resync.pause(resync.currentTime())
+        )
       }
     })
 

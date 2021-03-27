@@ -44,9 +44,8 @@ export default defineComponent({
       return "volume_up"
     })
 
-    // TODO: get the duration and current time in here
-    const currentTime = () => 0
-    const playIconClick = () => (paused.value ? resync.resume() : resync.pause(currentTime()))
+    const playIconClick = () =>
+      paused.value ? resync.resume() : resync.pause(resync.currentTime())
 
     return { playStateIcon, volumeStateIcon, playIconClick }
   },
