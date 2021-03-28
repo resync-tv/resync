@@ -70,6 +70,10 @@ export default defineComponent({
       paused.value ? resync.resume() : resync.pause(resync.currentTime())
     }
 
+    const onVolumeIconClick = () => {
+      volume.value = volume.value ? 0.1 : 0
+    }
+
     const onSliderValue = (value: number) => {
       resync.seekTo(resync.duration() * value)
     }
@@ -78,6 +82,7 @@ export default defineComponent({
       playStateIcon,
       volumeStateIcon,
       onPlayIconClick,
+      onVolumeIconClick,
       progress,
       onSliderValue,
     }
@@ -91,7 +96,7 @@ export default defineComponent({
       <div>
         <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
         <span class="mi player-icon">skip_next</span>
-        <span class="mi player-icon">{{ volumeStateIcon }}</span>
+        <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
       </div>
       <div>
         <span class="mi player-icon">fullscreen</span>
@@ -101,6 +106,7 @@ export default defineComponent({
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
       @value="onSliderValue"
+      :updateSlack="3"
     />
   </div>
 </template>

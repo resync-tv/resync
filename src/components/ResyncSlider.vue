@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, toRefs } from "vue"
+import { defineComponent, ref, toRefs, watch } from "vue"
 
 export const touchEventOffset = (event: any, target?: any) => {
   target = target || event.currentTarget
@@ -17,14 +17,26 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    updateSlack: {
+      type: Number,
+      default: 0,
+    },
   },
   emits: ["value"],
   setup(props, { emit }) {
-    const { progress } = toRefs(props)
+    const { progress, updateSlack } = toRefs(props)
     const override = ref<number | null>(null)
     const active = ref(false)
+    let skipValueUpdates = 0
 
-    // TODO implement update slack as per https://git.io/JYG6j
+    watch(progress, () => {
+      if (skipValueUpdates > 1) skipValueUpdates--
+      else if (skipValueUpdates === 1) {
+        skipValueUpdates--
+        override.value = null
+      }
+    })
+
     const mouseDown = (event: MouseEvent) => {
       const target = event.target as HTMLElement
       const { scrollWidth } = target
@@ -40,9 +52,12 @@ export default defineComponent({
       window.onmouseup = () => {
         emit("value", override.value)
 
+        if (updateSlack.value > 0) skipValueUpdates = updateSlack.value
+        else override.value = null
+
         window.onmousemove = null
         window.onmouseup = null
-        override.value = null
+        // override.value = null
         active.value = false
       }
     }
