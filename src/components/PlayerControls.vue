@@ -54,16 +54,21 @@ export default defineComponent({
       volume.value = resync.volume()
     })
 
+    const play = () => {
+      paused.value = false
+      updateProgress()
+    }
+
     const offPause = resync.onPause(() => {
       paused.value = true
     })
     socketHandlers.push(offPause)
 
-    const offResume = resync.onResume(() => {
-      paused.value = false
-      updateProgress()
-    })
+    const offResume = resync.onResume(play)
     socketHandlers.push(offResume)
+
+    const offSource = resync.onSource(play)
+    socketHandlers.push(offSource)
 
     const offSeekTo = resync.onSeekTo(to => {
       updateProgress(true, to)

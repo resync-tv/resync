@@ -1,5 +1,6 @@
 import type { Socket } from "socket.io-client"
 import type { EventNotifiy, RoomEmit } from "$/room"
+import type { MediaSourceAny } from "$/mediaSource"
 
 import debug from "debug"
 const log = debug("resync:resync.ts")
@@ -53,6 +54,7 @@ export default class Resync {
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })
   }
+  onSource = this.EventHandler<Fn<MediaSourceAny | undefined>>("source")
   onPause = this.EventHandler<Fn>("pause")
   onResume = this.EventHandler<Fn>("resume")
   onSeekTo = this.EventHandler<Fn<number>>("seekTo")

@@ -83,6 +83,13 @@ export default defineComponent({
         resync.playbackError({ reason, name }, resync.currentTime())
       }
 
+      const play = () => {
+        logRemote("onResume")
+        autoplay.value = true
+        muted.value = false
+        video.value?.play().catch(onPlaybackError)
+      }
+
       const offPause = resync.onPause(() => {
         logRemote("onPause")
         autoplay.value = false
@@ -90,12 +97,7 @@ export default defineComponent({
       })
       socketHandlers.push(offPause)
 
-      const offResume = resync.onResume(() => {
-        logRemote("onResume")
-        autoplay.value = true
-        muted.value = false
-        video.value?.play().catch(onPlaybackError)
-      })
+      const offResume = resync.onResume(play)
       socketHandlers.push(offResume)
 
       const offSeekTo = resync.onSeekTo(seconds => {
@@ -111,6 +113,9 @@ export default defineComponent({
         callback(resync.currentTime())
       })
       socketHandlers.push(offRequestTime)
+
+      const offSource = resync.onSource(play)
+      socketHandlers.push(offSource)
 
       video.value.onpause = () => {
         logLocal(`paused: ${paused.value}`)

@@ -61,7 +61,7 @@ export default defineComponent({
     joinRoom()
     socket.on("connect", joinRoom)
 
-    socket.on("source", (source: MediaSourceAny) => {
+    const offSource = resync.onSource(source => {
       log("new source", source)
 
       roomState.value.source = source
@@ -75,7 +75,7 @@ export default defineComponent({
       log("left room")
       roomEmit("leaveRoom")
       socket.off("connect", joinRoom)
-      socket.off("source")
+      offSource()
       offNotifiy()
     })
 
