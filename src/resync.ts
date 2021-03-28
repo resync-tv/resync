@@ -3,6 +3,7 @@ import type { EventNotifiy, RoomEmit } from "$/room"
 import type { MediaSourceAny } from "$/mediaSource"
 
 import { ref, watch } from "vue"
+import { ls } from "./util"
 
 import debug from "debug"
 const log = debug("resync:resync.ts")
@@ -12,10 +13,6 @@ type AnyFn = (...x: any[]) => any
 export type SocketOff = Fn
 
 const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
-const ls = <T = any>(key: string, value?: T): T | null | undefined =>
-  void 0 !== value
-    ? localStorage.setItem(key, JSON.stringify(value))
-    : JSON.parse(localStorage.getItem(key) as string)
 
 export default class Resync {
   private socket: Socket

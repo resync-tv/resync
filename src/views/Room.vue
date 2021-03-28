@@ -1,10 +1,10 @@
 <script lang="ts">
 import type { Socket } from "socket.io-client"
 import type { RoomEmit, RoomState } from "$/room"
-import type { MediaSourceAny } from "$/mediaSource"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
+import { ls } from "@/util"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import Resync from "@/resync"
@@ -19,6 +19,13 @@ const isURL = (str: string) => {
   } catch (error) {
     return false
   }
+}
+
+// TODO remove soon
+try {
+  ls("resync-name")
+} catch (error) {
+  ls("resync-name", localStorage.getItem("resync-name"))
 }
 
 export default defineComponent({
@@ -47,10 +54,9 @@ export default defineComponent({
       window.resync = resync
 
     const joinRoom = () => {
-      const name =
-        localStorage.getItem("resync-name") || window.prompt("enter username") || "default"
+      const name = ls<string>("resync-name") || window.prompt("enter username") || "default"
 
-      localStorage.setItem("resync-name", name)
+      ls<string>("resync-name", name)
 
       // TODO document.title
       roomEmit("joinRoom", { name }, (state: RoomState) => {

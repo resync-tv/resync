@@ -19,7 +19,6 @@ export default defineComponent({
   setup() {
     const development = process.env.NODE_ENV === "development"
 
-    // TODO: provide info to navbar
     const socketConnected = ref(false)
     const socket = development
       ? io(`http://${location.hostname}:3020`)
