@@ -58,10 +58,10 @@ export default defineComponent({
 
       ls<string>("resync-name", name)
 
-      // TODO document.title
       roomEmit("joinRoom", { name }, (state: RoomState) => {
         log("initial room state", state)
         roomState.value = state
+        document.title = `resync: ${roomID}`
       })
     }
     joinRoom()
@@ -83,6 +83,7 @@ export default defineComponent({
       socket.off("connect", joinRoom)
       offSource()
       offNotifiy()
+      document.title = "resync"
     })
 
     return { roomID, roomState, sourceInput, sourceValid, playContent }
