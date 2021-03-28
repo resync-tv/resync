@@ -4,7 +4,16 @@ import type { RoomState } from "$/room"
 
 import Resync, { SocketOff } from "@/resync"
 
-import { computed, defineComponent, inject, onBeforeUnmount, PropType, ref, toRefs } from "vue"
+import {
+  computed,
+  defineComponent,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  PropType,
+  ref,
+  toRefs,
+} from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 
 import debug from "debug"
@@ -24,7 +33,7 @@ export default defineComponent({
 
     const socketHandlers: SocketOff[] = []
     const paused = ref(true)
-    const volume = ref(0.1)
+    const volume = ref(resync.volume())
     const progress = ref(0)
 
     paused.value = state.value.paused
@@ -40,6 +49,10 @@ export default defineComponent({
       }
     }
     updateProgress()
+    onMounted(() => {
+      updateProgress()
+      volume.value = resync.volume()
+    })
 
     const offPause = resync.onPause(() => {
       paused.value = true
@@ -63,7 +76,7 @@ export default defineComponent({
     const volumeStateIcon = computed(() => {
       if (volume.value === 0) return "volume_mute"
       if (volume.value < 0.5) return "volume_down"
-      return "volume_up"
+      else return "volume_up"
     })
 
     const onPlayIconClick = () => {
@@ -71,7 +84,8 @@ export default defineComponent({
     }
 
     const onVolumeIconClick = () => {
-      volume.value = volume.value ? 0.1 : 0
+      volume.value = volume.value ? 0 : 0.1
+      resync.setVolume(volume.value)
     }
 
     const onSliderValue = (value: number) => {
