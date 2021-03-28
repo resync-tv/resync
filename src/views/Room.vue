@@ -7,6 +7,7 @@ import { useRoute } from "vue-router"
 import { ls } from "@/util"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
+import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 
 import debug from "debug"
@@ -29,7 +30,7 @@ try {
 }
 
 export default defineComponent({
-  components: { PlayerWrapper },
+  components: { PlayerWrapper, ResyncInput },
   setup() {
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
@@ -95,13 +96,11 @@ export default defineComponent({
   <main class="flex flex-col justify-center items-center">
     <div class="flex relative justify-center">
       <div class="flex bottom-full mb-3 w-md justify-center absolute" style="max-width: 75vw">
-        <!-- TODO make this into component that accepts right-click as paste -->
-        <input
+        <ResyncInput
           v-model="sourceInput"
-          class="resync-input"
-          :class="{ invalid: !sourceValid }"
-          type="text"
           placeholder="url"
+          :invalid="!sourceValid"
+          pastable
         />
         <button
           @click="playContent(sourceInput)"
