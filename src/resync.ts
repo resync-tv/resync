@@ -2,29 +2,43 @@ import type { Socket } from "socket.io-client"
 import type { EventNotifiy, RoomEmit } from "$/room"
 import type { MediaSourceAny } from "$/mediaSource"
 
+import { ref, watch } from "vue"
+
 import debug from "debug"
 const log = debug("resync:resync.ts")
 
 type Fn<T = void> = (x: T) => void
+type AnyFn = (...x: any[]) => any
 export type SocketOff = Fn
 
 const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
+const ls = <T = any>(key: string, value?: T): T | null | undefined =>
+  void 0 !== value
+    ? localStorage.setItem(key, JSON.stringify(value))
+    : JSON.parse(localStorage.getItem(key) as string)
 
 export default class Resync {
   private socket: Socket
   private roomEmit: RoomEmit
+  private handlers: SocketOff[] = []
   currentTime = (): number => NaN
   duration = (): number => NaN
-  volume = (): number => NaN
-  setVolume = (v: number): void => {
-    v
-  }
+
+  paused = ref(true)
+  volume = ref(ls<number>("resync-volume") ?? 0.1)
 
   constructor(socket: Socket, roomEmit: RoomEmit) {
     this.socket = socket
     this.roomEmit = roomEmit
+
+    const volumeWatcher = watch(this.volume, vol => {
+      ls<number>("resync-volume", vol)
+    })
+    this.handlers.push(volumeWatcher)
   }
-  private EventHandler<T extends (...x: any[]) => any = Fn>(event: string) {
+  destroy = (): void => this.handlers.forEach(off => off())
+
+  private EventHandler<T extends AnyFn = Fn>(event: string) {
     return (fn: T): SocketOff => {
       this.socket.on(event, fn)
       log(`registered on${capitalize(event)} handler`)

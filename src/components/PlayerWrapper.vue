@@ -85,7 +85,7 @@ export default defineComponent({
 <template>
   <div class="rounded flex overflow-hidden relative light:shadow" :style="sizeStyle">
     <VideoPlayer :state="state" @metadata="onMetadata" :style="sizeStyle" />
-    <div class="overlay-gradient">
+    <div class="transition-opacity overlay-gradient">
       <PlayerControls :state="state" class="pointer-events-auto" />
     </div>
   </div>

@@ -33,7 +33,6 @@ export default defineComponent({
 
     const socketHandlers: SocketOff[] = []
     const paused = ref(true)
-    const volume = ref(resync.volume())
     const progress = ref(0)
 
     paused.value = state.value.paused
@@ -51,7 +50,6 @@ export default defineComponent({
     updateProgress()
     onMounted(() => {
       updateProgress()
-      volume.value = resync.volume()
     })
 
     const play = () => {
@@ -79,8 +77,8 @@ export default defineComponent({
 
     const playStateIcon = computed(() => (paused.value ? "play_arrow" : "pause"))
     const volumeStateIcon = computed(() => {
-      if (volume.value === 0) return "volume_mute"
-      if (volume.value < 0.5) return "volume_down"
+      if (resync.volume.value === 0) return "volume_mute"
+      if (resync.volume.value < 0.5) return "volume_down"
       else return "volume_up"
     })
 
@@ -89,8 +87,7 @@ export default defineComponent({
     }
 
     const onVolumeIconClick = () => {
-      volume.value = volume.value ? 0 : 0.1
-      resync.setVolume(volume.value)
+      resync.volume.value = resync.volume.value ? 0 : 0.1
     }
 
     const onSliderValue = (value: number) => {

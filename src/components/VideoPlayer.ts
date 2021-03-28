@@ -13,6 +13,7 @@ import {
   PropType,
   ref,
   toRefs,
+  watch,
 } from "vue"
 
 import debug from "debug"
@@ -34,11 +35,10 @@ export default defineComponent({
 
     const src = computed(() => source.value?.video[0].url)
     const video = ref<null | HTMLVideoElement>(null)
-    const paused = ref(true)
     const muted = ref(false)
     const autoplay = ref(false)
 
-    const socketHandlers: SocketOff[] = []
+    const offHandlers: SocketOff[] = []
 
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
@@ -47,11 +47,14 @@ export default defineComponent({
       if (!video.value) throw new Error("video ref is null")
       resync.currentTime = () => video.value?.currentTime ?? NaN
       resync.duration = () => video.value?.duration ?? NaN
-      resync.volume = () => video.value?.volume ?? NaN
-      resync.setVolume = volume => video.value && (video.value.volume = volume)
+      const stopVolumeWatcher = watch(
+        resync.volume,
+        volume => video.value && (video.value.volume = volume)
+      )
+      offHandlers.push(stopVolumeWatcher)
 
       // TODO: user-adjustable volume
-      video.value.volume = 0.1
+      video.value.volume = resync.volume.value
       if (state.value.paused) {
         autoplay.value = false
         video.value.currentTime = state.value.lastSeekedTo
@@ -95,10 +98,10 @@ export default defineComponent({
         autoplay.value = false
         video.value?.pause()
       })
-      socketHandlers.push(offPause)
+      offHandlers.push(offPause)
 
       const offResume = resync.onResume(play)
-      socketHandlers.push(offResume)
+      offHandlers.push(offResume)
 
       const offSeekTo = resync.onSeekTo(seconds => {
         logRemote(`onSeekTo: ${seconds}`)
@@ -106,24 +109,24 @@ export default defineComponent({
 
         video.value.currentTime = seconds
       })
-      socketHandlers.push(offSeekTo)
+      offHandlers.push(offSeekTo)
 
       const offRequestTime = resync.onRequestTime(callback => {
         logRemote(`onRequestTime`)
         callback(resync.currentTime())
       })
-      socketHandlers.push(offRequestTime)
+      offHandlers.push(offRequestTime)
 
       const offSource = resync.onSource(play)
-      socketHandlers.push(offSource)
+      offHandlers.push(offSource)
 
       video.value.onpause = () => {
-        logLocal(`paused: ${paused.value}`)
-        paused.value = true
+        logLocal(`paused: ${resync.paused.value}`)
+        resync.paused.value = true
       }
       video.value.onplay = () => {
-        logLocal(`paused: ${paused.value}`)
-        paused.value = false
+        logLocal(`paused: ${resync.paused.value}`)
+        resync.paused.value = false
       }
 
       video.value.onloadedmetadata = () => {
@@ -135,7 +138,7 @@ export default defineComponent({
       }
 
       video.value.onclick = () =>
-        paused.value ? resync.resume() : resync.pause(resync.currentTime())
+        resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
 
       if (navigator.mediaSession) {
         navigator.mediaSession.setActionHandler("play", () => resync.resume())
@@ -145,7 +148,7 @@ export default defineComponent({
       }
     })
 
-    onBeforeUnmount(() => socketHandlers.forEach(off => off()))
+    onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
     return () =>
       h("video", {
