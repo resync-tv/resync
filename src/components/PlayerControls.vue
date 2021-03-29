@@ -67,12 +67,15 @@ export default defineComponent({
       resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
     }
 
-    // TODO: user-adjustable volume
     const onVolumeIconClick = () => {
       resync.volume.value = resync.volume.value ? 0 : 0.1
     }
 
-    const onSliderValue = (value: number) => {
+    const onVolumeSlider = (value: number) => {
+      resync.volume.value = value
+    }
+
+    const onProgressSliderValue = (value: number) => {
       resync.seekTo(resync.duration() * value)
     }
 
@@ -81,8 +84,10 @@ export default defineComponent({
       volumeStateIcon,
       onPlayIconClick,
       onVolumeIconClick,
+      onVolumeSlider,
       progress,
-      onSliderValue,
+      onProgressSliderValue,
+      resync,
     }
   },
 })
@@ -91,10 +96,18 @@ export default defineComponent({
 <template>
   <div class="h-10 text-white w-full relative">
     <div class="flex px-2 items-center justify-between">
-      <div>
+      <div class="flex">
         <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
         <span class="mi player-icon">skip_next</span>
-        <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
+        <div class="flex items-center volume">
+          <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
+          <ResyncSlider
+            :progress="resync.volume.value"
+            @value="onVolumeSlider"
+            small
+            immediate
+          />
+        </div>
       </div>
       <div>
         <span class="mi player-icon">fullscreen</span>
@@ -103,14 +116,26 @@ export default defineComponent({
     <ResyncSlider
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
-      @value="onSliderValue"
+      @value="onProgressSliderValue"
       :updateSlack="3"
     />
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .player-icon {
   @apply cursor-pointer my-2 mx-1;
+}
+.volume {
+  > .resync-slider {
+    @apply transition transition-all;
+    @apply mx-1;
+    @apply w-0 opacity-0;
+  }
+
+  &:hover > .resync-slider,
+  > .resync-slider.active {
+    @apply w-15 opacity-100;
+  }
 }
 </style>

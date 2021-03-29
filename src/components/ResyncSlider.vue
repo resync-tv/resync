@@ -21,10 +21,18 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    small: {
+      type: Boolean,
+      default: false,
+    },
+    immediate: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["value"],
   setup(props, { emit }) {
-    const { progress, updateSlack } = toRefs(props)
+    const { progress, updateSlack, immediate } = toRefs(props)
     const override = ref<number | null>(null)
     const active = ref(false)
     let skipValueUpdates = 0
@@ -47,6 +55,8 @@ export default defineComponent({
       window.onmousemove = (evt: MouseEvent) => {
         offsetX += evt.movementX
         override.value = Math.max(0, Math.min(1, offsetX / scrollWidth))
+
+        if (immediate.value) emit("value", override.value)
       }
 
       window.onmouseup = () => {
@@ -57,7 +67,6 @@ export default defineComponent({
 
         window.onmousemove = null
         window.onmouseup = null
-        // override.value = null
         active.value = false
       }
     }
@@ -73,12 +82,12 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="wrap">
+  <div class="resync-slider" :class="{ active }">
     <div
       class="slider"
       :style="`--progress: ${override ?? progress};`"
       @mousedown="mouseDown"
-      :class="{ active }"
+      :class="{ active, small }"
     >
       <div class="background"></div>
       <div class="buffer"></div>
@@ -140,11 +149,18 @@ export default defineComponent({
     left: calc(var(--progress) * 100%);
   }
 
-  &:hover,
-  &.active {
+  &:hover:not(.small),
+  &.active:not(.small) {
     > div {
       height: 5px;
     }
+    > .handle {
+      height: 11.5px;
+      width: 11.5px;
+    }
+  }
+
+  &.small {
     > .handle {
       height: 11.5px;
       width: 11.5px;
