@@ -43,35 +43,17 @@ export default defineComponent({
     const socket = inject<ResyncSocketFrontend>("socket")
     if (!socket) throw new Error("socket injection failed")
 
-    const roomEmit: RoomEmit = (event, arg, ...args) => {
-      const arg1 = { roomID, ...arg }
-      // log.extend("roomEmit")(event, arg1, ...args)
-
-      // @ts-expect-error I am clueless as to why this errors
-      socket.emit(event, arg1, ...args)
-    }
-
-    const resync = new Resync(socket, roomEmit)
-    const { playContent } = resync
+    const resync = new Resync(socket, roomID)
     provide("resync", resync)
 
     if (log.enabled)
       // @ts-expect-error for manual testing
       window.resync = resync
 
-    // TODO move this into resync.ts
-    const joinRoom = () => {
-      const name = ls<string>("resync-name") || window.prompt("enter username") || "default"
+    const name = ls<string>("resync-name") || window.prompt("enter username") || "default"
+    ls<string>("resync-name", name)
 
-      ls<string>("resync-name", name)
-
-      roomEmit("joinRoom", { name }, state => {
-        log("initial room state", state)
-        roomState.value = state
-      })
-    }
-    joinRoom()
-    socket.on("connect", joinRoom)
+    resync.joinRoom(name)
 
     const offSource = resync.onSource(source => {
       log("new source", source)
@@ -85,15 +67,13 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       log("left room")
-      roomEmit("leaveRoom")
-      socket.off("connect", joinRoom)
       offSource()
       offNotifiy()
       document.title = "resync"
       resync.destroy()
     })
 
-    return { roomID, roomState, sourceInput, sourceValid, playContent }
+    return { roomID, roomState, sourceInput, sourceValid, resync }
   },
 })
 </script>
@@ -109,7 +89,7 @@ export default defineComponent({
           pastable
         />
         <button
-          @click="playContent(sourceInput)"
+          @click="resync.playContent(sourceInput)"
           class="resync-button"
           :class="{ invalid: !sourceValid }"
         >

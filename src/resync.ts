@@ -22,14 +22,17 @@ export default class Resync {
   volume = ref(ls<number>("resync-volume") ?? 0.1)
   state: Ref<RoomState> = ref({ paused: true, source: undefined, lastSeekedTo: 0 })
 
-  constructor(socket: Socket, roomEmit: RoomEmit) {
+  constructor(socket: Socket, roomID: string) {
     this.socket = socket
-    this.roomEmit = roomEmit
+    this.roomEmit = (event, arg, ...args) => {
+      log.extend("roomEmit")(event, { roomID, ...arg }, ...args)
+      socket.emit(event, { roomID, ...arg }, ...args)
+    }
 
-    const volumeWatcher = watch(this.volume, vol => {
+    const volumeSaver = watch(this.volume, vol => {
       ls<number>("resync-volume", vol)
     })
-    this.handlers.push(volumeWatcher)
+    this.handlers.push(volumeSaver)
 
     const offState = this.onState(state => {
       this.state.value = state
@@ -49,6 +52,21 @@ export default class Resync {
         log(`unregistered on${capitalize(event)} handler`)
       }
     }
+  }
+
+  joinRoom = (name: string): void => {
+    const join = () => {
+      this.roomEmit("joinRoom", { name }, state => {
+        log("initial room state", state)
+        this.state.value = state
+      })
+    }
+
+    this.socket.on("connect", join)
+    join()
+
+    this.handlers.push(() => this.socket.off("connect", join))
+    this.handlers.push(() => this.roomEmit("leaveRoom"))
   }
 
   playContent = (source: string): void => {
