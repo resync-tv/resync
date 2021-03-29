@@ -35,6 +35,7 @@ export default class Resync {
     this.handlers.push(volumeSaver)
 
     const offState = this.onState(state => {
+      log("new state", state)
       this.state.value = state
     })
     this.handlers.push(offState)

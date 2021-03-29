@@ -36,7 +36,6 @@ export default defineComponent({
     const roomState = ref<RoomState>({ paused: true, source: undefined, lastSeekedTo: 0 })
     const sourceInput = ref("")
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
-    log("roomState ref", roomState)
 
     document.title = `resync: ${roomID}`
 
@@ -66,7 +65,6 @@ export default defineComponent({
     })
 
     onBeforeUnmount(() => {
-      log("left room")
       offSource()
       offNotifiy()
       document.title = "resync"
@@ -96,7 +94,7 @@ export default defineComponent({
           play
         </button>
       </div>
-      <PlayerWrapper v-if="roomState.source" :state="roomState" type="video" />
+      <PlayerWrapper v-if="resync.state.value.source" :state="roomState" type="video" />
     </div>
   </main>
 </template>

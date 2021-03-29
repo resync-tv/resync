@@ -35,6 +35,8 @@ class Room {
   }
 
   private notify(event: NotifyEvents, client: Socket, additional?: any) {
+    this.updateState()
+
     const { id } = client
     let name = id
     if (this.members[id]) name = this.members[id].name
@@ -51,59 +53,60 @@ class Room {
       // TODO add room members
     }
   }
+
+  updateState() {
+    this.broadcast.emit("state", this.state)
+  }
+
   join(client: Socket, name: string) {
     this.members[client.id] = { client, name }
     client.join(this.roomID)
 
-    this.notify("join", client)
-
     client.on("disconnect", () => this.leave(client))
+
+    this.notify("join", client)
   }
 
   leave(client: Socket) {
-    this.notify("leave", client)
-
     client.leave(this.roomID)
     delete this.members[client.id]
 
     const memberAmount = Object.keys(this.members).length
     if (memberAmount <= 0) this.paused = true
+
+    this.notify("leave", client)
   }
 
   async playContent(client: Socket, source: string, startFrom: number) {
-    this.notify("playContent", client, { source, startFrom })
-
     this.source = source ? await resolveContent(source, startFrom) : undefined
     this.lastSeekedTo = startFrom
     this.broadcast.emit("source", this.source)
 
+    this.notify("playContent", client, { source, startFrom })
     return this
   }
 
   pause(client?: Socket) {
-    if (client) this.notify("pause", client)
-
     this.paused = true
     this.broadcast.emit("pause")
 
+    if (client) this.notify("pause", client)
     return this
   }
 
   resume(client?: Socket) {
-    if (client) this.notify("resume", client)
-
     this.paused = false
     this.broadcast.emit("resume")
 
+    if (client) this.notify("resume", client)
     return this
   }
 
   seekTo({ client, seconds }: { client?: Socket; seconds: number }) {
-    if (client) this.notify("seekTo", client, { seconds })
-
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
 
+    if (client) this.notify("seekTo", client, { seconds })
     return this
   }
 
@@ -139,12 +142,12 @@ class Room {
   }
 
   async resync(client: Socket) {
-    this.notify("resync", client)
-
     this.pause(client)
     const avg = await this.requestTime(client)
     this.seekTo({ client, seconds: avg })
     this.resume(client)
+
+    this.notify("resync", client)
   }
 
   playbackError({ client, reason, name }: { client: Socket; reason: string; name: string }) {
