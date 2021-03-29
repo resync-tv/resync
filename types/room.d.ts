@@ -1,7 +1,12 @@
 import type { MediaSourceAny } from "./mediaSource"
 
-import { Server } from "socket.io"
+import { Server, Socket as BackendSocket } from "socket.io"
 import { Socket } from "socket.io-client"
+
+export interface Member {
+  name: string
+  client: BackendSocket
+}
 
 export interface RoomState<S = MediaSourceAny> {
   paused: boolean

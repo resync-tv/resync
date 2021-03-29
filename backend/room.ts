@@ -1,6 +1,13 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
-import type { MediaSourceAny } from "../types/mediaSource"
-import type { BackendEmits, NotifyEvents, ResyncSocketBackend, RoomState } from "../types/room"
+import type { MediaSourceAny } from "$/mediaSource"
+import type {
+  BackendEmits,
+  NotifyEvents,
+  ResyncSocketBackend,
+  RoomState,
+  Member,
+} from "$/room"
+
 import { resolveContent } from "./content"
 
 import debug from "debug"
@@ -8,9 +15,11 @@ import { average } from "./util"
 const log = debug("resync:room")
 
 const rooms: Record<string, Room> = {}
-interface Member {
-  name: string
+
+interface PlaybackErrorArg {
   client: Socket
+  reason: string
+  name: string
 }
 
 class Room {
@@ -81,17 +90,18 @@ class Room {
     this.source = source ? await resolveContent(source, startFrom) : undefined
     this.lastSeekedTo = startFrom
     this.broadcast.emit("source", this.source)
+    this.resume()
 
     this.notify("playContent", client, { source, startFrom })
-    return this
   }
 
-  pause(client?: Socket) {
+  pause(seconds?: number, client?: Socket) {
     this.paused = true
     this.broadcast.emit("pause")
 
+    if (seconds) this.seekTo({ seconds })
+
     if (client) this.notify("pause", client)
-    return this
   }
 
   resume(client?: Socket) {
@@ -99,7 +109,6 @@ class Room {
     this.broadcast.emit("resume")
 
     if (client) this.notify("resume", client)
-    return this
   }
 
   seekTo({ client, seconds }: { client?: Socket; seconds: number }) {
@@ -107,7 +116,6 @@ class Room {
     this.broadcast.emit("seekTo", seconds)
 
     if (client) this.notify("seekTo", client, { seconds })
-    return this
   }
 
   async requestTime(client: Socket) {
@@ -142,7 +150,8 @@ class Room {
   }
 
   async resync(client: Socket) {
-    this.pause(client)
+    this.pause()
+
     const avg = await this.requestTime(client)
     this.seekTo({ client, seconds: avg })
     this.resume(client)
@@ -150,10 +159,10 @@ class Room {
     this.notify("resync", client)
   }
 
-  playbackError({ client, reason, name }: { client: Socket; reason: string; name: string }) {
+  playbackError({ client, reason, name }: PlaybackErrorArg, seconds: number) {
     this.notify("playbackError", client, { reason, name })
-
-    return this
+    this.pause()
+    this.seekTo({ seconds })
   }
 }
 
@@ -175,13 +184,11 @@ export default (io: ResyncSocketBackend): void => {
     })
 
     client.on("playContent", ({ roomID, source, startFrom = 0 }) => {
-      getRoom(roomID)
-        .playContent(client, source, startFrom)
-        .then(t => t.resume())
+      getRoom(roomID).playContent(client, source, startFrom)
     })
 
     client.on("pause", ({ roomID, currentTime }) => {
-      getRoom(roomID).pause(client).seekTo({ seconds: currentTime })
+      getRoom(roomID).pause(currentTime, client)
     })
 
     client.on("resume", ({ roomID }) => {
@@ -195,10 +202,7 @@ export default (io: ResyncSocketBackend): void => {
     client.on("resync", ({ roomID }) => getRoom(roomID).resync(client))
 
     client.on("playbackError", ({ roomID, reason, currentTime, name }) => {
-      getRoom(roomID)
-        .playbackError({ client, reason, name })
-        .pause()
-        .seekTo({ seconds: currentTime })
+      getRoom(roomID).playbackError({ client, reason, name }, currentTime)
     })
   })
 }

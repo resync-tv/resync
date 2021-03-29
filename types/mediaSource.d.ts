@@ -29,4 +29,5 @@ export interface MediaAudioVideo extends MediaAudio, MediaVideo {
   type: "audiovideo"
 }
 
-export type MediaSourceAny = MediaAudio | MediaVideo | MediaAudioVideo
+// prettier-ignore
+export interface MediaSourceAny extends MediaBase, Partial<MediaAudio>, Partial<MediaVideo>, Partial<MediaAudioVideo> {}
