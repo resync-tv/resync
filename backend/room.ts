@@ -1,7 +1,6 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
-import type { DefaultEventsMap } from "socket.io/dist/typed-events"
 import type { MediaSourceAny } from "../types/mediaSource"
-import type { EventNotifiy, NotifiedEvents, PlayContentArg, RoomState } from "../types/room"
+import type { BackendEmits, NotifyEvents, ResyncSocketBackend, RoomState } from "../types/room"
 import { resolveContent } from "./content"
 
 import debug from "debug"
@@ -16,9 +15,10 @@ interface Member {
 
 class Room {
   readonly roomID: string
-  private io: Server
+  private io: ResyncSocketBackend
   private log: debug.Debugger
-  readonly broadcast: BroadcastOperator<DefaultEventsMap>
+  readonly broadcast: BroadcastOperator<BackendEmits>
+
   public members: Record<string, Member> = {}
 
   private paused = true
@@ -34,13 +34,12 @@ class Room {
     this.log = log.extend(roomID)
   }
 
-  private notify(event: NotifiedEvents, client: Socket, additional?: any) {
+  private notify(event: NotifyEvents, client: Socket, additional?: any) {
     const { id } = client
     let name = id
     if (this.members[id]) name = this.members[id].name
 
-    const eventNotification: EventNotifiy = { event, id, name, additional }
-    this.broadcast.emit("notifiy", eventNotification)
+    this.broadcast.emit("notifiy", { event, id, name, additional })
     this.log(`[${event}](${name})`, additional || "")
   }
 
@@ -49,6 +48,7 @@ class Room {
       paused: this.paused,
       source: this.source,
       lastSeekedTo: this.lastSeekedTo,
+      // TODO add room members
     }
   }
   join(client: Socket, name: string) {
@@ -112,6 +112,7 @@ class Room {
     requestTimeLog("requested time")
 
     const sockets = await this.broadcast.allSockets()
+    // TODO https://socket.io/docs/v3/migrating-from-3-x-to-4-0/#Allow-excluding-specific-rooms-when-broadcasting
     const otherClients = [...sockets].filter(s => s !== client.id)
 
     const getTime = (sock: Socket): Promise<number> =>
@@ -153,7 +154,7 @@ class Room {
   }
 }
 
-export default (io: Server): void => {
+export default (io: ResyncSocketBackend): void => {
   const getRoom = (roomID: string) => {
     if (!rooms[roomID]) rooms[roomID] = new Room(roomID, io)
     return rooms[roomID]
@@ -170,7 +171,7 @@ export default (io: Server): void => {
       getRoom(roomID).leave(client)
     })
 
-    client.on("playContent", ({ roomID, source, startFrom = 0 }: PlayContentArg) => {
+    client.on("playContent", ({ roomID, source, startFrom = 0 }) => {
       getRoom(roomID)
         .playContent(client, source, startFrom)
         .then(t => t.resume())
@@ -179,6 +180,7 @@ export default (io: Server): void => {
     client.on("pause", ({ roomID, currentTime }) => {
       getRoom(roomID).pause(client).seekTo({ seconds: currentTime })
     })
+
     client.on("resume", ({ roomID }) => {
       getRoom(roomID).resume(client)
     })

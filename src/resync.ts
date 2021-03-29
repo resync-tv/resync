@@ -1,8 +1,8 @@
 import type { Socket } from "socket.io-client"
-import type { EventNotifiy, RoomEmit } from "$/room"
+import type { BackendEmits, EventNotifiy, RoomEmit, RoomState } from "$/room"
 import type { MediaSourceAny } from "$/mediaSource"
 
-import { ref, watch } from "vue"
+import { Ref, ref, watch } from "vue"
 import { ls } from "./util"
 
 import debug from "debug"
@@ -14,9 +14,8 @@ export type SocketOff = Fn
 
 const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
 
-// TODO type all the emits
 export default class Resync {
-  private socket: Socket
+  private socket: Socket<BackendEmits>
   private roomEmit: RoomEmit
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
@@ -24,6 +23,7 @@ export default class Resync {
 
   paused = ref(true)
   volume = ref(ls<number>("resync-volume") ?? 0.1)
+  state: Ref<RoomState> = ref({ paused: true, source: undefined, lastSeekedTo: 0 })
 
   constructor(socket: Socket, roomEmit: RoomEmit) {
     this.socket = socket
@@ -36,7 +36,7 @@ export default class Resync {
   }
   destroy = (): void => this.handlers.forEach(off => off())
 
-  private EventHandler<T extends AnyFn = Fn>(event: string) {
+  private EventHandler<T extends AnyFn = Fn>(event: keyof BackendEmits) {
     return (fn: T): SocketOff => {
       this.socket.on(event, fn)
       log(`registered on${capitalize(event)} handler`)

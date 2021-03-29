@@ -1,6 +1,5 @@
 <script lang="ts">
-import type { Socket } from "socket.io-client"
-import type { RoomEmit, RoomState } from "$/room"
+import type { ResyncSocketFrontend, RoomEmit, RoomState } from "$/room"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
@@ -39,11 +38,17 @@ export default defineComponent({
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
     log("roomState ref", roomState)
 
-    const socket = inject<Socket>("socket")
+    document.title = `resync: ${roomID}`
+
+    const socket = inject<ResyncSocketFrontend>("socket")
     if (!socket) throw new Error("socket injection failed")
 
-    const roomEmit: RoomEmit = (event: string, arg?: Record<string, any>, cb?: any) => {
-      socket.emit(event, { roomID, ...arg }, cb)
+    const roomEmit: RoomEmit = (event, arg, ...args) => {
+      const arg1 = { roomID, ...arg }
+      log.extend("roomEmit")(event, arg1, ...args)
+
+      // @ts-expect-error I am clueless as to why this errors
+      socket.emit(event, arg1, ...args)
     }
 
     const resync = new Resync(socket, roomEmit)
@@ -54,15 +59,15 @@ export default defineComponent({
       // @ts-expect-error for manual testing
       window.resync = resync
 
+    // TODO move this into resync.ts
     const joinRoom = () => {
       const name = ls<string>("resync-name") || window.prompt("enter username") || "default"
 
       ls<string>("resync-name", name)
 
-      roomEmit("joinRoom", { name }, (state: RoomState) => {
+      roomEmit("joinRoom", { name }, state => {
         log("initial room state", state)
         roomState.value = state
-        document.title = `resync: ${roomID}`
       })
     }
     joinRoom()

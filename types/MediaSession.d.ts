@@ -1,3 +1,4 @@
+/* spell-checker: disable */
 // Type definitions for non-npm package Media Session API 1.1
 // Project: https://wicg.github.io/mediasession/
 // Definitions by: Julien CROUZET <https://github.com/jucrouzet>
@@ -5,6 +6,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 // exported from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/57293cfddb2e48ff8c7deaa7ee3ac0101d83d014/types/wicg-mediasession/index.d.ts
+
+/* spell-checker: enable */
 // modified by vaaski
 
 interface Navigator {

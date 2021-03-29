@@ -8,6 +8,7 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { io } from "socket.io-client"
+
 import NavBar from "@/components/NavBar.vue"
 
 import debug from "debug"
