@@ -9,30 +9,33 @@ export interface RoomState<S = MediaSourceAny> {
   lastSeekedTo: number
 }
 
+type Callback<T> = (x: T) => void
+
 export interface BackendEmits {
-  notifiy: (eventNotification: EventNotifiy) => void
+  notifiy: (eventNotification: EventNotification) => void
   source: (source: MediaSourceAny | undefined) => void
   pause: () => void
   resume: () => void
   seekTo: (seconds: number) => void
-  requestTime: (cb: (number) => void) => void
+  requestTime: (cb: Callback<number>) => void
+  state: (state: RoomState) => void
 }
 
-interface FrontendEmitBase {
+interface RoomEmitBase {
   roomID: string
 }
-interface FrontendEmitTime extends FrontendEmitBase {
+interface RoomEmitTime extends RoomEmitBase {
   currentTime: number
 }
 export interface FrontendEmits {
-  playContent: (x: FrontendEmitBase & { source: string; startFrom?: number }) => void
-  pause: (x: FrontendEmitTime) => void
-  resume: (x: FrontendEmitBase) => void
-  seekTo: (x: FrontendEmitTime) => void
-  resync: (x: FrontendEmitBase) => void
-  playbackError: (x: FrontendEmitTime & { reason: string; name: string }) => void
-  joinRoom: (x: FrontendEmitBase & { name: string }, cb: (state: RoomState) => void) => void
-  leaveRoom: (x: FrontendEmitBase) => void
+  playContent: (x: { source: string; startFrom?: number } & RoomEmitBase) => void
+  pause: (x: RoomEmitTime) => void
+  resume: (x: RoomEmitBase) => void
+  seekTo: (x: RoomEmitTime) => void
+  resync: (x: RoomEmitBase) => void
+  playbackError: (x: RoomEmitTime & { reason: string; name: string }) => void
+  joinRoom: (x: { name: string } & RoomEmitBase, cb: Callback<RoomState>) => void
+  leaveRoom: (x: RoomEmitBase) => void
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,7 +60,7 @@ export type NotifyEvents =
   | "resync"
   | "playbackError"
 
-export interface EventNotifiy {
+export interface EventNotification {
   event: NotifyEvents
   id: string
   name: string

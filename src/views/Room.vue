@@ -45,7 +45,7 @@ export default defineComponent({
 
     const roomEmit: RoomEmit = (event, arg, ...args) => {
       const arg1 = { roomID, ...arg }
-      log.extend("roomEmit")(event, arg1, ...args)
+      // log.extend("roomEmit")(event, arg1, ...args)
 
       // @ts-expect-error I am clueless as to why this errors
       socket.emit(event, arg1, ...args)
@@ -90,6 +90,7 @@ export default defineComponent({
       offSource()
       offNotifiy()
       document.title = "resync"
+      resync.destroy()
     })
 
     return { roomID, roomState, sourceInput, sourceValid, playContent }

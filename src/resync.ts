@@ -1,6 +1,5 @@
 import type { Socket } from "socket.io-client"
-import type { BackendEmits, EventNotifiy, RoomEmit, RoomState } from "$/room"
-import type { MediaSourceAny } from "$/mediaSource"
+import type { BackendEmits, FrontendEmits, RoomEmit, RoomState } from "$/room"
 
 import { Ref, ref, watch } from "vue"
 import { ls } from "./util"
@@ -8,14 +7,12 @@ import { ls } from "./util"
 import debug from "debug"
 const log = debug("resync:resync.ts")
 
-type Fn<T = void> = (x: T) => void
-type AnyFn = (...x: any[]) => any
-export type SocketOff = Fn
+export type SocketOff = () => void
 
 const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
 
 export default class Resync {
-  private socket: Socket<BackendEmits>
+  private socket: Socket<BackendEmits, FrontendEmits>
   private roomEmit: RoomEmit
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
@@ -33,11 +30,17 @@ export default class Resync {
       ls<number>("resync-volume", vol)
     })
     this.handlers.push(volumeWatcher)
+
+    const offState = this.onState(state => {
+      this.state.value = state
+    })
+    this.handlers.push(offState)
   }
   destroy = (): void => this.handlers.forEach(off => off())
 
-  private EventHandler<T extends AnyFn = Fn>(event: keyof BackendEmits) {
-    return (fn: T): SocketOff => {
+  private eventHandler<E extends keyof BackendEmits>(event: E) {
+    return (fn: BackendEmits[E]): SocketOff => {
+      // @ts-expect-error I am clueless as to why this errors
       this.socket.on(event, fn)
       log(`registered on${capitalize(event)} handler`)
 
@@ -66,10 +69,11 @@ export default class Resync {
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })
   }
-  onSource = this.EventHandler<Fn<MediaSourceAny | undefined>>("source")
-  onPause = this.EventHandler<Fn>("pause")
-  onResume = this.EventHandler<Fn>("resume")
-  onSeekTo = this.EventHandler<Fn<number>>("seekTo")
-  onRequestTime = this.EventHandler<Fn<Fn<number>>>("requestTime")
-  onNotify = this.EventHandler<Fn<EventNotifiy>>("notifiy")
+  onSource = this.eventHandler("source")
+  onPause = this.eventHandler("pause")
+  onResume = this.eventHandler("resume")
+  onSeekTo = this.eventHandler("seekTo")
+  onRequestTime = this.eventHandler("requestTime")
+  onNotify = this.eventHandler("notifiy")
+  onState = this.eventHandler("state")
 }
