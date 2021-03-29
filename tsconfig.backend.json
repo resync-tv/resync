@@ -13,7 +13,11 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "jsx": "preserve",
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "$/*": ["./types/*"]
+    }
   },
   "include": ["backend", "util.ts"]
 }

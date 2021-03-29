@@ -1,5 +1,4 @@
-import type { MediaVideo } from "$/mediaSource"
-import type { RoomState, VideoMetadata } from "$/room"
+import type { VideoMetadata } from "$/room"
 
 import Resync, { SocketOff } from "@/resync"
 
@@ -10,9 +9,7 @@ import {
   inject,
   onBeforeUnmount,
   onMounted,
-  PropType,
   ref,
-  toRefs,
   watch,
 } from "vue"
 
