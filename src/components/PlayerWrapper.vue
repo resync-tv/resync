@@ -23,14 +23,8 @@ export default defineComponent({
       type: String as PropType<MediaType>,
       required: true,
     },
-    state: {
-      type: Object as PropType<RoomState<MediaVideo>>,
-      required: true,
-    },
   },
-  setup(props) {
-    const { state } = toRefs(props)
-
+  setup() {
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
@@ -79,7 +73,6 @@ export default defineComponent({
       videoW,
       videoH,
       sizeMultiplier,
-      state,
       onMetadata,
       sizeStyle,
       paused: resync.paused,
@@ -94,9 +87,9 @@ export default defineComponent({
     :style="sizeStyle"
     id="player-wrapper"
   >
-    <VideoPlayer :state="state" @metadata="onMetadata" :style="sizeStyle" />
+    <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
     <div class="transition-opacity overlay-gradient" :class="{ active: paused }" id="controls">
-      <PlayerControls :state="state" class="pointer-events-auto" />
+      <PlayerControls class="pointer-events-auto" />
     </div>
   </div>
 </template>

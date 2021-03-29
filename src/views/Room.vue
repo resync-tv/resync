@@ -33,7 +33,6 @@ export default defineComponent({
   setup() {
     const route = useRoute()
     const { roomID } = route.params as Record<string, string>
-    const roomState = ref<RoomState>({ paused: true, source: undefined, lastSeekedTo: 0 })
     const sourceInput = ref("")
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
 
@@ -54,24 +53,17 @@ export default defineComponent({
 
     resync.joinRoom(name)
 
-    const offSource = resync.onSource(source => {
-      log("new source", source)
-
-      roomState.value.source = source
-    })
-
     const offNotifiy = resync.onNotify(({ event, name, additional }) => {
       log.extend("notify")(`[${event}](${name})`, additional || "")
     })
 
     onBeforeUnmount(() => {
-      offSource()
       offNotifiy()
       document.title = "resync"
       resync.destroy()
     })
 
-    return { roomID, roomState, sourceInput, sourceValid, resync }
+    return { roomID, sourceInput, sourceValid, resync }
   },
 })
 </script>
@@ -94,7 +86,7 @@ export default defineComponent({
           play
         </button>
       </div>
-      <PlayerWrapper v-if="resync.state.value.source" :state="roomState" type="video" />
+      <PlayerWrapper v-if="resync.state.value.source" type="video" />
     </div>
   </main>
 </template>

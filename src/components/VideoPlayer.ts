@@ -25,23 +25,17 @@ const wait = (t: number): Promise<void> => new Promise(r => setTimeout(r, t))
 
 export default defineComponent({
   name: "VideoPlayer",
-  props: {
-    state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
-  },
   emits: ["metadata"],
-  setup(props, { emit }) {
-    const { state } = toRefs(props)
-    const { source } = toRefs(state.value)
+  setup(_, { emit }) {
+    const resync = inject<Resync>("resync")
+    if (!resync) throw new Error("resync injection failed")
 
-    const src = computed(() => source.value?.video[0].url)
+    const src = computed(() => resync.state.value.source?.video?.[0].url)
     const video = ref<null | HTMLVideoElement>(null)
     const muted = ref(false)
     const autoplay = ref(false)
 
     const offHandlers: SocketOff[] = []
-
-    const resync = inject<Resync>("resync")
-    if (!resync) throw new Error("resync injection failed")
 
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
@@ -54,9 +48,9 @@ export default defineComponent({
       offHandlers.push(stopVolumeWatcher)
 
       video.value.volume = resync.volume.value
-      if (state.value.paused) {
+      if (resync.state.value.paused) {
         autoplay.value = false
-        video.value.currentTime = state.value.lastSeekedTo
+        video.value.currentTime = resync.state.value.lastSeekedTo
       } else {
         autoplay.value = true
         resync.resync()

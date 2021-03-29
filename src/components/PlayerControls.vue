@@ -23,10 +23,7 @@ const log = debug("resync:playercontrols")
 export default defineComponent({
   components: { ResyncSlider },
   name: "PlayerControls",
-  props: {
-    state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
-  },
-  setup(props) {
+  setup() {
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
