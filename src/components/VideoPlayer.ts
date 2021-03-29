@@ -120,12 +120,16 @@ export default defineComponent({
       offHandlers.push(offSource)
 
       video.value.onpause = () => {
-        logLocal(`paused: ${resync.paused.value}`)
         resync.paused.value = true
+        logLocal(`paused: ${resync.paused.value}`)
       }
       video.value.onplay = () => {
-        logLocal(`paused: ${resync.paused.value}`)
         resync.paused.value = false
+        logLocal(`paused: ${resync.paused.value}`)
+      }
+      video.value.onended = () => {
+        logLocal(`ended`)
+        resync.paused.value = true
       }
 
       video.value.onloadedmetadata = () => {

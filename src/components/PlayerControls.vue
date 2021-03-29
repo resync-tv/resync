@@ -13,6 +13,7 @@ import {
   PropType,
   ref,
   toRefs,
+  watch,
 } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 
@@ -26,16 +27,11 @@ export default defineComponent({
     state: { type: Object as PropType<RoomState<MediaVideo>>, required: true },
   },
   setup(props) {
-    const { state } = toRefs(props)
-
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
-    const socketHandlers: SocketOff[] = []
-    const paused = ref(true)
+    const offHandlers: SocketOff[] = []
     const progress = ref(0)
-
-    paused.value = state.value.paused
 
     const updateProgress = (once = false, current?: number) => {
       const currentTime = current ?? resync.currentTime()
@@ -43,39 +39,24 @@ export default defineComponent({
       progress.value = Math.max(0, Math.min(1, currentTime / duration))
       // log("updateProgress", currentTime, duration)
 
-      if (!once && (isNaN(progress.value) || !paused.value)) {
+      if (!once && (isNaN(progress.value) || !resync.paused.value)) {
         requestAnimationFrame(() => updateProgress())
       }
     }
     updateProgress()
-    onMounted(() => {
-      updateProgress()
-    })
+    onMounted(() => updateProgress())
 
-    const play = () => {
-      paused.value = false
-      updateProgress()
-    }
-
-    const offPause = resync.onPause(() => {
-      paused.value = true
-    })
-    socketHandlers.push(offPause)
-
-    const offResume = resync.onResume(play)
-    socketHandlers.push(offResume)
-
-    const offSource = resync.onSource(play)
-    socketHandlers.push(offSource)
+    const playWatcher = watch(resync.paused, () => updateProgress())
+    offHandlers.push(playWatcher)
 
     const offSeekTo = resync.onSeekTo(to => {
       updateProgress(true, to)
     })
-    socketHandlers.push(offSeekTo)
+    offHandlers.push(offSeekTo)
 
-    onBeforeUnmount(() => socketHandlers.forEach(off => off()))
+    onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
-    const playStateIcon = computed(() => (paused.value ? "play_arrow" : "pause"))
+    const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
     const volumeStateIcon = computed(() => {
       if (resync.volume.value === 0) return "volume_mute"
       if (resync.volume.value < 0.5) return "volume_down"
@@ -83,7 +64,7 @@ export default defineComponent({
     })
 
     const onPlayIconClick = () => {
-      paused.value ? resync.resume() : resync.pause(resync.currentTime())
+      resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
     }
 
     // TODO: user-adjustable volume
