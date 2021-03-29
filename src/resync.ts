@@ -14,6 +14,7 @@ export type SocketOff = Fn
 
 const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
 
+// TODO type all the emits
 export default class Resync {
   private socket: Socket
   private roomEmit: RoomEmit

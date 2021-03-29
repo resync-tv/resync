@@ -53,7 +53,6 @@ export default defineComponent({
       )
       offHandlers.push(stopVolumeWatcher)
 
-      // TODO: user-adjustable volume
       video.value.volume = resync.volume.value
       if (state.value.paused) {
         autoplay.value = false

@@ -171,7 +171,9 @@ export default (io: Server): void => {
     })
 
     client.on("playContent", ({ roomID, source, startFrom = 0 }: PlayContentArg) => {
-      getRoom(roomID).playContent(client, source, startFrom)
+      getRoom(roomID)
+        .playContent(client, source, startFrom)
+        .then(t => t.resume())
     })
 
     client.on("pause", ({ roomID, currentTime }) => {

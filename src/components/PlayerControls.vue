@@ -86,6 +86,7 @@ export default defineComponent({
       paused.value ? resync.resume() : resync.pause(resync.currentTime())
     }
 
+    // TODO: user-adjustable volume
     const onVolumeIconClick = () => {
       resync.volume.value = resync.volume.value ? 0 : 0.1
     }
