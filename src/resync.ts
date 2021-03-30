@@ -2,14 +2,12 @@ import type { Socket } from "socket.io-client"
 import type { BackendEmits, FrontendEmits, RoomEmit, RoomState } from "$/room"
 
 import { Ref, ref, watch } from "vue"
-import { ls } from "./util"
+import { capitalize, ls, once } from "./util"
 
 import debug from "debug"
 const log = debug("resync:resync.ts")
 
 export type SocketOff = () => void
-
-const capitalize = (str: string) => [...str][0].toUpperCase() + str.slice(1)
 
 export default class Resync {
   private socket: Socket<BackendEmits, FrontendEmits>
@@ -68,7 +66,7 @@ export default class Resync {
     }
   }
 
-  joinRoom = (name: string): void => {
+  joinRoom = once((name: string): void => {
     const join = () => {
       this.roomEmit("joinRoom", { name }, state => {
         log("initial room state", state)
@@ -81,7 +79,7 @@ export default class Resync {
 
     this.handlers.push(() => this.socket.off("connect", join))
     this.handlers.push(() => this.roomEmit("leaveRoom"))
-  }
+  })
 
   playContent = (source: string): void => {
     this.roomEmit("playContent", { source })

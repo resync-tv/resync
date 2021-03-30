@@ -26,3 +26,13 @@ export const timestamp = (seconds = 0): string => {
   if (h) return `${h}:${pad(m)}:${ts}`
   else return `${m}:${ts}`
 }
+
+export const capitalize = (str: string): string => [...str][0].toUpperCase() + str.slice(1)
+export const once = <A extends any[], R, T>(
+  fn: (this: T, ...arg: A) => R
+): ((this: T, ...arg: A) => R | undefined) => {
+  let done = false
+  return function (this: T, ...args: A) {
+    return done ? void 0 : ((done = true), fn.apply(this, args))
+  }
+}
