@@ -8,10 +8,15 @@ export interface Member {
   client: BackendSocket
 }
 
+export interface PublicMember extends Omit<Member, "client"> {
+  id: string
+}
+
 export interface RoomState<S = MediaSourceAny> {
   paused: boolean
   source: S | undefined
   lastSeekedTo: number
+  members: Array<PublicMember>
 }
 
 type Callback<T> = (x: T) => void

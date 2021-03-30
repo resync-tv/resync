@@ -28,7 +28,7 @@ class Room {
   private log: debug.Debugger
   readonly broadcast: BroadcastOperator<BackendEmits>
 
-  public members: Record<string, Member> = {}
+  public members: Array<Member> = []
 
   private paused = true
   private lastSeekedTo = 0
@@ -48,7 +48,9 @@ class Room {
 
     const { id } = client
     let name = id
-    if (this.members[id]) name = this.members[id].name
+
+    const member = this.getMember(id)
+    if (member) name = member.name
 
     this.broadcast.emit("notifiy", { event, id, name, additional })
     this.log(`[${event}](${name})`, additional || "")
@@ -59,16 +61,19 @@ class Room {
       paused: this.paused,
       source: this.source,
       lastSeekedTo: this.lastSeekedTo,
-      // TODO add room members
+      members: this.members.map(({ client: { id }, name }) => ({ id, name })),
     }
   }
+
+  getMember = (id: string) => this.members.find(m => m.client.id === id)
+  removeMember = (id: string) => (this.members = this.members.filter(m => m.client.id !== id))
 
   updateState() {
     this.broadcast.emit("state", this.state)
   }
 
   join(client: Socket, name: string) {
-    this.members[client.id] = { client, name }
+    this.members.push({ client, name })
     client.join(this.roomID)
 
     client.on("disconnect", () => this.leave(client))
@@ -78,7 +83,7 @@ class Room {
 
   leave(client: Socket) {
     client.leave(this.roomID)
-    delete this.members[client.id]
+    this.removeMember(client.id)
 
     const memberAmount = Object.keys(this.members).length
     if (memberAmount <= 0) this.paused = true
@@ -123,7 +128,6 @@ class Room {
     requestTimeLog("requested time")
 
     const sockets = await this.broadcast.allSockets()
-    // TODO https://socket.io/docs/v3/migrating-from-3-x-to-4-0/#Allow-excluding-specific-rooms-when-broadcasting
     const otherClients = [...sockets].filter(s => s !== client.id)
 
     const getTime = (sock: Socket): Promise<number> =>
@@ -132,12 +136,13 @@ class Room {
     const times = []
 
     for (const id of otherClients) {
-      if (!this.members[id]) {
+      const member = this.getMember(id)
+      if (!member) {
         requestTimeLog.extend("error")(`id ${id} not found in clients`)
         continue
       }
 
-      const time = await getTime(this.members[id].client)
+      const time = await getTime(member.client)
       requestTimeLog(`${id} responded with time ${time}`)
       times.push(time)
     }
