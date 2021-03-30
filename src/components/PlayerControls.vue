@@ -1,21 +1,9 @@
 <script lang="ts">
-import type { MediaVideo } from "$/mediaSource"
-import type { RoomState } from "$/room"
-
 import Resync, { SocketOff } from "@/resync"
 
-import {
-  computed,
-  defineComponent,
-  inject,
-  onBeforeUnmount,
-  onMounted,
-  PropType,
-  ref,
-  toRefs,
-  watch,
-} from "vue"
+import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
+import { timestamp } from "@/util"
 
 import debug from "debug"
 const log = debug("resync:playercontrols")
@@ -28,12 +16,15 @@ export default defineComponent({
     if (!resync) throw new Error("resync injection failed")
 
     const offHandlers: SocketOff[] = []
-    const progress = ref(0)
+    const currentTime = ref(0)
+    const duration = ref(0)
+    const progress = computed(() => {
+      return Math.max(0, Math.min(1, currentTime.value / duration.value))
+    })
 
     const updateProgress = (once = false, current?: number) => {
-      const currentTime = current ?? resync.currentTime()
-      const duration = resync.duration()
-      progress.value = Math.max(0, Math.min(1, currentTime / duration))
+      currentTime.value = current ?? resync.currentTime()
+      duration.value = resync.duration()
       // log("updateProgress", currentTime, duration)
 
       if (!once && (isNaN(progress.value) || !resync.paused.value)) {
@@ -85,6 +76,9 @@ export default defineComponent({
       progress,
       onProgressSliderValue,
       resync,
+      currentTime,
+      duration,
+      timestamp,
     }
   },
 })
@@ -104,6 +98,9 @@ export default defineComponent({
             small
             immediate
           />
+          <div class="font-mono mx-1 text-xs align-middle">
+            {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
+          </div>
         </div>
       </div>
       <div>

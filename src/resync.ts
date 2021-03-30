@@ -20,7 +20,7 @@ export default class Resync {
 
   paused = ref(true)
   volume = ref(ls<number>("resync-volume") ?? 0.1)
-  state: Ref<RoomState> = ref({ paused: true, source: undefined, lastSeekedTo: 0 })
+  state: Ref<RoomState>
 
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
@@ -28,6 +28,13 @@ export default class Resync {
       log.extend("roomEmit")(event, { roomID, ...arg }, ...args)
       socket.emit(event, { roomID, ...arg }, ...args)
     }
+
+    this.state = ref({
+      paused: this.paused.value,
+      source: undefined,
+      lastSeekedTo: 0,
+      members: [],
+    })
 
     const volumeSaver = watch(this.volume, vol => {
       ls<number>("resync-volume", vol)
