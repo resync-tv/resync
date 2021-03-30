@@ -1,6 +1,7 @@
 interface LocalStored {
   "resync-username": string
   "resync-volume": number
+  "resync-muted": boolean
 }
 
 export const ls = <L extends keyof LocalStored>(

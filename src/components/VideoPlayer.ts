@@ -38,13 +38,9 @@ export default defineComponent({
       if (!video.value) throw new Error("video ref is null")
       resync.currentTime = () => video.value?.currentTime ?? NaN
       resync.duration = () => video.value?.duration ?? NaN
-      const stopVolumeWatcher = watch(
-        resync.volume,
-        volume => video.value && (video.value.volume = volume)
-      )
-      offHandlers.push(stopVolumeWatcher)
 
-      video.value.volume = resync.volume.value
+      video.value.volume = resync.muted.value ? 0 : resync.volume.value
+
       if (resync.state.value.paused) {
         autoplay.value = false
         video.value.currentTime = resync.state.value.lastSeekedTo
@@ -109,6 +105,16 @@ export default defineComponent({
 
       const offSource = resync.onSource(play)
       offHandlers.push(offSource)
+
+      const offVolume = watch(resync.volume, volume => {
+        video.value && (video.value.volume = volume)
+      })
+      offHandlers.push(offVolume)
+
+      const offMuted = watch(resync.muted, muted => {
+        video.value && (video.value.volume = muted ? 0 : resync.volume.value)
+      })
+      offHandlers.push(offMuted)
 
       video.value.onpause = () => {
         resync.paused.value = true

@@ -20,6 +20,7 @@ export default class Resync {
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.1)
+  muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
 
   constructor(socket: Socket, roomID: string) {
@@ -36,10 +37,15 @@ export default class Resync {
       members: [],
     })
 
-    const volumeSaver = watch(this.volume, vol => {
-      ls("resync-volume", vol)
+    const volumeSaver = watch(this.volume, volume => {
+      ls("resync-volume", volume)
     })
     this.handlers.push(volumeSaver)
+
+    const muteSaver = watch(this.muted, muted => {
+      ls("resync-muted", muted)
+    })
+    this.handlers.push(muteSaver)
 
     const offState = this.onState(state => {
       log("new state", state)

@@ -46,6 +46,7 @@ export default defineComponent({
 
     const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
     const volumeStateIcon = computed(() => {
+      if (resync.muted.value) return "volume_off"
       if (resync.volume.value === 0) return "volume_mute"
       if (resync.volume.value < 0.5) return "volume_down"
       else return "volume_up"
@@ -56,10 +57,17 @@ export default defineComponent({
     }
 
     const onVolumeIconClick = () => {
-      resync.volume.value = resync.volume.value ? 0 : 0.1
+      if (!resync.muted.value && resync.volume.value === 0) {
+        resync.volume.value = 0.3
+
+        return
+      }
+
+      resync.muted.value = !resync.muted.value
     }
 
     const onVolumeSlider = (value: number) => {
+      resync.muted.value = false
       resync.volume.value = value
     }
 
@@ -93,7 +101,7 @@ export default defineComponent({
         <div class="flex items-center volume">
           <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
           <ResyncSlider
-            :progress="resync.volume.value"
+            :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
             small
             immediate
