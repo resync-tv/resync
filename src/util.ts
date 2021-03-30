@@ -1,4 +1,12 @@
-export const ls = <T = any>(key: string, value?: T): T | null | undefined =>
+interface LocalStored {
+  "resync-username": string
+  "resync-volume": number
+}
+
+export const ls = <L extends keyof LocalStored>(
+  key: L,
+  value?: LocalStored[L]
+): LocalStored[L] | null =>
   void 0 !== value
     ? localStorage.setItem(key, JSON.stringify(value))
     : JSON.parse(localStorage.getItem(key) as string)

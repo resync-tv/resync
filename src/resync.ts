@@ -19,7 +19,7 @@ export default class Resync {
   duration = (): number => NaN
 
   paused = ref(true)
-  volume = ref(ls<number>("resync-volume") ?? 0.1)
+  volume = ref(ls("resync-volume") ?? 0.1)
   state: Ref<RoomState>
 
   constructor(socket: Socket, roomID: string) {
@@ -37,7 +37,7 @@ export default class Resync {
     })
 
     const volumeSaver = watch(this.volume, vol => {
-      ls<number>("resync-volume", vol)
+      ls("resync-volume", vol)
     })
     this.handlers.push(volumeSaver)
 

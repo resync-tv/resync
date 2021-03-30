@@ -21,13 +21,6 @@ const isURL = (str: string) => {
   }
 }
 
-// TODO remove soon
-try {
-  ls("resync-name")
-} catch (error) {
-  ls("resync-name", localStorage.getItem("resync-name"))
-}
-
 export default defineComponent({
   components: { PlayerWrapper, ResyncInput },
   setup() {
@@ -48,8 +41,8 @@ export default defineComponent({
       // @ts-expect-error for manual testing
       window.resync = resync
 
-    const name = ls<string>("resync-name") || window.prompt("enter username") || "default"
-    ls<string>("resync-name", name)
+    const name = ls("resync-username") || window.prompt("enter username") || "default"
+    ls("resync-username", name)
 
     resync.joinRoom(name)
 
