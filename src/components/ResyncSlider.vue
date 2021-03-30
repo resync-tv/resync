@@ -47,14 +47,14 @@ export default defineComponent({
 
     const mouseDown = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      const { scrollWidth } = target
+      const { offsetWidth } = target
       let { offsetX } = event
-      override.value = event.offsetX / target.scrollWidth
+      override.value = event.offsetX / target.offsetWidth
       active.value = true
 
       window.onmousemove = (evt: MouseEvent) => {
-        offsetX += evt.movementX
-        override.value = Math.max(0, Math.min(1, offsetX / scrollWidth))
+        offsetX += evt.movementX / window.devicePixelRatio
+        override.value = Math.max(0, Math.min(1, offsetX / offsetWidth))
 
         if (immediate.value) emit("value", override.value)
       }
