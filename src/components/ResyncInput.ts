@@ -31,6 +31,7 @@ export default defineComponent({
 
     const onContextmenu = async (event: MouseEvent) => {
       if (!props.pastable) return
+      if (!navigator.clipboard.readText) return
 
       event.preventDefault()
       const value = await navigator.clipboard.readText()
