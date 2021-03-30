@@ -102,7 +102,7 @@ export default defineComponent({
   --buffer: 0%;
   --progress: 0%;
   --hover-transition: 200ms;
-  --color: var(--clr-white);
+  --color: var(--clr-light);
 
   position: relative;
   height: 20px;

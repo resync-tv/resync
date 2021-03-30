@@ -32,6 +32,9 @@ export default defineComponent({
     const muted = ref(false)
     const autoplay = ref(false)
 
+    const requireUserInteraction = inject<() => Promise<void>>("requireUserInteraction")
+    if (!requireUserInteraction) throw new Error("requireUserInteraction injection failed")
+
     const offHandlers: SocketOff[] = []
 
     onMounted(async () => {
@@ -49,6 +52,12 @@ export default defineComponent({
         resync.resync()
       }
 
+      const play = () => {
+        logRemote("onResume")
+        autoplay.value = true
+        video.value?.play().catch(onPlaybackError)
+      }
+
       const onPlaybackError = async (err: DOMException): Promise<any> => {
         const error = log.extend("error")
         error(`${err.name}: ${err.message}`)
@@ -61,8 +70,13 @@ export default defineComponent({
           return video.value
             ?.play()
             .catch(onPlaybackError)
-            .then(() => {
-              // TODO show unmute button
+            .then(async () => {
+              if (["NotAllowedError"].includes(err.name)) {
+                error("muted video played successfully")
+                await requireUserInteraction()
+                muted.value = false
+                video.value?.play()
+              }
             })
         }
 
@@ -70,13 +84,6 @@ export default defineComponent({
         const reason = err.message.split(". ")[0]
         const { name } = err
         resync.playbackError({ reason, name }, resync.currentTime())
-      }
-
-      const play = () => {
-        logRemote("onResume")
-        autoplay.value = true
-        muted.value = false
-        video.value?.play().catch(onPlaybackError)
       }
 
       const offPause = resync.onPause(() => {

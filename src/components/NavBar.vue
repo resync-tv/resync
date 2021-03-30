@@ -31,7 +31,7 @@ export default defineComponent({
 
 <template>
   <nav
-    class="bg-white flex h-nav shadow-sm w-full transition-all z-5 fixed justify-between dark:bg-black dark:shadow-md"
+    class="bg-light flex h-nav shadow-sm w-full transition-all z-5 fixed justify-between dark:bg-dark dark:shadow-md"
   >
     <div class="flex h-full opacity-50 pl-5 items-center">room: {{ routeDisplay }}</div>
     <div
@@ -39,7 +39,7 @@ export default defineComponent({
       :title="connectionTitle"
     >
       <ResyncLogo
-        class="h-nav fill-black dark:fill-white"
+        class="h-nav fill-dark dark:fill-light"
         :class="{ 'fill-error dark:fill-error': !socketConnected }"
       />
     </div>

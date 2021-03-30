@@ -2,7 +2,7 @@
 import type { MediaType, MediaVideo } from "$/mediaSource"
 import type { RoomState, VideoMetadata } from "$/room"
 
-import { computed, defineComponent, inject, PropType, ref, toRefs } from "vue"
+import { computed, defineComponent, inject, PropType, provide, ref, toRefs, watch } from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
@@ -69,13 +69,27 @@ export default defineComponent({
       )
     })
 
+    const showInteractionOverlay = ref(false)
+    const requireUserInteraction = (): Promise<void> => {
+      return new Promise(res => {
+        showInteractionOverlay.value = true
+        const stopWatching = watch(showInteractionOverlay, () => {
+          stopWatching()
+          res()
+        })
+      })
+    }
+
+    provide("requireUserInteraction", requireUserInteraction)
+
     return {
       videoW,
       videoH,
       sizeMultiplier,
       onMetadata,
       sizeStyle,
-      paused: resync.paused,
+      showInteractionOverlay,
+      resync,
     }
   },
 })
@@ -84,12 +98,31 @@ export default defineComponent({
 <template>
   <div
     class="rounded flex overflow-hidden relative light:shadow"
+    :class="{ overlay: showInteractionOverlay }"
     :style="sizeStyle"
     id="player-wrapper"
   >
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
-    <div class="transition-opacity overlay-gradient" :class="{ active: paused }" id="controls">
+    <div
+      class="transition-opacity overlay-gradient"
+      :class="{ active: resync.paused.value }"
+      id="controls"
+    >
       <PlayerControls class="pointer-events-auto" />
+    </div>
+    <div
+      class="bg-black flex flex-col h-full bg-opacity-85 w-full backdrop-blur absolute items-center justify-center"
+      v-if="showInteractionOverlay"
+    >
+      <h1 class="text-error text-3xl">Playing with sound failed.</h1>
+      <p class="mt-5">This probably happened because you didn't interact with the page yet.</p>
+
+      <button
+        class="bg-light rounded-full mt-10 text-dark py-3 px-10 bottom-1/8 uppercase absolute"
+        @click="showInteractionOverlay = false"
+      >
+        retry
+      </button>
     </div>
   </div>
 </template>
@@ -102,6 +135,10 @@ export default defineComponent({
   @apply pointer-events-none;
 }
 
+.backdrop-blur {
+  backdrop-filter: blur(5px);
+}
+
 #controls {
   opacity: 0;
 }
@@ -109,5 +146,9 @@ export default defineComponent({
 #player-wrapper:hover > #controls,
 #controls.active {
   opacity: 1;
+}
+
+#player-wrapper.overlay > #controls {
+  opacity: 0;
 }
 </style>

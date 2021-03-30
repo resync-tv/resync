@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white h-full text-black transition-colors dark:(bg-black text-white)">
+  <div class="bg-light h-full text-dark transition-colors dark:(bg-dark text-light)">
     <NavBar />
     <router-view style="padding-top: var(--nav-height)" class="h-full" />
   </div>
@@ -54,7 +54,7 @@ export default defineComponent({
 
 *::selection {
   background: #305473;
-  color: var(--clr-white);
+  color: var(--clr-light);
 }
 
 *:not(input) {
@@ -68,21 +68,21 @@ export default defineComponent({
 .resync-input {
   @apply mr-2 py-2 px-4 w-3xl;
   @apply rounded outline-none transition-all;
-  @apply bg-white text-black;
+  @apply bg-light text-dark;
   @apply light:(shadow focus:shadow-md);
-  @apply dark:(bg-black text-white text-opacity-50 focus:text-opacity-100);
+  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100);
 }
 
 .dark .resync-input {
-  box-shadow: 0 1px var(--clr-light-white);
+  box-shadow: 0 1px var(--clr-md-light);
 }
 
 .dark .resync-input:hover {
-  box-shadow: 0 2px var(--clr-white);
+  box-shadow: 0 2px var(--clr-light);
 }
 
 .dark input.resync-input:focus {
-  box-shadow: 0 0 0 2px var(--clr-white);
+  box-shadow: 0 0 0 2px var(--clr-light);
 }
 
 .resync-input.invalid {
@@ -92,7 +92,7 @@ export default defineComponent({
 .resync-button {
   @apply px-4 py-2;
   @apply rounded outline-none transition-all;
-  @apply dark:(text-white text-opacity-50);
+  @apply dark:(text-light text-opacity-50);
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
   @apply hover:light:shadow-md
@@ -100,25 +100,25 @@ export default defineComponent({
 }
 
 .dark .resync-button {
-  box-shadow: 0 1px var(--clr-light-white);
+  box-shadow: 0 1px var(--clr-md-light);
 }
 
 .dark .resync-button:hover {
-  box-shadow: 0 2px var(--clr-white);
-  @apply text-white;
+  box-shadow: 0 2px var(--clr-light);
+  @apply text-light;
 }
 
 .dark .resync-button:active {
-  box-shadow: 0 0 0 2px var(--clr-white);
-  @apply duration-50 text-white;
+  box-shadow: 0 0 0 2px var(--clr-light);
+  @apply duration-50 text-light;
 }
 
 .resync-button.invalid {
-  @apply text-light-black;
+  @apply text-md-dark;
 }
 
 .dark .resync-button.invalid {
-  @apply text-light-white;
-  box-shadow: 0 0 var(--clr-light-white);
+  @apply text-md-light;
+  box-shadow: 0 0 var(--clr-md-light);
 }
 </style>

@@ -5,10 +5,10 @@ export default defineConfig({
   theme: {
     extend: {
       colors: {
-        black: "var(--clr-black)",
-        "light-black": "var(--clr-light-black)",
-        white: "var(--clr-white)",
-        "light-white": "var(--clr-light-white)",
+        dark: "var(--clr-dark)",
+        "md-dark": "var(--clr-md-dark)",
+        light: "var(--clr-light)",
+        "md-light": "var(--clr-md-light)",
         accent: "var(--clr-accent)",
         error: "var(--clr-error)",
       },
