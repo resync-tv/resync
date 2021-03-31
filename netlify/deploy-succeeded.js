@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-// import { post } from "got"
-const { post } = require("got")
+const got = require("got")
 
 const token = process.env.TELEGRAM_TOKEN
 const chat_id = process.env.TELEGRAM_TO
@@ -34,19 +33,27 @@ const deployMessage = payload => {
   )
 }
 
-const send = async text =>
-  await post(telegram("sendMessage"), {
-    json: {
-      chat_id,
-      text,
-      disable_web_page_preview: true,
-      parse_mode: "HTML",
-      disable_notification: true,
-    },
+const send = async text => {
+  const url = new URL(telegram("sendMessage"))
+
+  const searchParams = {
+    text,
+    chat_id,
+    disable_web_page_preview: true,
+    parse_mode: "HTML",
+    disable_notification: true,
+  }
+
+  Object.entries(searchParams).forEach(p => {
+    url.searchParams.set(...p)
   })
+
+  await got(url.toString(), { method: "POST" })
+}
 
 const handler = async event => {
   const { payload } = JSON.parse(event.body)
+  console.log(token, chat_id, deployMessage(payload))
 
   await send(deployMessage(payload))
 
