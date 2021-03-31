@@ -53,11 +53,17 @@ export default defineComponent({
 
     const sizeMultiplier = computed(() => {
       let m = 1
-      const maxH = 0.7
       const maxW = 0.95
+      const maxH = 0.7
+
+      const minW = 0.3
+      const minH = 0.4
 
       if (screenW.value * maxW < videoW.value * m) m = (screenW.value / videoW.value) * maxW
       if (screenH.value * maxH < videoH.value * m) m = (screenH.value / videoH.value) * maxH
+
+      if (screenW.value * minW > videoW.value * m) m = (screenW.value / videoW.value) * minW
+      if (screenH.value * minH > videoH.value * m) m = (screenH.value / videoH.value) * minH
 
       return m
     })
@@ -83,9 +89,6 @@ export default defineComponent({
     provide("requireUserInteraction", requireUserInteraction)
 
     return {
-      videoW,
-      videoH,
-      sizeMultiplier,
       onMetadata,
       sizeStyle,
       showInteractionOverlay,
@@ -111,17 +114,19 @@ export default defineComponent({
       <PlayerControls class="pointer-events-auto" />
     </div>
     <div
-      class="bg-black flex flex-col h-full bg-opacity-85 w-full backdrop-blur absolute items-center justify-center"
+      class="bg-black flex flex-col h-full bg-opacity-85 w-full p-5 px-10 backdrop-blur absolute items-center justify-center"
       v-if="showInteractionOverlay"
     >
       <h1 class="text-error text-3xl">Playing with sound failed.</h1>
-      <p class="mt-5">This probably happened because you didn't interact with the page yet.</p>
+      <p class="mt-5 text-light text-center">
+        This probably happened because you haven't interacted with the page yet.
+      </p>
 
       <button
         class="bg-light rounded-full mt-10 text-dark py-3 px-10 bottom-1/8 uppercase absolute"
         @click="showInteractionOverlay = false"
       >
-        retry
+        enable sound
       </button>
     </div>
   </div>
