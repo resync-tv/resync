@@ -59,11 +59,11 @@ export default defineComponent({
       const minW = 0.3
       const minH = 0.4
 
-      if (screenW.value * maxW < videoW.value * m) m = (screenW.value / videoW.value) * maxW
-      if (screenH.value * maxH < videoH.value * m) m = (screenH.value / videoH.value) * maxH
-
       if (screenW.value * minW > videoW.value * m) m = (screenW.value / videoW.value) * minW
       if (screenH.value * minH > videoH.value * m) m = (screenH.value / videoH.value) * minH
+
+      if (screenW.value * maxW < videoW.value * m) m = (screenW.value / videoW.value) * maxW
+      if (screenH.value * maxH < videoH.value * m) m = (screenH.value / videoH.value) * maxH
 
       return m
     })
