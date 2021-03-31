@@ -1,6 +1,7 @@
 [build]
   command = "npm run front:build"
   publish = "dist"
+  functions = "netlify"
 
 [build.environment]
   NODE_VERSION = "14"
