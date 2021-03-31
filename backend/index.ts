@@ -8,7 +8,7 @@ const log = debug("resync:index")
 const isDev = process.env.NODE_ENV === "development"
 log("dev", isDev)
 
-const origin = isDev ? "*" : "https://resync.tv"
+const origin = isDev ? "*" : ["https://resync.tv", /\.netlify\.app$/]
 const httpServer = createServer()
 const io = new Server(httpServer, {
   cors: { origin },
