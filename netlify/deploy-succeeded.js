@@ -28,7 +28,7 @@ const deployMessage = payload => {
   } = payload
 
   return (
-    `🔃 successfully published <a href="${permalink}">new version</a> ` +
+    `🔄 successfully published <a href="${permalink}">new version</a> ` +
     `in ${formatDuration(deploy_time * 1e3)}.`
   )
 }
