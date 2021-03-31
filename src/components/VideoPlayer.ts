@@ -75,7 +75,6 @@ export default defineComponent({
                 error("muted video played successfully")
                 await requireUserInteraction()
                 muted.value = false
-                video.value?.play()
               }
             })
         }

@@ -113,19 +113,13 @@ export default defineComponent({
     >
       <PlayerControls class="pointer-events-auto" />
     </div>
-    <div
-      class="bg-black flex flex-col h-full bg-opacity-85 w-full p-5 px-10 backdrop-blur absolute items-center justify-center"
-      v-if="showInteractionOverlay"
-    >
+    <div class="interaction-overlay" v-if="showInteractionOverlay">
       <h1 class="text-error text-3xl">Playing with sound failed.</h1>
       <p class="mt-5 text-light text-center">
         This probably happened because you haven't interacted with the page yet.
       </p>
 
-      <button
-        class="bg-light rounded-full mt-10 text-dark py-3 px-10 bottom-1/8 uppercase absolute"
-        @click="showInteractionOverlay = false"
-      >
+      <button class="interaction-button" @click="showInteractionOverlay = false">
         enable sound
       </button>
     </div>
@@ -140,8 +134,14 @@ export default defineComponent({
   @apply pointer-events-none;
 }
 
-.backdrop-blur {
+.interaction-overlay {
   backdrop-filter: blur(5px);
+  @apply bg-black flex flex-col h-full bg-opacity-85 w-full p-5 px-10;
+  @apply absolute items-center justify-center;
+}
+
+.interaction-button {
+  @apply bg-light rounded-full mt-10 text-dark py-3 px-10 bottom-1/8 uppercase absolute;
 }
 
 #controls {
