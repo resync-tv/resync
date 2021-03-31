@@ -74,11 +74,21 @@ export default class Resync {
       })
     }
 
-    this.socket.on("connect", join)
-    join()
+    const connect = () => {
+      this.socket.off("connect", connect)
+      join()
+    }
 
-    this.handlers.push(() => this.socket.off("connect", join))
+    const disconnect = () => {
+      this.socket.on("connect", connect)
+    }
+
+    this.socket.on("disconnect", disconnect)
+
+    this.handlers.push(() => this.socket.off("disconnect", disconnect))
     this.handlers.push(() => this.roomEmit("leaveRoom"))
+
+    join()
   })
 
   playContent = (source: string): void => {
