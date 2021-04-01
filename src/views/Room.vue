@@ -145,9 +145,9 @@ export default defineComponent({
 
   &-enter-from,
   &-leave-to {
-    opacity: 0;
-    margin-left: 0px;
-    height: 0px;
+    opacity: 0 !important;
+    margin-left: 0px !important;
+    height: 0px !important;
   }
 }
 </style>
