@@ -45,8 +45,6 @@ class Room {
   }
 
   private notify(event: NotifyEvents, client: Socket, additional?: any) {
-    this.updateState()
-
     const { id } = client
     let name = id
 
@@ -86,6 +84,7 @@ class Room {
 
     client.on("disconnect", () => this.leave(client))
 
+    this.updateState()
     this.notify("join", client)
   }
 
@@ -104,9 +103,11 @@ class Room {
   async playContent(client: Socket, source: string, startFrom: number) {
     this.source = source ? await resolveContent(source, startFrom) : undefined
     this.lastSeekedTo = startFrom
+    this.paused = false
     this.broadcast.emit("source", this.source)
     // this.resume()
 
+    this.updateState()
     this.notify("playContent", client, { source, startFrom })
   }
 
@@ -116,24 +117,24 @@ class Room {
 
     if (seconds) this.seekTo({ seconds })
 
+    this.updateState()
     if (client) this.notify("pause", client)
-    else this.updateState()
   }
 
   resume(client?: Socket) {
     this.paused = false
     this.broadcast.emit("resume")
 
+    this.updateState()
     if (client) this.notify("resume", client)
-    else this.updateState()
   }
 
   seekTo({ client, seconds }: { client?: Socket; seconds: number }) {
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
 
+    this.updateState()
     if (client) this.notify("seekTo", client, { seconds })
-    else this.updateState()
   }
 
   async requestTime(client: Socket) {
@@ -174,6 +175,7 @@ class Room {
     this.seekTo({ seconds: avg })
     this.resume()
 
+    this.updateState()
     this.notify("resync", client)
   }
 
@@ -181,6 +183,7 @@ class Room {
     this.notify("playbackError", client, { reason, name })
     this.pause()
     this.seekTo({ seconds })
+    this.updateState()
   }
 }
 
