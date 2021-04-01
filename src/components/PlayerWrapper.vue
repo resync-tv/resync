@@ -106,19 +106,28 @@ export default defineComponent({
     id="player-wrapper"
   >
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
-    <div
-      class="transition-opacity overlay-gradient"
-      :class="{ active: resync.paused.value }"
-      id="controls"
-    >
+
+    <div class="overlay-gradient hover-overlay lower" :class="{ active: resync.paused.value }">
       <PlayerControls class="pointer-events-auto" />
     </div>
+
+    <div
+      class="overlay-gradient hover-overlay upper"
+      :class="{ active: resync.paused.value }"
+      v-if="resync.state.value.source?.title"
+    >
+      <div class="flex h-15 w-full px-5 items-center justify-between relative">
+        <p class="text-lg tracking-wider ellipsis">
+          {{ resync.state.value.source?.title }}
+        </p>
+      </div>
+    </div>
+
     <div class="interaction-overlay" v-if="showInteractionOverlay">
       <h1 class="text-error text-3xl">Playing with sound failed.</h1>
       <p class="mt-5 text-light text-center">
         This probably happened because you haven't interacted with the page yet.
       </p>
-
       <button class="interaction-button" @click="showInteractionOverlay = false">
         enable sound
       </button>
@@ -128,10 +137,23 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .overlay-gradient {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+  @apply flex h-1/3 w-full absolute justify-center;
+  @apply pointer-events-none text-light transition-opacity;
+  --gradient: rgba(0, 0, 0, 0.333), rgba(0, 0, 0, 0.125) 30%, transparent;
 
-  @apply flex h-1/4 w-full bottom-0 absolute items-end justify-center;
-  @apply pointer-events-none;
+  &.lower {
+    background: linear-gradient(to top, var(--gradient));
+    @apply items-end bottom-0;
+  }
+
+  &.upper {
+    background: linear-gradient(to bottom, var(--gradient));
+    @apply top-0 items-start;
+  }
+}
+
+.ellipsis {
+  @apply whitespace-nowrap overflow-ellipsis overflow-hidden;
 }
 
 .interaction-overlay {
@@ -144,16 +166,16 @@ export default defineComponent({
   @apply bg-light rounded-full mt-10 text-dark py-3 px-10 bottom-1/8 uppercase absolute;
 }
 
-#controls {
+.hover-overlay {
   opacity: 0;
 }
 
-#player-wrapper:hover > #controls,
-#controls.active {
+#player-wrapper:hover > .hover-overlay,
+.hover-overlay.active {
   opacity: 1;
 }
 
-#player-wrapper.overlay > #controls {
+#player-wrapper.overlay > .hover-overlay {
   opacity: 0;
 }
 </style>

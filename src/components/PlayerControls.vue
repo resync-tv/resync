@@ -93,7 +93,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="h-10 text-light w-full relative">
+  <div class="h-10 w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
         <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
@@ -128,6 +128,7 @@ export default defineComponent({
 .player-icon {
   @apply cursor-pointer my-2 mx-1;
 }
+
 .volume {
   > .resync-slider {
     @apply transition transition-all;
