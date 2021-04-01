@@ -4,6 +4,7 @@ import type { EventNotification, ResyncSocketFrontend } from "$/room"
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
 import { debug, ls } from "@/util"
+import { renderNotification } from "@/notify"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import ResyncInput from "@/components/ResyncInput"
@@ -67,6 +68,7 @@ export default defineComponent({
       sourceValid,
       resync,
       recentNotifications,
+      renderNotification,
     }
   },
 })
@@ -117,7 +119,7 @@ export default defineComponent({
               :key="notification"
               class="top-text text-right z-2"
             >
-              [{{ notification.event }}]({{ notification.name }})
+              {{ renderNotification[notification.event](notification) }}
             </div>
           </transition-group>
         </div>

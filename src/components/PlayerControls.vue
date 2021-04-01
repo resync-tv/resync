@@ -28,7 +28,7 @@ export default defineComponent({
 
       if (!once && (isNaN(progress.value) || !resync.paused.value)) {
         requestAnimationFrame(() => updateProgress())
-      }
+      } else log("stopped updating progress")
     }
     updateProgress()
     onMounted(() => updateProgress())
