@@ -12,6 +12,7 @@ import { resolveContent } from "./content"
 
 import debug from "debug"
 import { average } from "./util"
+import { nanoid } from "nanoid"
 const log = debug("resync:room")
 
 const rooms: Record<string, Room> = {}
@@ -52,7 +53,14 @@ class Room {
     const member = this.getMember(id)
     if (member) name = member.name
 
-    this.broadcast.emit("notifiy", { event, id, name, additional })
+    const notification = {
+      event,
+      id,
+      name,
+      additional,
+      key: nanoid(),
+    }
+    this.broadcast.emit("notifiy", notification)
     this.log(`[${event}](${name})`, additional || "")
   }
 
@@ -82,20 +90,22 @@ class Room {
   }
 
   leave(client: Socket) {
+    this.notify("leave", client)
+
     client.leave(this.roomID)
     this.removeMember(client.id)
 
     const memberAmount = Object.keys(this.members).length
     if (memberAmount <= 0) this.paused = true
 
-    this.notify("leave", client)
+    this.updateState()
   }
 
   async playContent(client: Socket, source: string, startFrom: number) {
     this.source = source ? await resolveContent(source, startFrom) : undefined
     this.lastSeekedTo = startFrom
     this.broadcast.emit("source", this.source)
-    this.resume()
+    // this.resume()
 
     this.notify("playContent", client, { source, startFrom })
   }
@@ -107,6 +117,7 @@ class Room {
     if (seconds) this.seekTo({ seconds })
 
     if (client) this.notify("pause", client)
+    else this.updateState()
   }
 
   resume(client?: Socket) {
@@ -114,6 +125,7 @@ class Room {
     this.broadcast.emit("resume")
 
     if (client) this.notify("resume", client)
+    else this.updateState()
   }
 
   seekTo({ client, seconds }: { client?: Socket; seconds: number }) {
@@ -121,6 +133,7 @@ class Room {
     this.broadcast.emit("seekTo", seconds)
 
     if (client) this.notify("seekTo", client, { seconds })
+    else this.updateState()
   }
 
   async requestTime(client: Socket) {
@@ -158,8 +171,8 @@ class Room {
     this.pause()
 
     const avg = await this.requestTime(client)
-    this.seekTo({ client, seconds: avg })
-    this.resume(client)
+    this.seekTo({ seconds: avg })
+    this.resume()
 
     this.notify("resync", client)
   }

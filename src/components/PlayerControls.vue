@@ -71,6 +71,7 @@ export default defineComponent({
     }
 
     const onProgressSliderValue = (value: number) => {
+      log("onProgressSliderValue", value)
       resync.seekTo(resync.duration() * value)
     }
 

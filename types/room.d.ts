@@ -73,6 +73,7 @@ export type NotifyEvents =
 export interface EventNotification {
   event: NotifyEvents
   id: string
+  key: string
   name: string
   additional?: any
 }

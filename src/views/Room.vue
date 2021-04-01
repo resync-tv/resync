@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { ResyncSocketFrontend } from "$/room"
+import type { EventNotification, ResyncSocketFrontend } from "$/room"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
@@ -45,8 +45,14 @@ export default defineComponent({
 
     resync.joinRoom(name)
 
-    const offNotifiy = resync.onNotify(({ event, name, additional }) => {
+    const recentNotifications = ref<EventNotification[]>([])
+    const offNotifiy = resync.onNotify(notification => {
+      const { event, name, additional } = notification
       log.extend("notify")(`[${event}](${name})`, additional || "")
+
+      if (recentNotifications.value.push(notification) > 5) {
+        recentNotifications.value.shift()
+      }
     })
 
     onBeforeUnmount(() => {
@@ -60,6 +66,7 @@ export default defineComponent({
       sourceInput,
       sourceValid,
       resync,
+      recentNotifications,
     }
   },
 })
@@ -91,22 +98,43 @@ export default defineComponent({
         <PlayerWrapper v-if="resync.state.value.source" type="video" />
       </div>
 
-      <div class="opacity-25 pt-2 top-0 left-0 absolute">
+      <div class="top-list left-0">
         <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.id"
-            class="h-5 text-sm ml-2 overflow-hidden"
-          >
+          <div v-for="member in resync.state.value.members" :key="member.id" class="top-text">
             {{ member.name }}
           </div>
         </transition-group>
+      </div>
+
+      <div class="top-list right-0">
+        <div class="h-25 relative overflow-hidden">
+          <div
+            class="bg-gradient-to-t from-light h-full w-full z-3 absolute dark:from-dark"
+          ></div>
+          <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
+            <div
+              v-for="notification in recentNotifications"
+              :key="notification"
+              class="top-text text-right z-2"
+            >
+              [{{ notification.event }}]({{ notification.name }})
+            </div>
+          </transition-group>
+        </div>
       </div>
     </div>
   </main>
 </template>
 
 <style scoped lang="scss">
+.top-list {
+  @apply absolute opacity-25 pt-2 top-0;
+}
+
+.top-text {
+  @apply h-5 text-sm mx-2 overflow-hidden;
+}
+
 .text-height {
   &-enter-active,
   &-leave-active {
