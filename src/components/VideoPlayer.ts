@@ -1,6 +1,7 @@
 import type { VideoMetadata } from "$/room"
 
 import Resync, { SocketOff } from "@/resync"
+import { debug } from "@/util"
 
 import {
   computed,
@@ -13,8 +14,7 @@ import {
   watch,
 } from "vue"
 
-import debug from "debug"
-const log = debug("resync:videoplayer")
+const log = debug("videoplayer")
 const logRemote = log.extend("remote")
 const logLocal = log.extend("local")
 

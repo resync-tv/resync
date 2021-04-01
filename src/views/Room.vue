@@ -1,16 +1,15 @@
 <script lang="ts">
-import type { ResyncSocketFrontend, RoomEmit, RoomState } from "$/room"
+import type { ResyncSocketFrontend } from "$/room"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
-import { ls } from "@/util"
+import { debug, ls } from "@/util"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 
-import debug from "debug"
-const log = debug("resync:room")
+const log = debug("room")
 
 const isURL = (str: string) => {
   try {

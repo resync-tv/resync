@@ -1,3 +1,5 @@
+import _debug from "debug"
+
 interface LocalStored {
   "resync-username": string
   "resync-volume": number
@@ -36,3 +38,5 @@ export const once = <A extends any[], R, T>(
     return done ? void 0 : ((done = true), fn.apply(this, args))
   }
 }
+
+export const debug = (namespace: string): _debug.Debugger => _debug("resync").extend(namespace)

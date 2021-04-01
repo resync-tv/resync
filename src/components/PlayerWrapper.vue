@@ -1,16 +1,17 @@
 <script lang="ts">
-import type { MediaType, MediaVideo } from "$/mediaSource"
-import type { RoomState, VideoMetadata } from "$/room"
+import type { MediaType } from "$/mediaSource"
+import type { VideoMetadata } from "$/room"
 
-import { computed, defineComponent, inject, PropType, provide, ref, toRefs, watch } from "vue"
+import { computed, defineComponent, inject, PropType, provide, ref, watch } from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
 import PlayerControls from "@/components/PlayerControls.vue"
 
-import debug from "debug"
 import Resync from "@/resync"
-const log = debug("resync:playerwrapper")
+
+import { debug } from "@/util"
+const log = debug("playerwrapper")
 
 export default defineComponent({
   name: "PlayerWrapper",

@@ -11,8 +11,8 @@ import { io } from "socket.io-client"
 
 import NavBar from "@/components/NavBar.vue"
 
-import debug from "debug"
-const log = debug("resync:app")
+import { debug } from "@/util"
+const log = debug("app")
 
 export default defineComponent({
   components: { NavBar },

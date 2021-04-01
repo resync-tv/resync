@@ -3,10 +3,9 @@ import Resync, { SocketOff } from "@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
-import { timestamp } from "@/util"
+import { debug, timestamp } from "@/util"
 
-import debug from "debug"
-const log = debug("resync:playercontrols")
+const log = debug("playercontrols")
 
 export default defineComponent({
   components: { ResyncSlider },

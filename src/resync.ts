@@ -2,10 +2,9 @@ import type { Socket } from "socket.io-client"
 import type { BackendEmits, FrontendEmits, RoomEmit, RoomState } from "$/room"
 
 import { Ref, ref, watch } from "vue"
-import { capitalize, ls, once } from "./util"
+import { capitalize, debug, ls, once } from "./util"
 
-import debug from "debug"
-const log = debug("resync:resync.ts")
+const log = debug("resync.ts")
 
 export type SocketOff = () => void
 
