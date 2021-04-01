@@ -55,30 +55,69 @@ export default defineComponent({
       resync.destroy()
     })
 
-    return { roomID, sourceInput, sourceValid, resync }
+    return {
+      roomID,
+      sourceInput,
+      sourceValid,
+      resync,
+    }
   },
 })
 </script>
 
 <template>
-  <main class="flex flex-col justify-center items-center">
-    <div class="flex relative justify-center">
-      <div class="flex bottom-full mb-3 w-md justify-center absolute" style="max-width: 75vw">
-        <ResyncInput
-          v-model="sourceInput"
-          placeholder="url"
-          :invalid="!sourceValid"
-          pastable
-        />
-        <button
-          @click="resync.playContent(sourceInput)"
-          class="resync-button"
-          :class="{ invalid: !sourceValid }"
+  <main class="">
+    <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
+      <div class="flex z-5 relative justify-center">
+        <div
+          class="flex bottom-full mb-3 w-md justify-center absolute"
+          style="max-width: 75vw"
         >
-          play
-        </button>
+          <ResyncInput
+            v-model="sourceInput"
+            placeholder="url"
+            :invalid="!sourceValid"
+            pastable
+          />
+          <button
+            @click="resync.playContent(sourceInput)"
+            class="resync-button"
+            :class="{ invalid: !sourceValid }"
+          >
+            play
+          </button>
+        </div>
+
+        <PlayerWrapper v-if="resync.state.value.source" type="video" />
       </div>
-      <PlayerWrapper v-if="resync.state.value.source" type="video" />
+
+      <div class="opacity-25 pt-2 top-0 left-0 absolute">
+        <transition-group name="text-height">
+          <div
+            v-for="member in resync.state.value.members"
+            :key="member.id"
+            class="h-5 text-sm ml-2 overflow-hidden"
+          >
+            {{ member.name }}
+          </div>
+        </transition-group>
+      </div>
     </div>
   </main>
 </template>
+
+<style scoped lang="scss">
+.text-height {
+  &-enter-active,
+  &-leave-active {
+    transition: all 750ms var(--ease-in-out-hard);
+  }
+
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+    margin-left: 0px;
+    height: 0px;
+  }
+}
+</style>

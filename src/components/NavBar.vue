@@ -31,7 +31,7 @@ export default defineComponent({
 
 <template>
   <nav
-    class="bg-light flex h-nav shadow-sm w-full transition-all z-5 fixed justify-between dark:bg-dark dark:shadow-md"
+    class="bg-light flex h-nav shadow-sm w-full transition-all z-10 fixed justify-between dark:bg-dark dark:shadow-md"
   >
     <div class="flex h-full opacity-50 pl-5 items-center">room: {{ routeDisplay }}</div>
     <div

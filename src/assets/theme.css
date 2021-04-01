@@ -6,4 +6,5 @@
   --clr-accent: #0d7fe2;
   --clr-error: #e71d67;
   --nav-height: 56px;
+  --ease-in-out-hard: cubic-bezier(0.76, 0, 0.24, 1);
 }
