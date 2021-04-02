@@ -15,6 +15,6 @@ export const renderNotification: RenderNotification = {
   pause: n => `${n.name} paused`,
   resume: n => `${n.name} resumed`,
   seekTo: n => `${n.name} skipped to ${timestamp(n.additional.seconds)}`,
-  resync: n => `${n.name} resynchronized the room`,
+  resync: n => `${n.name} resync'd the room`,
   playbackError: n => `${n.name} encountered a playback error`,
 }

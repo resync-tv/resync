@@ -1,6 +1,7 @@
 import type { VideoMetadata } from "$/room"
 
 import Resync, { SocketOff } from "@/resync"
+import shortcuts from "@/shortcuts"
 import { debug } from "@/util"
 
 import {
@@ -55,6 +56,7 @@ export default defineComponent({
       const play = () => {
         logRemote("onResume")
         autoplay.value = true
+        muted.value = false
         video.value?.play().catch(onPlaybackError)
       }
 
@@ -143,15 +145,12 @@ export default defineComponent({
         emit("metadata", metadata)
       }
 
-      video.value.onclick = () =>
+      video.value.onclick = () => {
+        // TODO change to resync.state.value.paused
         resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
-
-      if (navigator.mediaSession) {
-        navigator.mediaSession.setActionHandler("play", () => resync.resume())
-        navigator.mediaSession.setActionHandler("pause", () =>
-          resync.pause(resync.currentTime())
-        )
       }
+
+      offHandlers.push(shortcuts(resync))
     })
 
     onBeforeUnmount(() => offHandlers.forEach(off => off()))

@@ -140,7 +140,7 @@ export default defineComponent({
 .text-height {
   &-enter-active,
   &-leave-active {
-    transition: all 750ms var(--ease-in-out-hard);
+    transition: all 500ms var(--ease-in-out-hard);
   }
 
   &-enter-from,

@@ -1,0 +1,55 @@
+import type Resync from "@/resync"
+import type { MediaSessionAction } from "$/MediaSession"
+import { debug } from "./util"
+
+const setMediaHandler = (type: MediaSessionAction, fn: () => void) => {
+  if (!navigator.mediaSession) return () => undefined
+
+  navigator.mediaSession.setActionHandler(type, fn)
+  return () => navigator.mediaSession?.setActionHandler(type, null)
+}
+
+const log = debug("shortcuts")
+
+export default (resync: Resync): (() => void) => {
+  log("registering shortcuts")
+
+  const skip = (t: number) => resync.seekTo(resync.currentTime() + t)
+  const pause = () => resync.pause(resync.currentTime())
+  const volume = (v: number) =>
+    (resync.volume.value = Math.min(1, Math.max(0, resync.volume.value + v)))
+
+  const offMediaHandle = [
+    setMediaHandler("play", () => resync.resume()),
+    setMediaHandler("pause", () => pause()),
+    setMediaHandler("nexttrack", () => skip(5)),
+    setMediaHandler("previoustrack", () => skip(-5)),
+  ]
+
+  window.onkeydown = (event: KeyboardEvent) => {
+    const { key } = event
+
+    if (key === "ArrowRight") return skip(5)
+    if (key === "ArrowLeft") return skip(-5)
+    if (key === "l") return skip(10)
+    if (key === "j") return skip(-10)
+
+    if (key === "k" || key === " ")
+      return resync.state.value.paused ? resync.resume() : pause()
+
+    if (key === "m") return (resync.muted.value = !resync.muted.value)
+    if (key === "ArrowUp") return volume(0.05)
+    if (key === "ArrowDown") return volume(-0.05)
+
+    if (key === "f") return log("TODO: fullscreen")
+
+    if (key === "P") return log("TODO: previous video")
+    if (key === "N") return log("TODO: next video")
+  }
+  const offKeydown = () => {
+    window.onkeydown = null
+    log("unregistering shortcuts")
+  }
+
+  return () => [...offMediaHandle, offKeydown].forEach(off => off())
+}

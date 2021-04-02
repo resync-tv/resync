@@ -1,5 +1,10 @@
 {
-  "cSpell.words": ["Windi", "windicss", "youtu"],
+  "cSpell.words": [
+    "Windi",
+    "resync'd",
+    "windicss",
+    "youtu"
+  ],
   "windicss.sortOnSave": true,
   "windicss.enableCodeFolding": false,
   "typescript.tsdk": "node_modules\\typescript\\lib",
