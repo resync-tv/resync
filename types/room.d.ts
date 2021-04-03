@@ -19,16 +19,18 @@ export interface RoomState<S = MediaSourceAny> {
   members: Array<PublicMember>
 }
 
-type Callback<T> = (x: T) => void
+type Callback<A = void> = (x: A) => void
+
+type BackendEmitterBase<A = void> = (x: A) => void
 
 export interface BackendEmits {
-  notifiy: (eventNotification: EventNotification) => void
-  source: (source: MediaSourceAny | undefined) => void
-  pause: () => void
-  resume: () => void
-  seekTo: (seconds: number) => void
-  requestTime: (cb: Callback<number>) => void
-  state: (state: RoomState) => void
+  notifiy: BackendEmitterBase<EventNotification>
+  source: BackendEmitterBase<MediaSourceAny | undefined>
+  pause: BackendEmitterBase
+  resume: BackendEmitterBase
+  seekTo: BackendEmitterBase<number>
+  requestTime: BackendEmitterBase<Callback<number>>
+  state: BackendEmitterBase<RoomState>
 }
 
 interface RoomEmitBase {
@@ -37,15 +39,19 @@ interface RoomEmitBase {
 interface RoomEmitTime extends RoomEmitBase {
   currentTime: number
 }
+
+type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: C) => void
+type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
+
 export interface FrontendEmits {
-  playContent: (x: { source: string; startFrom?: number } & RoomEmitBase) => void
-  pause: (x: RoomEmitTime) => void
-  resume: (x: RoomEmitBase) => void
-  seekTo: (x: RoomEmitTime) => void
-  resync: (x: RoomEmitBase) => void
-  playbackError: (x: RoomEmitTime & { reason: string; name: string }) => void
-  joinRoom: (x: { name: string } & RoomEmitBase, cb: Callback<RoomState>) => void
-  leaveRoom: (x: RoomEmitBase) => void
+  playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
+  pause: FrontendEmitterTime
+  resume: FrontendEmitterBase
+  seekTo: FrontendEmitterTime
+  resync: FrontendEmitterBase
+  playbackError: FrontendEmitterTime<{ reason: string; name: string }>
+  joinRoom: FrontendEmitterBase<{ name: string }, Callback<RoomState>>
+  leaveRoom: FrontendEmitterBase
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
