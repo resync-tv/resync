@@ -3,7 +3,7 @@ import Resync, { SocketOff } from "@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
-import { debug, timestamp } from "@/util"
+import { debug, minMax, timestamp } from "@/util"
 
 const log = debug("playercontrols")
 
@@ -18,7 +18,7 @@ export default defineComponent({
     const currentTime = ref(0)
     const duration = ref(0)
     const progress = computed(() => {
-      return Math.max(0, Math.min(1, currentTime.value / duration.value))
+      return minMax(currentTime.value / duration.value)
     })
 
     const updateProgress = (once = false, current?: number) => {

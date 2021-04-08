@@ -40,3 +40,5 @@ export const once = <A extends any[], R, T>(
 }
 
 export const debug = (namespace: string): _debug.Debugger => _debug("resync").extend(namespace)
+
+export const minMax = (n: number, min = 0, max = 1): number => Math.max(min, Math.min(max, n))

@@ -1,6 +1,6 @@
 import type Resync from "@/resync"
 import type { MediaSessionAction } from "$/MediaSession"
-import { debug } from "./util"
+import { debug, minMax } from "./util"
 
 const setMediaHandler = (type: MediaSessionAction, fn: () => void) => {
   if (!navigator.mediaSession) return () => undefined
@@ -14,10 +14,12 @@ const log = debug("shortcuts")
 export default (resync: Resync): (() => void) => {
   log("registering shortcuts")
 
-  const skip = (t: number) => resync.seekTo(resync.currentTime() + t)
+  const skip = (t: number) => {
+    const time = minMax(resync.currentTime() + t, 0, resync.duration())
+    resync.seekTo(time)
+  }
   const pause = () => resync.pause(resync.currentTime())
-  const volume = (v: number) =>
-    (resync.volume.value = Math.min(1, Math.max(0, resync.volume.value + v)))
+  const volume = (v: number) => (resync.volume.value = minMax(resync.volume.value + v))
 
   const offMediaHandle = [
     setMediaHandler("play", () => resync.resume()),

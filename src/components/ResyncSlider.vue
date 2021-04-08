@@ -1,4 +1,5 @@
 <script lang="ts">
+import { minMax } from "@/util"
 import { defineComponent, ref, toRefs, watch } from "vue"
 
 export const touchEventOffset = (event: any, target?: any) => {
@@ -54,7 +55,7 @@ export default defineComponent({
 
       window.onmousemove = (evt: MouseEvent) => {
         offsetX += evt.movementX / window.devicePixelRatio
-        override.value = Math.max(0, Math.min(1, offsetX / offsetWidth))
+        override.value = minMax(offsetX / offsetWidth)
 
         if (immediate.value) emit("value", override.value)
       }
