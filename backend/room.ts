@@ -7,15 +7,24 @@ import type {
   RoomState,
   Member,
 } from "$/room"
+import { average } from "./util"
+import { customAlphabet } from "nanoid"
+import { nolookalikesSafe } from "nanoid-dictionary"
+
+const nanoid = customAlphabet(nolookalikesSafe, 6)
 
 import { resolveContent } from "./content"
 
 import debug from "debug"
-import { average } from "./util"
-import { nanoid } from "nanoid"
 const log = debug("resync:room")
 
 const rooms: Record<string, Room> = {}
+const getNewRandom = () => {
+  let id = nanoid()
+  while (rooms[id]) id = nanoid()
+
+  return id
+}
 
 interface PlaybackErrorArg {
   client: Socket
@@ -225,5 +234,7 @@ export default (io: ResyncSocketBackend): void => {
     client.on("playbackError", ({ roomID, reason, currentTime, name }) => {
       getRoom(roomID).playbackError({ client, reason, name }, currentTime)
     })
+
+    client.on("getNewRandom", reply => reply(getNewRandom()))
   })
 }
