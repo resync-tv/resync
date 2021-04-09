@@ -118,7 +118,7 @@ export default defineComponent({
       v-if="resync.state.value.source?.title"
     >
       <div class="flex h-15 w-full px-5 items-center justify-between relative">
-        <p class="text-lg tracking-wider ellipsis">
+        <p class="text-lg tracking-wide ellipsis">
           {{ resync.state.value.source?.title }}
         </p>
       </div>

@@ -1,3 +1,6 @@
+console.log("starting resync")
+import "./sentry"
+
 import { createServer } from "http"
 import { Server } from "socket.io"
 import room from "./room"

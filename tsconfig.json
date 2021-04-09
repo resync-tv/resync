@@ -14,6 +14,7 @@
     "declaration": true,
     "jsx": "preserve",
     "sourceMap": true,
+    "inlineSources": true,
     "types": ["vite/client"],
     "plugins": [{ "name": "@vuedx/typescript-plugin-vue" }],
     "paths": {
