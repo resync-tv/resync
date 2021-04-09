@@ -25,6 +25,7 @@
     "lib/**/*"
   ],
   "dependencies": {
+    "@sentry/browser": "^6.2.5",
     "@sentry/node": "^6.2.5",
     "@sentry/tracing": "^6.2.5",
     "debug": "^4.3.1",

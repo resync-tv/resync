@@ -3,6 +3,7 @@ import type { EventNotification, ResyncSocketFrontend } from "$/room"
 
 import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
+import * as sentry from "@sentry/browser"
 import { debug, ls } from "@/util"
 import { renderNotification } from "@/notify"
 
@@ -44,6 +45,17 @@ export default defineComponent({
     const name = ls("resync-username") || window.prompt("enter username") || "default"
     ls("resync-username", name)
 
+    sentry.configureScope(scope => {
+      scope.setTag("roomID", roomID)
+      scope.setTag("name", name)
+    })
+
+    const resetScope = () =>
+      sentry.configureScope(scope => {
+      scope.setTag("roomID", null)
+      scope.setTag("name", null)
+      })
+
     resync.joinRoom(name)
 
     const recentNotifications = ref<EventNotification[]>([])
@@ -58,6 +70,7 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       offNotifiy()
+      resetScope()
       document.title = "resync"
       resync.destroy()
     })

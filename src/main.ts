@@ -1,3 +1,12 @@
+import * as sentry from "@sentry/browser"
+import { Integrations } from "@sentry/tracing"
+
+sentry.init({
+  dsn: "https://5b4d331966544c5e823e1ea81f56e3cf@o105856.ingest.sentry.io/5712866",
+  integrations: [new Integrations.BrowserTracing()],
+  tracesSampleRate: 1.0,
+})
+
 import { createApp } from "vue"
 import App from "@/App.vue"
 import router from "./router"
@@ -16,4 +25,10 @@ declare global {
   }
 }
 
-createApp(App).use(router).mount("#app")
+const app = createApp(App)
+app.use(router).mount("#app")
+
+app.config.errorHandler = (error, _, info) => {
+  sentry.setTag("info", info)
+  sentry.captureException(error)
+}
