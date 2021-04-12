@@ -10,7 +10,7 @@ export default defineComponent({
     const route = useRoute()
 
     const routeDisplay = computed(() => {
-      if (route.name === "room") return route.params.roomID as string
+      if (route.name === "room") return `room: ${route.params.roomID}`
 
       return ""
     })
@@ -30,19 +30,28 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav
-    class="bg-light flex h-nav shadow-sm w-full transition-all z-10 fixed justify-between dark:bg-dark dark:shadow-md"
-  >
-    <div class="flex h-full opacity-50 pl-5 items-center">room: {{ routeDisplay }}</div>
+  <nav class="nav">
+    <div v-if="routeDisplay" class="flex h-full opacity-50 pl-5 items-center">
+      {{ routeDisplay }}
+    </div>
     <div
       class="top-half left-half transform -translate-y-half -translate-x-half absolute"
       :title="connectionTitle"
     >
       <ResyncLogo
-        class="h-nav fill-dark dark:fill-light"
+        @click="$router.push('/')"
+        class="cursor-pointer h-nav fill-dark transition-all dark:fill-light"
         :class="{ 'fill-error dark:fill-error': !socketConnected }"
       />
     </div>
     <div class="flex h-full items-center"></div>
   </nav>
 </template>
+
+
+<style lang="scss" scoped>
+.nav {
+  @apply bg-light flex h-nav shadow-sm w-full transition-all z-10 fixed justify-between;
+  @apply dark:(bg-dark shadow-md);
+}
+</style>

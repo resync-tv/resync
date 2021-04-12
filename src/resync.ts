@@ -65,6 +65,12 @@ export default class Resync {
     }
   }
 
+  static getNewRandom = (socket: Socket<BackendEmits, FrontendEmits>): Promise<string> => {
+    return new Promise(res => {
+      socket.emit("getNewRandom", res)
+    })
+  }
+
   joinRoom = once((name: string): void => {
     const join = () => {
       this.roomEmit("joinRoom", { name }, state => {

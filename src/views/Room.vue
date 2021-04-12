@@ -30,7 +30,7 @@ export default defineComponent({
     const sourceInput = ref("")
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
 
-    document.title = `resync: ${roomID}`
+    document.title = `resync room: ${roomID}`
 
     const socket = inject<ResyncSocketFrontend>("socket")
     if (!socket) throw new Error("socket injection failed")

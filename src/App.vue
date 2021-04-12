@@ -1,12 +1,6 @@
-<template>
-  <div class="bg-light h-full text-dark transition-colors dark:(bg-dark text-light)">
-    <NavBar />
-    <router-view style="padding-top: var(--nav-height)" class="h-full" />
-  </div>
-</template>
-
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, provide, ref } from "vue"
+import { computed, defineComponent, onBeforeUnmount, provide, ref } from "vue"
+import { useRoute } from "vue-router"
 import { io } from "socket.io-client"
 
 import NavBar from "@/components/NavBar.vue"
@@ -18,6 +12,8 @@ export default defineComponent({
   components: { NavBar },
   name: "resync",
   setup() {
+    const route = useRoute()
+
     const development = process.env.NODE_ENV === "development"
 
     const socketConnected = ref(false)
@@ -25,22 +21,33 @@ export default defineComponent({
       ? io(`http://${location.hostname}:3020`)
       : io("https://hetzner.vaaski.dev", { path: "/resync" })
 
-    provide("socketConnected", socketConnected)
-
     socket.on("connect", () => (socketConnected.value = true))
     socket.on("disconnect", () => (socketConnected.value = false))
 
     provide("socket", socket)
+    provide("socketConnected", socketConnected)
 
     onBeforeUnmount(() => socket.close())
 
     // @ts-expect-error nothing relies on this, purely for debugging
     if (log.enabled) window.socket = socket
 
-    return { socketConnected }
+    const isHome = computed(() => route.fullPath === "/")
+
+    return { socketConnected, isHome }
   },
 })
 </script>
+
+<template>
+  <div
+    class="bg-auto h-full text-auto transition-colors"
+    :style="isHome ? '--nav-height: 0px' : ''"
+  >
+    <NavBar />
+    <router-view style="padding-top: var(--nav-height)" class="h-full" />
+  </div>
+</template>
 
 <style>
 #app a {
@@ -63,6 +70,18 @@ export default defineComponent({
 
 .text-shadow {
   text-shadow: 0 0 2px black;
+}
+
+.centerflex {
+  @apply flex justify-center items-center;
+}
+
+.bg-auto {
+  @apply bg-light dark:bg-dark;
+}
+
+.text-auto {
+  @apply text-dark dark:text-light;
 }
 
 .resync-input {
