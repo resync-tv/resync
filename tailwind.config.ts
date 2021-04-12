@@ -11,6 +11,8 @@ export default defineConfig({
         "md-light": "var(--clr-md-light)",
         accent: "var(--clr-accent)",
         error: "var(--clr-error)",
+      },
+      transitionTimingFunction: {
         "ease-in-out-hard": "var(--ease-in-out-hard)",
       },
       fontFamily: {

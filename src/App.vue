@@ -45,7 +45,9 @@ export default defineComponent({
     :style="isHome ? '--nav-height: 0px' : ''"
   >
     <NavBar />
-    <router-view style="padding-top: var(--nav-height)" class="h-full" />
+    <transition name="router-fade">
+      <router-view style="padding-top: var(--nav-height)" class="h-full" />
+    </transition>
   </div>
 </template>
 
@@ -68,8 +70,22 @@ export default defineComponent({
   @apply select-none;
 }
 
+.router-fade-enter-active,
+.router-fade-leave-active {
+  transition: 500ms;
+}
+
+.router-fade-enter-from,
+.router-fade-leave-to {
+  opacity: 0;
+}
+
 .text-shadow {
   text-shadow: 0 0 2px black;
+}
+
+.ease-in-out-hard {
+  transition-timing-function: var(--ease-in-out-hard) !important;
 }
 
 .centerflex {

@@ -40,7 +40,7 @@ export default defineComponent({
     >
       <ResyncLogo
         @click="$router.push('/')"
-        class="cursor-pointer h-nav fill-dark transition-all dark:fill-light"
+        class="cursor-pointer h-nav fill-dark transition-all ease-in-out-hard dark:fill-light"
         :class="{ 'fill-error dark:fill-error': !socketConnected }"
       />
     </div>
