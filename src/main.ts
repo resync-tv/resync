@@ -1,11 +1,13 @@
 import * as sentry from "@sentry/browser"
 import { Integrations } from "@sentry/tracing"
 
-sentry.init({
-  dsn: "https://5b4d331966544c5e823e1ea81f56e3cf@o105856.ingest.sentry.io/5712866",
-  integrations: [new Integrations.BrowserTracing()],
-  tracesSampleRate: 1.0,
-})
+if (process.env.NODE_ENV !== "development") {
+  sentry.init({
+    dsn: "https://5b4d331966544c5e823e1ea81f56e3cf@o105856.ingest.sentry.io/5712866",
+    integrations: [new Integrations.BrowserTracing()],
+    tracesSampleRate: 1.0,
+  })
+}
 
 import { createApp } from "vue"
 import App from "@/App.vue"
