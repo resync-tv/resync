@@ -45,9 +45,11 @@ export default defineComponent({
     :style="isHome ? '--nav-height: 0px' : ''"
   >
     <NavBar />
-    <transition name="router-fade">
-      <router-view style="padding-top: var(--nav-height)" class="h-full" />
-    </transition>
+    <router-view v-slot="{ Component }" style="padding-top: var(--nav-height)" class="h-full">
+      <transition name="router-fade">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
 
