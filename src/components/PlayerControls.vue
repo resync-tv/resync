@@ -10,7 +10,14 @@ const log = debug("playercontrols")
 export default defineComponent({
   components: { ResyncSlider },
   name: "PlayerControls",
-  setup() {
+  emits: ["fullscreen"],
+  props: {
+    fullscreenEnabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  setup(props) {
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
@@ -75,6 +82,11 @@ export default defineComponent({
       resync.seekTo(resync.duration() * value)
     }
 
+    const fullscreenStateIcon = computed(() => {
+      if (props.fullscreenEnabled) return "fullscreen_exit"
+      return "fullscreen"
+    })
+
     return {
       playStateIcon,
       volumeStateIcon,
@@ -87,6 +99,7 @@ export default defineComponent({
       currentTime,
       duration,
       timestamp,
+      fullscreenStateIcon,
     }
   },
 })
@@ -112,7 +125,9 @@ export default defineComponent({
         </div>
       </div>
       <div>
-        <span class="mi player-icon">fullscreen</span>
+        <span class="mi player-icon" @click="$emit('fullscreen')">{{
+          fullscreenStateIcon
+        }}</span>
       </div>
     </div>
     <ResyncSlider

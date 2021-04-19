@@ -69,7 +69,27 @@ export default defineComponent({
       return m
     })
 
+    const playerWrapper = ref<HTMLElement | null>(null)
+    const fullscreenEnabled = ref(false)
+    const toggleFullscreen = async () => {
+      if (!playerWrapper.value) throw Error("player-wrapper ref not found")
+      if (fullscreenEnabled.value) {
+        await document.exitFullscreen()
+        fullscreenEnabled.value = Boolean(document.fullscreenElement)
+        return
+      }
+
+      try {
+        await playerWrapper.value.requestFullscreen()
+        fullscreenEnabled.value = Boolean(document.fullscreenElement)
+      } catch (error) {
+        log.extend("error")("fullscreen didn't work")
+        throw error
+      }
+    }
+
     const sizeStyle = computed(() => {
+      if (fullscreenEnabled) return "width:100%;height:100%"
       return (
         `width:${videoW.value * sizeMultiplier.value}px;` +
         `height:${videoH.value * sizeMultiplier.value}px`
@@ -94,6 +114,9 @@ export default defineComponent({
       sizeStyle,
       showInteractionOverlay,
       resync,
+      toggleFullscreen,
+      playerWrapper,
+      fullscreenEnabled,
     }
   },
 })
@@ -101,15 +124,20 @@ export default defineComponent({
 
 <template>
   <div
-    class="rounded flex overflow-hidden relative light:shadow"
-    :class="{ overlay: showInteractionOverlay }"
+    class="flex overflow-hidden relative light:shadow"
+    :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled }"
     :style="sizeStyle"
     id="player-wrapper"
+    ref="playerWrapper"
   >
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
 
     <div class="overlay-gradient hover-overlay lower" :class="{ active: resync.paused.value }">
-      <PlayerControls class="pointer-events-auto" />
+      <PlayerControls
+        @fullscreen="toggleFullscreen"
+        :fullscreenEnabled="fullscreenEnabled"
+        class="pointer-events-auto"
+      />
     </div>
 
     <div
