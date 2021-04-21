@@ -14,6 +14,7 @@ export const resolveContent = async (
       title: await getTitle(url),
       thumb: `https://i.ytimg.com/vi/${getVideoID(url)}/mqdefault.jpg`,
       type: "video",
+      originalSource: { url, youtubeID: getVideoID(url) },
     }
   }
 
@@ -23,5 +24,6 @@ export const resolveContent = async (
     video: [{ quality: "default", url }],
     title: `content from ${new URL(url).hostname}`,
     type: "video",
+    originalSource: { url },
   }
 }

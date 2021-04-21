@@ -1,4 +1,4 @@
-import type { MediaSource } from "../types/mediaSource"
+import type { MediaRawSource } from "../types/mediaSource"
 
 import ytdl from "ytdl-core"
 import { average } from "./util"
@@ -14,7 +14,7 @@ const urlExpire = (url: string): number => {
   else return Number(expires)
 }
 
-const transformFormat = (format: ytdl.videoFormat): MediaSource => {
+const transformFormat = (format: ytdl.videoFormat): MediaRawSource => {
   return {
     url: format.url,
     quality: format.hasVideo ? format.qualityLabel : `${format.audioBitrate} kbps`,
@@ -48,7 +48,7 @@ const fetchVideo = async (source: string) => {
   return cached[id]
 }
 
-export const getCombinedStream = async (source: string): Promise<MediaSource[]> => {
+export const getCombinedStream = async (source: string): Promise<MediaRawSource[]> => {
   const { formats } = await fetchVideo(source)
 
   const combined = formats.filter(f => f.hasAudio && f.hasVideo)
@@ -63,8 +63,8 @@ export const getTitle = async (source: string): Promise<string> => {
 }
 
 interface SeperateStreams {
-  audio: MediaSource[]
-  video: MediaSource[]
+  audio: MediaRawSource[]
+  video: MediaRawSource[]
 }
 
 export const getSeperateStreams = async (source: string): Promise<SeperateStreams> => {

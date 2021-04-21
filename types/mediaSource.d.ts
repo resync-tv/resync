@@ -1,8 +1,13 @@
 export type Platform = "youtube" | "soundcloud" | "other"
 
-export interface MediaSource {
+export interface MediaRawSource {
   url: string
   quality: string
+}
+
+export interface OriginalSource {
+  url: string
+  youtubeID?: string
 }
 
 export type MediaType = "audio" | "video" | "audiovideo"
@@ -13,15 +18,16 @@ export interface MediaBase {
   title: string
   thumb?: string
   type: MediaType
+  originalSource: OriginalSource
 }
 
 export interface MediaAudio extends MediaBase {
-  audio: MediaSource[]
+  audio: MediaRawSource[]
   type: "audio"
 }
 
 export interface MediaVideo extends MediaBase {
-  video: MediaSource[]
+  video: MediaRawSource[]
   type: "video"
 }
 
