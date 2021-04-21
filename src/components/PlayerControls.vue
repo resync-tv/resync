@@ -110,7 +110,9 @@ export default defineComponent({
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
         <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
-        <span class="mi player-icon">skip_next</span>
+
+        <span class="mi player-icon small" @click="resync.resync()">sync</span>
+
         <div class="flex items-center volume">
           <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
           <ResyncSlider
@@ -142,6 +144,11 @@ export default defineComponent({
 <style scoped lang="scss">
 .player-icon {
   @apply cursor-pointer my-2 mx-1;
+
+  &.small {
+    font-size: 20px;
+    line-height: 24px;
+  }
 }
 
 .volume {

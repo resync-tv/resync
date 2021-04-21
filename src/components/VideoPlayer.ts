@@ -73,8 +73,8 @@ export default defineComponent({
             ?.play()
             .catch(onPlaybackError)
             .then(async () => {
+              error("muted video played successfully")
               if (["NotAllowedError"].includes(err.name)) {
-                error("muted video played successfully")
                 await requireUserInteraction()
                 muted.value = false
               }
