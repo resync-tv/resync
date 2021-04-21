@@ -106,7 +106,7 @@ export default defineComponent({
   --color: var(--clr-light);
 
   position: relative;
-  height: 20px;
+  height: 22px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -162,6 +162,7 @@ export default defineComponent({
   }
 
   &.small {
+    height: 16px;
     > .handle {
       height: 11.5px;
       width: 11.5px;
