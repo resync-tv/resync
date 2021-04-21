@@ -156,16 +156,16 @@ export default defineComponent({
     onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
     return () => {
-      if (src.value)
-        return h("video", {
-          src: src.value,
-          ref: video,
-          disablePictureInPicture: true,
-          preload: "auto",
-          muted: muted.value,
-          autoplay: autoplay.value,
-        })
-      else return
+      // if (src.value)
+      return h("video", {
+        src: src.value,
+        ref: video,
+        disablePictureInPicture: true,
+        preload: "auto",
+        muted: muted.value,
+        autoplay: autoplay.value,
+      })
+      // else return
     }
   },
 })

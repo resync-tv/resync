@@ -110,7 +110,7 @@ export default defineComponent({
           </button>
         </div>
 
-        <PlayerWrapper v-if="resync.state.value.source" type="video" />
+        <PlayerWrapper v-show="resync.state.value.source" type="video" />
       </div>
 
       <div class="top-list left-0">
