@@ -109,6 +109,23 @@ export default defineComponent({
 
     provide("requireUserInteraction", requireUserInteraction)
 
+    const copyURL = async (timestamp?: boolean) => {
+      const clip = window.navigator.clipboard
+      if (!clip) window.alert("please use a modern browser like chrome for this feature.")
+      const source = resync.state.value.source?.originalSource
+      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
+
+      if (source?.youtubeID && timestamp) url += `?t=${Math.floor(resync.currentTime())}`
+
+      if (url) await clip.writeText(url)
+    }
+
+    const openInNew = () => {
+      const source = resync.state.value.source?.originalSource
+      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
+      window.open(url, "_blank")
+    }
+
     return {
       onMetadata,
       sizeStyle,
@@ -117,6 +134,8 @@ export default defineComponent({
       toggleFullscreen,
       playerWrapper,
       fullscreenEnabled,
+      copyURL,
+      openInNew,
     }
   },
 })
@@ -149,6 +168,19 @@ export default defineComponent({
         <p class="text-lg tracking-wide ellipsis">
           {{ resync.state.value.source?.title }}
         </p>
+        <div class="pointer-events-auto">
+          <span @click="copyURL()" title="copy source url" class="source-icon mi">link</span>
+          <span
+            @click="copyURL(true)"
+            v-if="resync.state.value.source.originalSource.youtubeID"
+            title="copy source url with timestamp"
+            class="source-icon mi"
+            >add_link</span
+          >
+          <span @click="openInNew" title="open in new tab" class="source-icon mi"
+            >open_in_new</span
+          >
+        </div>
       </div>
     </div>
 
@@ -183,6 +215,15 @@ export default defineComponent({
 
 .ellipsis {
   @apply whitespace-nowrap overflow-ellipsis overflow-hidden;
+}
+
+.source-icon {
+  @apply cursor-pointer mx-2;
+  font-size: 22px;
+
+  &:last-of-type {
+    @apply mr-0;
+  }
 }
 
 .interaction-overlay {

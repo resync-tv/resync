@@ -111,7 +111,9 @@ export default defineComponent({
       <div class="flex">
         <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
 
-        <span class="mi player-icon small" @click="resync.resync()">sync</span>
+        <span title="resync" class="mi player-icon small" @click="resync.resync()"
+          >cached</span
+        >
 
         <div class="flex items-center volume">
           <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
@@ -127,9 +129,9 @@ export default defineComponent({
         </div>
       </div>
       <div>
-        <span class="mi player-icon" @click="$emit('fullscreen')">{{
-          fullscreenStateIcon
-        }}</span>
+        <span title="fullscreen" class="mi player-icon" @click="$emit('fullscreen')">
+          {{ fullscreenStateIcon }}
+        </span>
       </div>
     </div>
     <ResyncSlider
