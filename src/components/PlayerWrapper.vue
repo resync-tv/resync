@@ -124,7 +124,7 @@ export default defineComponent({
 
 <template>
   <div
-    class="flex overflow-hidden relative light:shadow"
+    class="rounded flex overflow-hidden relative light:shadow"
     :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled }"
     :style="sizeStyle"
     id="player-wrapper"
