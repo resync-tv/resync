@@ -2,7 +2,7 @@ import type { Socket } from "socket.io-client"
 import type { BackendEmits, FrontendEmits, RoomEmit, RoomState } from "$/room"
 
 import { Ref, ref, watch } from "vue"
-import { capitalize, debug, ls, once } from "./util"
+import { capitalize, debug, ls } from "./util"
 
 const log = debug("resync.ts")
 
@@ -71,11 +71,15 @@ export default class Resync {
     })
   }
 
-  joinRoom = once((name: string): void => {
+  joinRoom = async (name: string): Promise<void> => {
     const join = () => {
-      this.roomEmit("joinRoom", { name }, state => {
-        log("initial room state", state)
-        this.state.value = state
+      return new Promise<void>(res => {
+        this.roomEmit("joinRoom", { name }, state => {
+          log("initial room state", state)
+          this.state.value = state
+
+          res()
+        })
       })
     }
 
@@ -93,12 +97,13 @@ export default class Resync {
     this.handlers.push(() => this.socket.off("disconnect", disconnect))
     this.handlers.push(() => this.roomEmit("leaveRoom"))
 
-    join()
-  })
+    await join()
+  }
 
   playContent = (source: string): void => {
     this.roomEmit("playContent", { source })
   }
+  loaded = (): void => this.roomEmit("loaded")
   pause = (currentTime: number): void => {
     this.roomEmit("pause", { currentTime })
   }

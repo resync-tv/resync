@@ -45,6 +45,8 @@ export default defineComponent({
 
       video.value.volume = resync.muted.value ? 0 : resync.volume.value
 
+      console.log("mounted state", resync.state.value.paused)
+
       if (resync.state.value.paused) {
         autoplay.value = false
         video.value.currentTime = resync.state.value.lastSeekedTo
@@ -111,7 +113,17 @@ export default defineComponent({
       })
       offHandlers.push(offRequestTime)
 
-      const offSource = resync.onSource(play)
+      const offSource = resync.onSource(() => {
+        if (!video.value) throw new Error("video ref is null")
+        autoplay.value = false
+
+        video.value.oncanplaythrough = () => {
+          resync.loaded()
+
+          if (!video.value) throw new Error("video ref is null")
+          video.value.oncanplaythrough = null
+        }
+      })
       offHandlers.push(offSource)
 
       const offVolume = watch(resync.volume, volume => {
@@ -156,16 +168,16 @@ export default defineComponent({
     onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
     return () => {
-      if (src.value)
-        return h("video", {
-          src: src.value,
-          ref: video,
-          disablePictureInPicture: true,
-          preload: "auto",
-          muted: muted.value,
-          autoplay: autoplay.value,
-        })
-      else return
+      // if (src.value)
+      return h("video", {
+        src: src.value,
+        ref: video,
+        disablePictureInPicture: true,
+        preload: "auto",
+        muted: muted.value,
+        autoplay: autoplay.value,
+      })
+      // else return
     }
   },
 })

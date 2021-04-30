@@ -45,6 +45,7 @@ type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: 
 
 export interface FrontendEmits {
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
+  loaded: FrontendEmitterBase
   pause: FrontendEmitterTime
   resume: FrontendEmitterBase
   seekTo: FrontendEmitterTime
