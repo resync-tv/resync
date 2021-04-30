@@ -17,6 +17,7 @@ export interface RoomState<S = MediaSourceAny> {
   source: S | undefined
   lastSeekedTo: number
   members: Array<PublicMember>
+  membersLoading: number
 }
 
 type Callback<A = void> = (x: A) => void

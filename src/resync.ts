@@ -32,6 +32,7 @@ export default class Resync {
       source: undefined,
       lastSeekedTo: 0,
       members: [],
+      membersLoading: 0,
     })
 
     const volumeSaver = watch(this.volume, volume => {

@@ -78,6 +78,7 @@ class Room {
       source: this.source,
       lastSeekedTo: this.lastSeekedTo,
       members: this.members.map(({ client: { id }, name }) => ({ id, name })),
+      membersLoading: this.membersLoading,
     }
   }
 
@@ -116,15 +117,14 @@ class Room {
     this.lastSeekedTo = startFrom
     this.paused = true
     this.broadcast.emit("source", this.source)
-    // this.resume()
 
-    console.log(this.state)
     this.updateState()
     this.notify("playContent", client, { source, startFrom })
   }
 
   async loaded() {
     this.membersLoading--
+    this.updateState()
 
     if (this.membersLoading <= 0) this.resume()
     this.log(`members loading: ${this.membersLoading}`)
