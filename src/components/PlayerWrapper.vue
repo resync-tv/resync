@@ -7,6 +7,7 @@ import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
 import PlayerControls from "@/components/PlayerControls.vue"
+import LoadingSpinner from "@/components/LoadingSpinner.vue"
 
 import Resync from "@/resync"
 
@@ -18,6 +19,7 @@ export default defineComponent({
   components: {
     VideoPlayer,
     PlayerControls,
+    LoadingSpinner,
   },
   props: {
     type: {
@@ -193,6 +195,10 @@ export default defineComponent({
         enable sound
       </button>
     </div>
+
+    <div v-if="resync.state.value.membersLoading" class="overlay-loading-spinner">
+      <LoadingSpinner />
+    </div>
   </div>
 </template>
 
@@ -211,6 +217,11 @@ export default defineComponent({
     background: linear-gradient(to bottom, var(--gradient));
     @apply top-0 items-start;
   }
+}
+
+.overlay-loading-spinner {
+  @apply h-full w-full absolute pointer-events-none;
+  @apply flex items-center justify-center;
 }
 
 .ellipsis {
