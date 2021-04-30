@@ -52,11 +52,12 @@ export default defineComponent({
 
     const resetScope = () =>
       sentry.configureScope(scope => {
-      scope.setTag("roomID", null)
-      scope.setTag("name", null)
+        scope.setTag("roomID", null)
+        scope.setTag("name", null)
       })
 
-    resync.joinRoom(name)
+    const mountPlayer = ref(false)
+    resync.joinRoom(name).then(() => (mountPlayer.value = true))
 
     const recentNotifications = ref<EventNotification[]>([])
     const offNotifiy = resync.onNotify(notification => {
@@ -82,6 +83,7 @@ export default defineComponent({
       resync,
       recentNotifications,
       renderNotification,
+      mountPlayer,
     }
   },
 })
@@ -110,7 +112,7 @@ export default defineComponent({
           </button>
         </div>
 
-        <PlayerWrapper v-show="resync.state.value.source" type="video" />
+        <PlayerWrapper v-if="mountPlayer" v-show="resync.state.value.source" type="video" />
       </div>
 
       <div class="top-list left-0">

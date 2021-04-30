@@ -45,6 +45,8 @@ export default defineComponent({
 
       video.value.volume = resync.muted.value ? 0 : resync.volume.value
 
+      console.log("mounted state", resync.state.value.paused)
+
       if (resync.state.value.paused) {
         autoplay.value = false
         video.value.currentTime = resync.state.value.lastSeekedTo
@@ -111,8 +113,8 @@ export default defineComponent({
       })
       offHandlers.push(offRequestTime)
 
-      const offSource = resync.onSource(play)
-      offHandlers.push(offSource)
+      // const offSource = resync.onSource(play)
+      // offHandlers.push(offSource)
 
       const offVolume = watch(resync.volume, volume => {
         video.value && (video.value.volume = volume)
