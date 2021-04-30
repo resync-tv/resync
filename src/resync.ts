@@ -103,6 +103,7 @@ export default class Resync {
   playContent = (source: string): void => {
     this.roomEmit("playContent", { source })
   }
+  loaded = (): void => this.roomEmit("loaded")
   pause = (currentTime: number): void => {
     this.roomEmit("pause", { currentTime })
   }

@@ -43,6 +43,7 @@ class Room {
   private paused = true
   private lastSeekedTo = 0
   private source: MediaSourceAny | undefined
+  private membersLoading = 0
 
   constructor(roomID: string, io: Server) {
     log(`constructing room ${roomID}`)
@@ -111,13 +112,22 @@ class Room {
 
   async playContent(client: Socket, source: string, startFrom: number) {
     this.source = source ? await resolveContent(source, startFrom) : undefined
+    this.membersLoading = this.members.length
     this.lastSeekedTo = startFrom
-    // this.paused = false
+    this.paused = true
     this.broadcast.emit("source", this.source)
     // this.resume()
 
+    console.log(this.state)
     this.updateState()
     this.notify("playContent", client, { source, startFrom })
+  }
+
+  async loaded() {
+    this.membersLoading--
+
+    if (this.membersLoading <= 0) this.resume()
+    this.log(`members loading: ${this.membersLoading}`)
   }
 
   pause(seconds?: number, client?: Socket) {
@@ -209,6 +219,7 @@ export default (io: ResyncSocketBackend): void => {
 
       reply(room.state)
     })
+
     client.on("leaveRoom", ({ roomID }) => {
       getRoom(roomID).leave(client)
     })
@@ -216,6 +227,8 @@ export default (io: ResyncSocketBackend): void => {
     client.on("playContent", ({ roomID, source, startFrom = 0 }) => {
       getRoom(roomID).playContent(client, source, startFrom)
     })
+
+    client.on("loaded", ({ roomID }) => getRoom(roomID).loaded())
 
     client.on("pause", ({ roomID, currentTime }) => {
       getRoom(roomID).pause(currentTime, client)

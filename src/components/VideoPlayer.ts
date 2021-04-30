@@ -113,8 +113,18 @@ export default defineComponent({
       })
       offHandlers.push(offRequestTime)
 
-      // const offSource = resync.onSource(play)
-      // offHandlers.push(offSource)
+      const offSource = resync.onSource(() => {
+        if (!video.value) throw new Error("video ref is null")
+        autoplay.value = false
+
+        video.value.oncanplaythrough = () => {
+          resync.loaded()
+
+          if (!video.value) throw new Error("video ref is null")
+          video.value.oncanplaythrough = null
+        }
+      })
+      offHandlers.push(offSource)
 
       const offVolume = watch(resync.volume, volume => {
         video.value && (video.value.volume = volume)
