@@ -89,52 +89,41 @@ export default defineComponent({
         resync.playbackError({ reason, name }, resync.currentTime())
       }
 
-      const offPause = resync.onPause(() => {
-        logRemote("onPause")
-        autoplay.value = false
-        video.value?.pause()
-      })
-      offHandlers.push(offPause)
+      offHandlers.push(
+        resync.onPause(() => {
+          logRemote("onPause")
+          autoplay.value = false
+          video.value?.pause()
+        }),
+        resync.onResume(play),
+        resync.onSeekTo(seconds => {
+          logRemote(`onSeekTo: ${seconds}`)
+          if (!video.value) throw new Error("video ref is null (at onSeekTo)")
 
-      const offResume = resync.onResume(play)
-      offHandlers.push(offResume)
-
-      const offSeekTo = resync.onSeekTo(seconds => {
-        logRemote(`onSeekTo: ${seconds}`)
-        if (!video.value) throw new Error("video ref is null (at onSeekTo)")
-
-        video.value.currentTime = seconds
-      })
-      offHandlers.push(offSeekTo)
-
-      const offRequestTime = resync.onRequestTime(callback => {
-        logRemote(`onRequestTime`)
-        callback(resync.currentTime())
-      })
-      offHandlers.push(offRequestTime)
-
-      const offSource = resync.onSource(() => {
-        if (!video.value) throw new Error("video ref is null")
-        autoplay.value = false
-
-        video.value.oncanplaythrough = () => {
-          resync.loaded()
-
+          video.value.currentTime = seconds
+        }),
+        resync.onRequestTime(callback => {
+          logRemote(`onRequestTime`)
+          callback(resync.currentTime())
+        }),
+        resync.onSource(() => {
           if (!video.value) throw new Error("video ref is null")
-          video.value.oncanplaythrough = null
-        }
-      })
-      offHandlers.push(offSource)
+          autoplay.value = false
 
-      const offVolume = watch(resync.volume, volume => {
-        video.value && (video.value.volume = volume)
-      })
-      offHandlers.push(offVolume)
+          video.value.oncanplaythrough = () => {
+            resync.loaded()
 
-      const offMuted = watch(resync.muted, muted => {
-        video.value && (video.value.volume = muted ? 0 : resync.volume.value)
-      })
-      offHandlers.push(offMuted)
+            if (!video.value) throw new Error("video ref is null")
+            video.value.oncanplaythrough = null
+          }
+        }),
+        watch(resync.volume, volume => {
+          video.value && (video.value.volume = volume)
+        }),
+        watch(resync.muted, muted => {
+          video.value && (video.value.volume = muted ? 0 : resync.volume.value)
+        })
+      )
 
       video.value.onpause = () => {
         resync.paused.value = true
