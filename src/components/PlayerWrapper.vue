@@ -91,7 +91,7 @@ export default defineComponent({
     }
 
     const sizeStyle = computed(() => {
-      if (fullscreenEnabled) return "width:100%;height:100%"
+      if (fullscreenEnabled.value) return "width:100%;height:100%"
       return (
         `width:${videoW.value * sizeMultiplier.value}px;` +
         `height:${videoH.value * sizeMultiplier.value}px`
