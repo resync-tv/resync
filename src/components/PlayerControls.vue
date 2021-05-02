@@ -126,7 +126,7 @@ export default defineComponent({
             small
             immediate
           />
-          <div class="font-mono mx-1 text-xs align-middle">
+          <div class="font-timestamp mx-1 align-middle">
             {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
           </div>
         </div>
@@ -170,5 +170,10 @@ export default defineComponent({
   > .resync-slider.active {
     @apply w-15 opacity-100;
   }
+}
+
+.font-timestamp {
+  font-family: "RobotoMonoTimestamp";
+  font-size: 0.7em;
 }
 </style>
