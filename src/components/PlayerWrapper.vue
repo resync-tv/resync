@@ -8,6 +8,7 @@ import { debounce } from "ts-debounce"
 import VideoPlayer from "@/components/VideoPlayer"
 import PlayerControls from "@/components/PlayerControls.vue"
 import LoadingSpinner from "@/components/LoadingSpinner.vue"
+import SvgIcon from "@/components/SvgIcon.vue"
 
 import Resync from "@/resync"
 
@@ -20,6 +21,7 @@ export default defineComponent({
     VideoPlayer,
     PlayerControls,
     LoadingSpinner,
+    SvgIcon,
   },
   props: {
     type: {
@@ -171,17 +173,25 @@ export default defineComponent({
           {{ resync.state.value.source?.title }}
         </p>
         <div class="flex pointer-events-auto">
-          <span @click="copyURL()" title="copy source url" class="source-icon mi">link</span>
-          <span
+          <SvgIcon
+            @click="copyURL()"
+            title="copy source url"
+            name="content_paste"
+            class="source-icon"
+          />
+          <SvgIcon
             @click="copyURL(true)"
             v-if="resync.state.value.source.originalSource.youtubeID"
             title="copy source url with timestamp"
-            class="source-icon mi"
-            >add_link</span
-          >
-          <span @click="openInNew" title="open in new tab" class="source-icon mi"
-            >open_in_new</span
-          >
+            name="content_paste_time"
+            class="source-icon"
+          />
+          <SvgIcon
+            @click="openInNew"
+            title="open in new tab"
+            name="open_in_new"
+            class="source-icon"
+          />
         </div>
       </div>
     </div>

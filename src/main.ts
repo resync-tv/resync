@@ -14,7 +14,7 @@ import App from "@/App.vue"
 import router from "./router"
 import "virtual:windi.css"
 import "@/assets/theme.css"
-import "@/assets/material-icons.css"
+import "vite-plugin-svg-icons/register"
 
 import type { MediaMetadata, MediaSession } from "$/MediaSession"
 

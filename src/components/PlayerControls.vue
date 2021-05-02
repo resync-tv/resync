@@ -3,12 +3,13 @@ import Resync, { SocketOff } from "@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
+import SvgIcon from "@/components/SvgIcon.vue"
 import { debug, minMax, timestamp } from "@/util"
 
 const log = debug("playercontrols")
 
 export default defineComponent({
-  components: { ResyncSlider },
+  components: { ResyncSlider, SvgIcon },
   name: "PlayerControls",
   emits: ["fullscreen"],
   props: {
@@ -109,14 +110,16 @@ export default defineComponent({
   <div class="h-10 w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
-        <span class="mi player-icon" @click="onPlayIconClick">{{ playStateIcon }}</span>
-
-        <span title="resync" class="mi player-icon small" @click="resync.resync()"
-          >cached</span
-        >
+        <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
+        <SvgIcon
+          name="cached"
+          @click="resync.resync()"
+          title="resync"
+          class="player-icon small"
+        />
 
         <div class="flex items-center volume">
-          <span class="mi player-icon" @click="onVolumeIconClick">{{ volumeStateIcon }}</span>
+          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon" />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
@@ -129,9 +132,12 @@ export default defineComponent({
         </div>
       </div>
       <div>
-        <span title="fullscreen" class="mi player-icon" @click="$emit('fullscreen')">
-          {{ fullscreenStateIcon }}
-        </span>
+        <SvgIcon
+          :name="fullscreenStateIcon"
+          title="fullscreen"
+          @click="$emit('fullscreen')"
+          class="player-icon"
+        />
       </div>
     </div>
     <ResyncSlider
@@ -149,7 +155,7 @@ export default defineComponent({
 
   &.small {
     font-size: 20px;
-    line-height: 24px;
+    height: 24px;
   }
 }
 
