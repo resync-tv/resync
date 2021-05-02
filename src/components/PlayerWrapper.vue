@@ -170,7 +170,7 @@ export default defineComponent({
         <p class="text-lg tracking-wide ellipsis">
           {{ resync.state.value.source?.title }}
         </p>
-        <div class="pointer-events-auto">
+        <div class="flex pointer-events-auto">
           <span @click="copyURL()" title="copy source url" class="source-icon mi">link</span>
           <span
             @click="copyURL(true)"
