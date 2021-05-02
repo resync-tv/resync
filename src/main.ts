@@ -12,11 +12,11 @@ if (process.env.NODE_ENV !== "development") {
 import { createApp } from "vue"
 import App from "@/App.vue"
 import router from "./router"
-import "@/assets/theme.css"
-import "@/assets/RobotoMonoTimestamp.css"
-
 import "virtual:windi.css"
 import "vite-plugin-svg-icons/register"
+
+import "@/assets/theme.css"
+import "@/assets/RobotoMonoTimestamp.css"
 
 import type { MediaMetadata, MediaSession } from "$/MediaSession"
 
