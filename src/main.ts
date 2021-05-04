@@ -16,7 +16,7 @@ import "virtual:windi.css"
 import "vite-plugin-svg-icons/register"
 
 import "@/assets/theme.css"
-import "@/assets/RobotoMonoTimestamp.css"
+import "@/assets/fonts/fonts.css"
 
 import type { MediaMetadata, MediaSession } from "$/MediaSession"
 

@@ -60,7 +60,7 @@ export default defineComponent({
 }
 
 * {
-  @apply font;
+  @apply font-sans;
 }
 
 *::selection {

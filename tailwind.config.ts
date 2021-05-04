@@ -1,8 +1,17 @@
 import { defineConfig } from "vite-plugin-windicss"
+import defaultTheme from "windicss/defaultTheme"
+
+const { sans, mono } = defaultTheme.fontFamily
 
 export default defineConfig({
   darkMode: "class",
   theme: {
+    fontFamily: {
+      ...defaultTheme.fontFamily,
+      DEFAULT: ["ManropeVariable"],
+      sans: ["ManropeVariable", ...sans],
+      mono: ['"Roboto Mono"', ...mono],
+    },
     extend: {
       colors: {
         dark: "var(--clr-dark)",
@@ -14,9 +23,6 @@ export default defineConfig({
       },
       transitionTimingFunction: {
         "ease-in-out-hard": "var(--ease-in-out-hard)",
-      },
-      fontFamily: {
-        DEFAULT: ["Manrope"],
       },
       height: {
         nav: "var(--nav-height)",
