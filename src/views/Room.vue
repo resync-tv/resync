@@ -1,7 +1,15 @@
 <script lang="ts">
 import type { EventNotification, ResyncSocketFrontend } from "$/room"
 
-import { computed, defineComponent, inject, onBeforeUnmount, provide, ref } from "vue"
+import {
+  computed,
+  defineComponent,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  ref,
+} from "vue"
 import { useRoute } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls } from "@/util"
@@ -69,11 +77,25 @@ export default defineComponent({
       }
     })
 
+    const urlForm = ref<HTMLFormElement | null>(null)
+
+    onMounted(() => {
+      if (!urlForm.value) throw Error("urlForm ref not available")
+
+      urlForm.value.onsubmit = e => {
+        e.preventDefault()
+        resync.playContent(sourceInput.value)
+      }
+    })
+
     onBeforeUnmount(() => {
       offNotifiy()
       resetScope()
       document.title = "resync"
       resync.destroy()
+
+      if (!urlForm.value) throw Error("urlForm ref not available")
+      urlForm.value.onsubmit = null
     })
 
     return {
@@ -84,6 +106,7 @@ export default defineComponent({
       recentNotifications,
       renderNotification,
       mountPlayer,
+      urlForm,
     }
   },
 })
@@ -93,9 +116,10 @@ export default defineComponent({
   <main class="">
     <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
       <div class="flex z-5 relative justify-center">
-        <div
+        <form
           class="flex bottom-full mb-3 w-md justify-center absolute"
           style="max-width: 75vw"
+          ref="urlForm"
         >
           <ResyncInput
             v-model="sourceInput"
@@ -103,14 +127,8 @@ export default defineComponent({
             :invalid="!sourceValid"
             pastable
           />
-          <button
-            @click="resync.playContent(sourceInput)"
-            class="resync-button"
-            :class="{ invalid: !sourceValid }"
-          >
-            play
-          </button>
-        </div>
+          <button class="resync-button" :class="{ invalid: !sourceValid }">play</button>
+        </form>
 
         <PlayerWrapper v-if="mountPlayer" v-show="resync.state.value.source" type="video" />
       </div>
