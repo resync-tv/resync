@@ -18,11 +18,8 @@ export default defineComponent({
     const socket = inject<ResyncSocketFrontend>("socket")
     if (!socket) throw new Error("socket injection failed")
 
-    // @ts-ignore
-    window.router = router
-
-    const enterNewRoom = async () => {
-      const roomID = await Resync.getNewRandom(socket)
+    const enterRoom = async (roomID?: string | null) => {
+      if (!roomID) roomID = await Resync.getNewRandom(socket)
       const roomRoute = router.resolve({ name: "room", params: { roomID } })
 
       try {
@@ -34,7 +31,9 @@ export default defineComponent({
       }
     }
 
-    return { enterNewRoom }
+    const lastRoom = ls("resync-last-room")
+
+    return { enterRoom, lastRoom }
   },
 })
 </script>
@@ -45,19 +44,22 @@ export default defineComponent({
       <ResyncLogo class="max-w-full fill-dark w-100 dark:fill-light" />
       <span class="text-lg opacity-75 -sm:text-sm">watch videos with your friends.</span>
     </div>
-    <div
-      @click="enterNewRoom"
-      class="bg-auto cursor-pointer h-20 bottom-button w-full bottom-0 fixed centerflex"
-    >
-      <button class="h-full arrow-after pointer-events-none">enter new room</button>
+    <div class="bottom-button-container">
+      <button @click="enterRoom()">
+        <span class="arrow-after">enter new room</span>
+      </button>
+
+      <button v-if="lastRoom" @click="enterRoom(lastRoom)">
+        <span class="arrow-after">enter last room: {{ lastRoom }}</span>
+      </button>
     </div>
   </main>
 </template>
 
-
 <style scoped>
 .arrow-after {
   position: relative;
+
   &:after {
     position: absolute;
     content: "->";
@@ -66,21 +68,29 @@ export default defineComponent({
   }
 }
 
-.bottom-button {
-  @apply transition-all;
+.bottom-button-container {
+  @apply w-full bottom-0 fixed;
+  @apply bg-auto cursor-pointer h-20;
+  @apply flex justify-around;
 
-  box-shadow: rgba(0, 0, 0, 0.06) 0px -2px 4px 0px;
+  > button {
+    @apply transition-all;
+    @apply flex-grow outline-none focus:outline-none;
 
-  &:hover {
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 20px 0px;
+    box-shadow: rgba(0, 0, 0, 0.06) 0px -2px 4px 0px;
+    --hover-shadow: 0px 0px 20px 0px;
+
+    &:hover {
+      box-shadow: rgba(0, 0, 0, 0.1) var(--hover-shadow);
+    }
   }
 }
 
-.dark .bottom-button {
-  box-shadow: rgba(255, 255, 255, 0.5) 0px -1px 2px 0px;
+.dark .bottom-button-container > button {
+  box-shadow: rgba(255, 255, 255, 0.5) 0px -1px 0px 0px;
 
   &:hover {
-    box-shadow: rgba(255, 255, 255, 0.25) 0px 0px 20px 0px;
+    box-shadow: rgba(255, 255, 255, 0.25) var(--hover-shadow);
   }
 }
 </style>

@@ -4,6 +4,7 @@ interface LocalStored {
   "resync-displayname": string
   "resync-volume": number
   "resync-muted": boolean
+  "resync-last-room": string
 }
 
 export const ls = <L extends keyof LocalStored>(

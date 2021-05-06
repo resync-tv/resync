@@ -73,7 +73,11 @@ export default defineComponent({
       })
 
     const mountPlayer = ref(false)
-    if (name) resync.joinRoom(name).then(() => (mountPlayer.value = true))
+    if (name)
+      resync.joinRoom(name).then(() => {
+        mountPlayer.value = true
+        ls("resync-last-room", roomID)
+      })
 
     const recentNotifications = ref<EventNotification[]>([])
     const offNotifiy = resync.onNotify(notification => {
