@@ -30,7 +30,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav class="nav">
+  <nav class="nav nav-transition">
     <div v-if="routeDisplay" class="flex h-full opacity-50 pl-5 items-center">
       {{ routeDisplay }}
     </div>
@@ -40,7 +40,7 @@ export default defineComponent({
     >
       <ResyncLogo
         @click="$router.push('/')"
-        class="cursor-pointer h-nav fill-dark transition-all ease-in-out-hard dark:fill-light"
+        class="cursor-pointer h-nav fill-dark nav-transition dark:fill-light"
         :class="{ 'fill-error dark:fill-error': !socketConnected }"
       />
     </div>
@@ -51,7 +51,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .nav {
-  @apply bg-light flex h-nav shadow-sm w-full transition-all z-10 fixed justify-between;
+  @apply bg-light flex h-nav shadow-sm w-full z-10 fixed justify-between;
   @apply dark:(bg-dark shadow-md);
 }
 </style>

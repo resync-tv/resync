@@ -6,6 +6,9 @@ import { defineComponent, inject } from "vue"
 import ResyncLogo from "@/components/ResyncLogo"
 import Resync from "@/resync"
 import { useRouter } from "vue-router"
+import { debug, ls, validateName } from "@/util"
+
+const log = debug("home")
 
 export default defineComponent({
   components: { ResyncLogo },
@@ -15,9 +18,20 @@ export default defineComponent({
     const socket = inject<ResyncSocketFrontend>("socket")
     if (!socket) throw new Error("socket injection failed")
 
+    // @ts-ignore
+    window.router = router
+
     const enterNewRoom = async () => {
       const roomID = await Resync.getNewRandom(socket)
-      router.push({ name: "room", params: { roomID } })
+      const roomRoute = router.resolve({ name: "room", params: { roomID } })
+
+      try {
+        validateName(ls("resync-displayname") ?? "")
+        router.push(roomRoute)
+      } catch (error) {
+        log("no name set yet")
+        router.push({ name: "signup", query: { returnTo: roomRoute.fullPath } })
+      }
     }
 
     return { enterNewRoom }
@@ -26,7 +40,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <main id="home" class="transition-all centerflex">
+  <main id="home" class="centerflex">
     <div class="flex flex-col items-center">
       <ResyncLogo class="max-w-full fill-dark w-100 dark:fill-light" />
       <span class="text-lg opacity-75 -sm:text-sm">watch videos with your friends.</span>

@@ -7,6 +7,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("./views/Home.vue"),
   },
   {
+    path: "/signup",
+    name: "signup",
+    component: () => import("./views/Signup.vue"),
+  },
+  {
     path: "/r/:roomID",
     name: "room",
     component: () => import("./views/Room.vue"),
@@ -18,7 +23,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  // @ts-expect-error idk
+  // @ts-expect-error idk, something about the tsconfig
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })

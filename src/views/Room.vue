@@ -10,7 +10,7 @@ import {
   provide,
   ref,
 } from "vue"
-import { useRoute } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls } from "@/util"
 import { renderNotification } from "@/notify"
@@ -34,9 +34,20 @@ export default defineComponent({
   components: { PlayerWrapper, ResyncInput },
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const { roomID } = route.params as Record<string, string>
     const sourceInput = ref("")
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
+
+    let name = ls("resync-displayname")
+    if (!name) {
+      router.replace({
+        name: "signup",
+        query: {
+          returnTo: route.fullPath,
+        },
+      })
+    }
 
     document.title = `resync room: ${roomID}`
 
@@ -50,9 +61,6 @@ export default defineComponent({
       // @ts-expect-error for manual testing
       window.resync = resync
 
-    const name = ls("resync-username") || window.prompt("enter username") || "default"
-    ls("resync-username", name)
-
     sentry.configureScope(scope => {
       scope.setTag("roomID", roomID)
       scope.setTag("name", name)
@@ -65,7 +73,7 @@ export default defineComponent({
       })
 
     const mountPlayer = ref(false)
-    resync.joinRoom(name).then(() => (mountPlayer.value = true))
+    if (name) resync.joinRoom(name).then(() => (mountPlayer.value = true))
 
     const recentNotifications = ref<EventNotification[]>([])
     const offNotifiy = resync.onNotify(notification => {
@@ -113,7 +121,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <main class="">
+  <main>
     <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
       <div class="flex z-5 relative justify-center">
         <form
@@ -126,6 +134,7 @@ export default defineComponent({
             placeholder="url"
             :invalid="!sourceValid"
             pastable
+            class="mr-2"
           />
           <button class="resync-button" :class="{ invalid: !sourceValid }">play</button>
         </form>

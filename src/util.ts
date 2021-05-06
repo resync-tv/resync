@@ -1,7 +1,7 @@
 import _debug from "debug"
 
 interface LocalStored {
-  "resync-username": string
+  "resync-displayname": string
   "resync-volume": number
   "resync-muted": boolean
 }
@@ -42,3 +42,14 @@ export const once = <A extends any[], R, T>(
 export const debug = (namespace: string): _debug.Debugger => _debug("resync").extend(namespace)
 
 export const minMax = (n: number, min = 0, max = 1): number => Math.max(min, Math.min(max, n))
+
+export const validateName = (name: string): string => {
+  name = name.trim()
+
+  if (!name) throw "please enter a name"
+  if (!/[a-z0-9\u00F0-\u02AF]/i.test(name)) throw "name must be alphanumeric"
+  if (name.length < 3) throw "name must be 3 or more characters"
+  if (name.length > 16) throw "name must be less than 16 characters"
+
+  return name
+}

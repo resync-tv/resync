@@ -41,19 +41,19 @@ export default defineComponent({
 
 <template>
   <div
-    class="bg-auto h-full text-auto transition-colors"
+    class="bg-auto h-full text-auto transition-colors overflow-hidden"
     :style="isHome ? '--nav-height: 0px' : ''"
   >
     <NavBar />
     <router-view v-slot="{ Component }" style="padding-top: var(--nav-height)" class="h-full">
       <transition name="router-fade">
-        <component :is="Component" />
+        <component :is="Component" class="bg-auto w-full absolute" />
       </transition>
     </router-view>
   </div>
 </template>
 
-<style>
+<style lang="scss">
 #app a {
   @apply text-accent-alt;
   @apply underline;
@@ -72,14 +72,19 @@ export default defineComponent({
   @apply select-none;
 }
 
-.router-fade-enter-active,
-.router-fade-leave-active {
-  transition: 500ms;
-}
+main {
+  --route-transition-duration: 300ms;
+  &.router-fade-enter-active,
+  &.router-fade-leave-active {
+    transition: var(--route-transition-duration) var(--ease-in-out-hard);
+  }
 
-.router-fade-enter-from,
-.router-fade-leave-to {
-  opacity: 0;
+  &.router-fade-enter-from,
+  &.router-fade-leave-to {
+    opacity: 0;
+  }
+
+  transition: var(--route-transition-duration) var(--ease-in-out-hard);
 }
 
 .text-shadow {
@@ -103,7 +108,7 @@ export default defineComponent({
 }
 
 .resync-input {
-  @apply mr-2 py-2 px-4 w-3xl;
+  @apply py-2 px-4 w-3xl;
   @apply rounded outline-none transition-all;
   @apply bg-light text-dark;
   @apply light:(shadow focus:shadow-md);
