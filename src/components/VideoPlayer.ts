@@ -120,7 +120,8 @@ export default defineComponent({
         }),
         watch(resync.muted, muted => {
           video.value && (video.value.volume = muted ? 0 : resync.volume.value)
-        })
+        }),
+        shortcuts(resync)
       )
 
       video.value.onpause = () => {
@@ -148,14 +149,12 @@ export default defineComponent({
         // TODO change to resync.state.value.paused
         resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
       }
-
-      offHandlers.push(shortcuts(resync))
+      video.value.oncontextmenu = e => e.preventDefault()
     })
 
     onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
     return () => {
-      // if (src.value)
       return h("video", {
         src: src.value,
         ref: video,
@@ -164,7 +163,6 @@ export default defineComponent({
         muted: muted.value,
         autoplay: autoplay.value,
       })
-      // else return
     }
   },
 })
