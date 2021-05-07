@@ -96,6 +96,11 @@ export default defineComponent({
 
       urlForm.value.onsubmit = e => {
         e.preventDefault()
+
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
+
         resync.playContent(sourceInput.value)
       }
     })
