@@ -47,7 +47,7 @@
     "@vitejs/plugin-vue": "^1.1.5",
     "@vue/compiler-sfc": "^3.0.5",
     "@vuedx/typescript-plugin-vue": "^0.6.3",
-    "commitizen": "4.2.2",
+    "commitizen": "^4.2.4",
     "dotenv": "^8.2.0",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
