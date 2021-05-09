@@ -4,20 +4,24 @@
 -->
 <html class="h-full" lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" id="favicon" />
+    <link rel="icon" href="/favicon.svg" id="favicon-svg" />
     <script>
       window.onload = () => {
         const dark = window.matchMedia("(prefers-color-scheme:dark)")
         const activateDarkMode = bool => {
           document.body.classList.add(bool ? "dark" : "light")
           document.body.classList.remove(bool ? "light" : "dark")
+
+          document.querySelector("#favicon").href = `/favicon${bool ? "-dark" : ""}.ico`
+          document.querySelector("#favicon-svg").href = `/favicon${bool ? "-dark" : ""}.svg`
         }
 
         activateDarkMode(dark.matches)
         dark.onchange = ({ matches }) => activateDarkMode(matches)
       }
     </script>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>resync</title>
   </head>
