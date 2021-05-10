@@ -134,7 +134,8 @@ export default defineComponent({
     <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
       <div class="flex z-5 relative justify-center">
         <form
-          class="flex bottom-full mb-3 w-md justify-center absolute"
+          class="flex bottom-full w-md justify-center"
+          :class="{ 'mb-3 absolute': resync.state.value.source }"
           style="max-width: 75vw"
           ref="urlForm"
         >
