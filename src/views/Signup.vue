@@ -21,7 +21,6 @@ export default defineComponent({
         const path = route.query.returnTo
         if (path && typeof path === "string") router.replace({ path })
       } catch (error) {
-        // TODO
         alert(error)
       }
     }

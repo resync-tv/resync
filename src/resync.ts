@@ -98,22 +98,14 @@ export default class Resync {
     await join()
   }
 
-  playContent = (source: string): void => {
-    this.roomEmit("playContent", { source })
-  }
+  playContent = (source: string): void => this.roomEmit("playContent", { source })
   loaded = (): void => this.roomEmit("loaded")
-  pause = (currentTime: number): void => {
-    this.roomEmit("pause", { currentTime })
-  }
-  resume = (): void => {
-    this.roomEmit("resume")
-  }
-  seekTo = (currentTime: number): void => {
-    this.roomEmit("seekTo", { currentTime })
-  }
-  resync = (): void => {
-    this.roomEmit("resync")
-  }
+  finished = (): void => this.roomEmit("finished")
+  pause = (currentTime: number): void => this.roomEmit("pause", { currentTime })
+  resume = (): void => this.roomEmit("resume")
+  seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
+  resync = (): void => this.roomEmit("resync")
+
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })
   }

@@ -134,6 +134,7 @@ export default defineComponent({
       }
       video.value.onended = () => {
         logLocal(`ended`)
+        resync.finished()
         resync.paused.value = true
       }
 
@@ -146,7 +147,6 @@ export default defineComponent({
       }
 
       video.value.onclick = () => {
-        // TODO change to resync.state.value.paused
         resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
       }
       video.value.oncontextmenu = e => e.preventDefault()
