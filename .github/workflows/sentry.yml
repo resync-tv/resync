@@ -1,5 +1,10 @@
 name: sentry
-on: push
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   sentry:
     runs-on: ubuntu-latest
