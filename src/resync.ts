@@ -35,21 +35,18 @@ export default class Resync {
       membersLoading: 0,
     })
 
-    const volumeSaver = watch(this.volume, volume => {
-      ls("resync-volume", volume)
-    })
-    this.handlers.push(volumeSaver)
-
-    const muteSaver = watch(this.muted, muted => {
-      ls("resync-muted", muted)
-    })
-    this.handlers.push(muteSaver)
-
-    const offState = this.onState(state => {
-      log("new state", state)
-      this.state.value = state
-    })
-    this.handlers.push(offState)
+    this.handlers.push(
+      watch(this.volume, volume => {
+        ls("resync-volume", volume)
+      }),
+      watch(this.muted, muted => {
+        ls("resync-muted", muted)
+      }),
+      this.onState(state => {
+        log("new state", state)
+        this.state.value = state
+      })
+    )
   }
   destroy = (): void => this.handlers.forEach(off => off())
 
