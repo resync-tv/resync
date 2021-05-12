@@ -40,11 +40,12 @@ class Room {
 
   public members: Array<Member> = []
 
-  private paused = true
-  private lastSeekedTo = 0
-  private source: MediaSourceAny | undefined
-  private membersLoading = 0
-  private membersPlaying = 0
+  paused = true
+  lastSeekedTo = 0
+  source: MediaSourceAny | undefined
+  queue: Promise<MediaSourceAny>[] = []
+  membersLoading = 0
+  membersPlaying = 0
 
   constructor(roomID: string, io: Server) {
     log(`constructing room ${roomID}`)
@@ -73,21 +74,24 @@ class Room {
     this.log(`[${event}](${name})`, additional || "")
   }
 
-  get state(): RoomState {
-    return {
-      paused: this.paused,
-      source: this.source,
-      lastSeekedTo: this.lastSeekedTo,
-      members: this.members.map(({ client: { id }, name }) => ({ id, name })),
-      membersLoading: this.membersLoading,
-    }
+  get state(): Promise<RoomState> {
+    return (async () => {
+      return {
+        paused: this.paused,
+        source: this.source,
+        lastSeekedTo: this.lastSeekedTo,
+        members: this.members.map(({ client: { id }, name }) => ({ id, name })),
+        membersLoading: this.membersLoading,
+        queue: await Promise.all(this.queue),
+      }
+    })()
   }
 
   getMember = (id: string) => this.members.find(m => m.client.id === id)
   removeMember = (id: string) => (this.members = this.members.filter(m => m.client.id !== id))
 
-  updateState() {
-    this.broadcast.emit("state", this.state)
+  async updateState() {
+    this.broadcast.emit("state", await this.state)
   }
 
   join(client: Socket, name: string) {
@@ -112,8 +116,15 @@ class Room {
     this.updateState()
   }
 
-  async playContent(client: Socket, source: string, startFrom: number) {
-    this.source = source ? await resolveContent(source, startFrom) : undefined
+  async playContent(
+    client: Socket | undefined,
+    source: string | Promise<MediaSourceAny>,
+    startFrom: number
+  ) {
+    if (typeof source === "string")
+      this.source = source ? await resolveContent(source, startFrom) : undefined
+    else this.source = await source
+
     this.membersLoading = this.members.length
     this.membersPlaying = this.members.length
     this.lastSeekedTo = startFrom
@@ -121,7 +132,13 @@ class Room {
     this.broadcast.emit("source", this.source)
 
     this.updateState()
-    this.notify("playContent", client, { source, startFrom })
+    if (client) this.notify("playContent", client, { source, startFrom })
+  }
+
+  addQueue(client: Socket, source: string, startFrom: number) {
+    this.queue.push(resolveContent(source, startFrom))
+
+    this.updateState()
   }
 
   loaded() {
@@ -134,9 +151,14 @@ class Room {
 
   finished() {
     this.membersPlaying--
-
-    if (this.membersPlaying <= 0) this.log("play next")
     this.log(`members playing: ${this.membersPlaying}`)
+
+    if (this.membersPlaying <= 0) {
+      const next = this.queue.shift()
+      if (next) return this.playContent(undefined, next, 0)
+    }
+
+    this.playContent(undefined, "", 0)
   }
 
   pause(seconds?: number, client?: Socket) {
@@ -222,11 +244,11 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
-    client.on("joinRoom", ({ roomID, name }, reply) => {
+    client.on("joinRoom", async ({ roomID, name }, reply) => {
       const room = getRoom(roomID)
       room.join(client, name)
 
-      reply(room.state)
+      reply(await room.state)
     })
 
     client.on("leaveRoom", ({ roomID }) => {
@@ -235,6 +257,10 @@ export default (io: ResyncSocketBackend): void => {
 
     client.on("playContent", ({ roomID, source, startFrom = 0 }) => {
       getRoom(roomID).playContent(client, source, startFrom)
+    })
+
+    client.on("queue", ({ roomID, source, startFrom = 0 }) => {
+      getRoom(roomID).addQueue(client, source, startFrom)
     })
 
     client.on("loaded", ({ roomID }) => getRoom(roomID).loaded())
