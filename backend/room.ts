@@ -156,9 +156,9 @@ class Room {
     if (this.membersPlaying <= 0) {
       const next = this.queue.shift()
       if (next) return this.playContent(undefined, next, 0)
-    }
 
-    this.playContent(undefined, "", 0)
+      this.playContent(undefined, "", 0)
+    }
   }
 
   pause(seconds?: number, client?: Socket) {
