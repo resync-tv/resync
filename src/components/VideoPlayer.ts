@@ -87,6 +87,10 @@ export default defineComponent({
         resync.playbackError({ reason, name }, resync.currentTime())
       }
 
+      let offShortcuts: () => void
+      if (src.value) offShortcuts = shortcuts(resync)
+      const offShortcutsRef = () => offShortcuts()
+
       offHandlers.push(
         resync.onPause(() => {
           logRemote("onPause")
@@ -121,7 +125,13 @@ export default defineComponent({
         watch(resync.muted, muted => {
           video.value && (video.value.volume = muted ? 0 : resync.volume.value)
         }),
-        shortcuts(resync)
+        watch(src, () => {
+          log(src.value)
+
+          if (src.value) offShortcuts = shortcuts(resync)
+          else offShortcutsRef()
+        }),
+        offShortcutsRef
       )
 
       video.value.onpause = () => {
