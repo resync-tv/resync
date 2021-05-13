@@ -115,6 +115,13 @@ export default defineComponent({
       urlForm.value.onsubmit = null
     })
 
+    const queue = (e: MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      log(`queue ${sourceInput.value}`)
+      resync.queue(sourceInput.value)
+    }
+
     return {
       roomID,
       sourceInput,
@@ -124,6 +131,7 @@ export default defineComponent({
       renderNotification,
       mountPlayer,
       urlForm,
+      queue,
     }
   },
 })
@@ -146,7 +154,16 @@ export default defineComponent({
             pastable
             class="mr-2"
           />
-          <button class="resync-button" :class="{ invalid: !sourceValid }">play</button>
+          <button class="resync-button" :class="{ invalid: !sourceValid }">
+            {{ sourceInput.length ? "play" : "stop" }}
+          </button>
+          <button
+            @click="queue"
+            class="resync-button"
+            :class="{ invalid: !sourceValid || !sourceInput.length }"
+          >
+            queue
+          </button>
         </form>
 
         <PlayerWrapper v-if="mountPlayer" v-show="resync.state.value.source" type="video" />

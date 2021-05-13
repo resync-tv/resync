@@ -157,6 +157,7 @@ main {
 
 .resync-button.invalid {
   @apply text-md-dark;
+  pointer-events: none !important;
 }
 
 .dark .resync-button.invalid {
