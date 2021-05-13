@@ -28,8 +28,12 @@ export default defineComponent({
       <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
     </header>
     <ul v-if="queue.length" class="overflow-y-auto overflow-x-hidden pointer-events-auto">
-      <li v-for="(queued, index) in queue" @click="$emit('play', index)" :key="queued.originalSource.url">
-        <img :src="queued.thumb || '/thumbnail.svg'" :alt="queued.title" />
+      <li
+        v-for="(queued, index) in queue"
+        @click="$emit('play', index)"
+        :key="queued.originalSource.url"
+      >
+        <img :src="queued.thumb || '/thumbnail.svg'" :title="queued.title" />
 
         <div class="flex flex-col h-full justify-center">
           <h2 :title="queued.title">{{ queued.title }}</h2>
@@ -61,12 +65,8 @@ export default defineComponent({
   }
 
   > ul > li {
-    @apply flex items-center h-17 cursor-pointer;
+    @apply flex items-center h-17 cursor-pointer mb-4;
     position: relative;
-
-    &:not(:last-of-type) {
-      @apply mb-4;
-    }
 
     > img {
       @apply h-17 mr-3 rounded;

@@ -142,9 +142,6 @@ export default defineComponent({
     }
 
     const showQueue = ref(false)
-    const queuePlay = (index: number) => {
-      log(`play from queue: ${index}`)
-    }
 
     return {
       onMetadata,
@@ -157,7 +154,6 @@ export default defineComponent({
       copyURL,
       openInNew,
       showQueue,
-      queuePlay,
     }
   },
 })
@@ -184,7 +180,7 @@ export default defineComponent({
       <div v-show="showQueue" class="queue-overlay">
         <QueueList
           @close="showQueue = false"
-          @play="queuePlay"
+          @play="resync.playQueued"
           :queue="resync.state.value.queue"
         />
       </div>
