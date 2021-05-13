@@ -1,0 +1,93 @@
+<script lang="ts">
+import type { MediaSourceAny } from "$/mediaSource"
+
+import { defineComponent, PropType, toRefs } from "vue"
+import SvgIcon from "./SvgIcon.vue"
+
+export default defineComponent({
+  components: { SvgIcon },
+  emits: ["close"],
+  props: {
+    queue: {
+      type: Array as PropType<MediaSourceAny[]>,
+      required: true,
+    },
+  },
+  setup(props) {
+    const { queue } = toRefs(props)
+
+    return { queue }
+  },
+})
+</script>
+
+<template>
+  <div class="flex flex-col h-full p-3 px-4 pb-0" id="queue-list">
+    <header class="flex mb-4 justify-between items-center">
+      <h1 class="text-3xl">queue</h1>
+      <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
+    </header>
+    <ul v-if="queue.length" class="overflow-y-auto overflow-x-hidden pointer-events-auto">
+      <li v-for="queued in queue" :key="queued.originalSource.url">
+        <img :src="queued.thumb" :alt="queued.title" />
+
+        <div class="flex flex-col h-full justify-center">
+          <h2 :title="queued.title">{{ queued.title }}</h2>
+          <span class="text-sm opacity-75">uploader</span>
+        </div>
+      </li>
+    </ul>
+
+    <div v-else class="h-full opacity-50 centerflex">
+      <span>queue is empty</span>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+#queue-list {
+  ::-webkit-scrollbar {
+    width: 0.25em;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.0625);
+    border-radius: 0.125em;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--clr-light);
+    border-radius: 0.125em;
+  }
+
+  > ul > li {
+    @apply flex items-center h-17 cursor-pointer;
+    position: relative;
+
+    &:not(:last-of-type) {
+      @apply mb-4;
+    }
+
+    > img {
+      @apply h-17 mr-3 rounded;
+      width: auto;
+      object-fit: cover;
+    }
+
+    h2 {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      @supports (-webkit-line-clamp: 2) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: initial;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+    }
+  }
+}
+</style>

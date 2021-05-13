@@ -2,13 +2,23 @@
 import type { MediaType } from "$/mediaSource"
 import type { VideoMetadata } from "$/room"
 
-import { computed, defineComponent, inject, PropType, provide, ref, watch } from "vue"
+import {
+  computed,
+  defineComponent,
+  inject,
+  onMounted,
+  PropType,
+  provide,
+  ref,
+  watch,
+} from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
 import PlayerControls from "@/components/PlayerControls.vue"
 import LoadingSpinner from "@/components/LoadingSpinner.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
+import QueueList from "@/components/QueueList.vue"
 
 import Resync from "@/resync"
 
@@ -22,6 +32,7 @@ export default defineComponent({
     PlayerControls,
     LoadingSpinner,
     SvgIcon,
+    QueueList,
   },
   props: {
     type: {
@@ -130,6 +141,8 @@ export default defineComponent({
       window.open(url, "_blank")
     }
 
+    const showQueue = ref(false)
+
     return {
       onMetadata,
       sizeStyle,
@@ -140,6 +153,7 @@ export default defineComponent({
       fullscreenEnabled,
       copyURL,
       openInNew,
+      showQueue,
     }
   },
 })
@@ -155,9 +169,26 @@ export default defineComponent({
   >
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
 
-    <div class="overlay-gradient hover-overlay lower" :class="{ active: resync.paused.value }">
+    <div
+      id="queue-closer"
+      class="h-full w-full absolute"
+      v-if="showQueue"
+      @click="showQueue = false"
+    ></div>
+
+    <transition name="queue">
+      <div v-show="showQueue" class="queue-overlay">
+        <QueueList @close="showQueue = false" :queue="resync.state.value.queue" />
+      </div>
+    </transition>
+
+    <div
+      class="z-5 overlay-gradient hover-overlay lower"
+      :class="{ active: resync.paused.value, hide: showQueue }"
+    >
       <PlayerControls
         @fullscreen="toggleFullscreen"
+        @queue="showQueue = !showQueue"
         :fullscreenEnabled="fullscreenEnabled"
         class="pointer-events-auto"
       />
@@ -165,7 +196,7 @@ export default defineComponent({
 
     <div
       class="overlay-gradient hover-overlay upper"
-      :class="{ active: resync.paused.value }"
+      :class="{ active: resync.paused.value, hide: showQueue }"
       v-if="resync.state.value.source?.title"
     >
       <div class="flex h-15 w-full px-5 items-center justify-between relative">
@@ -213,6 +244,32 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+.queue-overlay {
+  @apply h-full right-0 absolute;
+  @apply text-light;
+  width: 50ch;
+  min-width: 25ch;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+
+  @supports (backdrop-filter: blur(5px)) {
+    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+.queue-enter-active,
+.queue-leave-active {
+  transition: 500ms var(--ease-in-out-hard);
+}
+
+.queue-enter-from,
+.queue-leave-to {
+  right: -25ch;
+  opacity: 0;
+}
+
 .overlay-gradient {
   @apply flex h-1/3 w-full absolute justify-center;
   @apply pointer-events-none text-light transition-opacity;
@@ -266,7 +323,11 @@ export default defineComponent({
   opacity: 1;
 }
 
-#player-wrapper.overlay > .hover-overlay {
-  opacity: 0;
+#player-wrapper.overlay > .hover-overlay,
+.hover-overlay.hide {
+  opacity: 0 !important;
+  * {
+    @apply pointer-events-none;
+  }
 }
 </style>

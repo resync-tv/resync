@@ -11,7 +11,7 @@ const log = debug("playercontrols")
 export default defineComponent({
   components: { ResyncSlider, SvgIcon },
   name: "PlayerControls",
-  emits: ["fullscreen"],
+  emits: ["fullscreen", "queue"],
   props: {
     fullscreenEnabled: {
       type: Boolean,
@@ -131,7 +131,14 @@ export default defineComponent({
           </div>
         </div>
       </div>
-      <div>
+
+      <div class="flex">
+        <SvgIcon
+          name="playlist"
+          title="show/hide queue"
+          @click="$emit('queue')"
+          class="player-icon"
+        />
         <SvgIcon
           :name="fullscreenStateIcon"
           title="fullscreen"

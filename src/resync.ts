@@ -33,6 +33,7 @@ export default class Resync {
       lastSeekedTo: 0,
       members: [],
       membersLoading: 0,
+      queue: [],
     })
 
     this.handlers.push(
