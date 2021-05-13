@@ -9,6 +9,7 @@ import {
   defineComponent,
   h,
   inject,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -18,8 +19,6 @@ import {
 const log = debug("videoplayer")
 const logRemote = log.extend("remote")
 const logLocal = log.extend("local")
-
-const wait = (t: number): Promise<void> => new Promise(r => setTimeout(r, t))
 
 export default defineComponent({
   name: "VideoPlayer",
@@ -53,10 +52,11 @@ export default defineComponent({
         resync.resync()
       }
 
-      const play = () => {
+      const play = async () => {
         logRemote("onResume")
         autoplay.value = true
         muted.value = false
+        await nextTick()
         video.value?.play().catch(onPlaybackError)
       }
 
@@ -68,7 +68,7 @@ export default defineComponent({
           error("trying to play the video muted")
 
           muted.value = true
-          await wait(100)
+          await nextTick()
           return video.value
             ?.play()
             .catch(onPlaybackError)
@@ -82,7 +82,7 @@ export default defineComponent({
         }
 
         error("playback still failed when muted")
-        const reason = err.message.split(". ")[0]
+        const [reason] = err.message.split(". ")
         const { name } = err
         resync.playbackError({ reason, name }, resync.currentTime())
       }
