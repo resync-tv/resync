@@ -13,12 +13,12 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/r/:roomID",
-    name: "room",
-    component: () => import("./views/Room.vue"),
+    redirect: { name: "room" },
   },
   {
-    path: "/:pathMatch(.*)*",
-    redirect: "/",
+    path: "/:roomID",
+    name: "room",
+    component: () => import("./views/Room.vue"),
   },
 ]
 
