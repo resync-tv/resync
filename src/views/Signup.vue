@@ -49,7 +49,7 @@ export default defineComponent({
   <main class="flex-col signup centerflex">
     <h1 class="mb-6 text-3xl">choose a display name</h1>
     <form ref="form" class="flex max-w-screen -sm:flex-col">
-      <ResyncInput v-model="name" placeholder="username" class="w-xs sm:mr-2" />
+      <ResyncInput v-model="name" placeholder="username" class="w-xs sm:mr-2" maxlength="16" />
       <button class="resync-button -sm:mt-2">set name</button>
     </form>
   </main>
