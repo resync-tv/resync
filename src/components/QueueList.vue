@@ -6,7 +6,7 @@ import SvgIcon from "./SvgIcon.vue"
 
 export default defineComponent({
   components: { SvgIcon },
-  emits: ["close"],
+  emits: ["close", "play"],
   props: {
     queue: {
       type: Array as PropType<MediaSourceAny[]>,
@@ -28,12 +28,12 @@ export default defineComponent({
       <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
     </header>
     <ul v-if="queue.length" class="overflow-y-auto overflow-x-hidden pointer-events-auto">
-      <li v-for="queued in queue" :key="queued.originalSource.url">
-        <img :src="queued.thumb" :alt="queued.title" />
+      <li v-for="(queued, index) in queue" @click="$emit('play', index)" :key="queued.originalSource.url">
+        <img :src="queued.thumb || '/thumbnail.svg'" :alt="queued.title" />
 
         <div class="flex flex-col h-full justify-center">
           <h2 :title="queued.title">{{ queued.title }}</h2>
-          <span class="text-sm opacity-75">uploader</span>
+          <span class="text-sm opacity-75" v-if="queued.uploader">{{ queued.uploader }}</span>
         </div>
       </li>
     </ul>

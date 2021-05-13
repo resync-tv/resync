@@ -1,6 +1,6 @@
 import { getVideoID } from "ytdl-core"
 import type { MediaSourceAny } from "../types/mediaSource"
-import { getCombinedStream, getTitle } from "./youtube"
+import { getCombinedStream, getTitle, getUploader } from "./youtube"
 
 export const resolveContent = async (
   url: string,
@@ -12,6 +12,7 @@ export const resolveContent = async (
       platform: "youtube",
       video: await getCombinedStream(url),
       title: await getTitle(url),
+      uploader: await getUploader(url),
       thumb: `https://i.ytimg.com/vi/${getVideoID(url)}/mqdefault.jpg`,
       type: "video",
       originalSource: { url, youtubeID: getVideoID(url) },

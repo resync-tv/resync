@@ -16,6 +16,7 @@ export interface MediaBase {
   platform: Platform
   startFrom: number
   title: string
+  uploader?: string
   thumb?: string
   type: MediaType
   originalSource: OriginalSource

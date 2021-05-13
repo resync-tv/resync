@@ -62,6 +62,11 @@ export const getTitle = async (source: string): Promise<string> => {
   return videoDetails.title
 }
 
+export const getUploader = async (source: string): Promise<string> => {
+  const { videoDetails } = await fetchVideo(source)
+  return videoDetails.author.name
+}
+
 interface SeperateStreams {
   audio: MediaRawSource[]
   video: MediaRawSource[]
