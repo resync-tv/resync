@@ -84,7 +84,7 @@ export default defineComponent({
       const { event, name, additional } = notification
       log.extend("notify")(`[${event}](${name})`, additional || "")
 
-      if (recentNotifications.value.push(notification) > 5) {
+      if (recentNotifications.value.push(notification) > 10) {
         recentNotifications.value.shift()
       }
     })
@@ -178,9 +178,9 @@ export default defineComponent({
       </div>
 
       <div class="top-list right-0">
-        <div class="h-25 relative overflow-hidden">
+        <div class="h-25 transition-all relative overflow-hidden hover:h-50">
           <div
-            class="bg-gradient-to-t from-light h-full w-full z-3 absolute dark:from-dark"
+            class="bg-gradient-to-t from-light h-25 w-full bottom-0 z-3 absolute dark:from-dark"
           ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
@@ -204,6 +204,10 @@ export default defineComponent({
 
 .top-text {
   @apply h-5 text-sm mx-2 overflow-hidden;
+}
+
+.resync-button:not(:last-of-type) {
+  @apply mr-1;
 }
 
 .text-height {

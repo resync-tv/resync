@@ -10,7 +10,7 @@ export const renderNotification: RenderNotification = {
   leave: n => `${n.name} left the room`,
   playContent: n => {
     if (n.additional.source) return `${n.name} changed the content`
-    return `${n.name} stopped playing`
+    return `${n.name} stopped playback`
   },
   pause: n => `${n.name} paused`,
   resume: n => `${n.name} resumed`,
