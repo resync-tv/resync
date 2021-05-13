@@ -113,6 +113,7 @@ export default defineComponent({
         <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
         <SvgIcon
           name="cached"
+          v-if="resync.state.value.members.length > 1"
           @click="resync.resync()"
           title="resync"
           class="player-icon small"
