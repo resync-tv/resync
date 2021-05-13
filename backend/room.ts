@@ -121,9 +121,28 @@ class Room {
     source: string | Promise<MediaSourceAny>,
     startFrom: number
   ) {
-    if (typeof source === "string")
+    let sourceID = ""
+    const currentSourceID =
+      this.source?.originalSource.youtubeID ?? this.source?.originalSource.url
+
+    if (typeof source === "string") {
       this.source = source ? await resolveContent(source, startFrom) : undefined
-    else this.source = await source
+      if (this.source) {
+        sourceID = this.source.originalSource.youtubeID ?? this.source.originalSource.url
+      }
+    } else {
+      this.source = await source
+      sourceID = this.source.originalSource.youtubeID ?? this.source.originalSource.url
+    }
+
+    if (sourceID === currentSourceID) {
+      this.log("same video")
+
+      this.lastSeekedTo = 0
+      this.seekTo({ client, seconds: 0 })
+      this.resume()
+      return
+    }
 
     this.membersLoading = this.members.length
     this.membersPlaying = this.members.length
