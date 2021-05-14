@@ -48,6 +48,7 @@ type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: 
 export interface FrontendEmits {
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
   playQueued: FrontendEmitterBase<{ index: number }>
+  removeQueued: FrontendEmitterBase<{ index: number }>
   queue: FrontendEmitterBase<{ source: string; startFrom?: number }>
   loaded: FrontendEmitterBase
   finished: FrontendEmitterBase
@@ -83,6 +84,7 @@ export type NotifyEvents =
   | "resync"
   | "playbackError"
   | "queue"
+  | "removeQueued"
 
 export interface EventNotification {
   event: NotifyEvents

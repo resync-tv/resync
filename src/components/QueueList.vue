@@ -7,7 +7,7 @@ import SvgIcon from "./SvgIcon.vue"
 
 export default defineComponent({
   components: { SvgIcon },
-  emits: ["close", "play"],
+  emits: ["close", "play", "remove"],
   props: {
     queue: {
       type: Array as PropType<MediaSourceAny[]>,
@@ -35,6 +35,7 @@ export default defineComponent({
       <li
         v-for="(queued, index) in queue"
         @click="$emit('play', index)"
+        @click.right.prevent="$emit('remove', index)"
         :key="queued.originalSource.url"
       >
         <div class="thumb">

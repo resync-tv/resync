@@ -186,6 +186,7 @@ export default defineComponent({
         <QueueList
           @close="showQueue = false"
           @play="queuePlay"
+          @remove="resync.removeQueued"
           :queue="resync.state.value.queue"
         />
       </div>

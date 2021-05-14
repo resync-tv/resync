@@ -102,6 +102,7 @@ export default class Resync {
   playContent = (source: string): void => this.roomEmit("playContent", { source })
   queue = (source: string): void => this.roomEmit("queue", { source })
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
+  removeQueued = (index: number): void => this.roomEmit("removeQueued", { index })
   loaded = (): void => this.roomEmit("loaded")
   finished = (): void => this.roomEmit("finished")
   pause = (currentTime: number): void => this.roomEmit("pause", { currentTime })
