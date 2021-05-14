@@ -154,9 +154,7 @@ export default defineComponent({
             pastable
             class="mr-2"
           />
-          <button class="resync-button" :class="{ invalid: !sourceValid }">
-            {{ sourceInput.length ? "play" : "stop" }}
-          </button>
+          <button class="resync-button" :class="{ invalid: !sourceValid }">play</button>
           <button
             @click="queue"
             class="resync-button"

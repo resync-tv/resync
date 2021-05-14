@@ -111,6 +111,7 @@ export default defineComponent({
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
         <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
+        <SvgIcon name="skip_next" @click="resync.playQueued(0)" class="player-icon" />
         <SvgIcon
           name="cached"
           v-if="resync.state.value.members.length > 1"
@@ -120,7 +121,7 @@ export default defineComponent({
         />
 
         <div class="flex items-center volume">
-          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon" />
+          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon small" />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
