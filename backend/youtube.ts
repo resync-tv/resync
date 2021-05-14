@@ -57,14 +57,9 @@ export const getCombinedStream = async (source: string): Promise<MediaRawSource[
   return sorted.map(transformFormat)
 }
 
-export const getTitle = async (source: string): Promise<string> => {
+export const getInfo = async (source: string): Promise<ytdl.MoreVideoDetails> => {
   const { videoDetails } = await fetchVideo(source)
-  return videoDetails.title
-}
-
-export const getUploader = async (source: string): Promise<string> => {
-  const { videoDetails } = await fetchVideo(source)
-  return videoDetails.author.name
+  return videoDetails
 }
 
 interface SeperateStreams {

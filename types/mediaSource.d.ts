@@ -18,6 +18,7 @@ export interface MediaBase {
   title: string
   uploader?: string
   thumb?: string
+  duration: number
   type: MediaType
   originalSource: OriginalSource
 }

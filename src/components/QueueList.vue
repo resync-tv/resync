@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { MediaSourceAny } from "$/mediaSource"
+import { timestamp } from "@/util"
 
 import { defineComponent, PropType, toRefs } from "vue"
 import SvgIcon from "./SvgIcon.vue"
@@ -16,7 +17,10 @@ export default defineComponent({
   setup(props) {
     const { queue } = toRefs(props)
 
-    return { queue }
+    return {
+      queue,
+      timestamp,
+    }
   },
 })
 </script>
@@ -33,7 +37,10 @@ export default defineComponent({
         @click="$emit('play', index)"
         :key="queued.originalSource.url"
       >
-        <img :src="queued.thumb || '/thumbnail.svg'" :title="queued.title" />
+        <div class="thumb">
+          <img :src="queued.thumb || '/thumbnail.svg'" :title="queued.title" />
+          <span v-if="queued.duration">{{ timestamp(queued.duration) }}</span>
+        </div>
 
         <div class="flex flex-col h-full justify-center">
           <h2 :title="queued.title">{{ queued.title }}</h2>
@@ -68,10 +75,23 @@ export default defineComponent({
     @apply flex items-center h-17 cursor-pointer mb-4;
     position: relative;
 
-    > img {
-      @apply h-17 mr-3 rounded;
-      width: auto;
-      object-fit: cover;
+    > .thumb {
+      @apply mr-3;
+      position: relative;
+      height: 4.25rem;
+      width: calc(4.25rem / 9 * 16);
+      display: table;
+
+      > img {
+        @apply rounded;
+        object-fit: cover;
+      }
+
+      > span {
+        @apply absolute text-xs bottom-1 right-0 px-1 rounded;
+        background: rgba(0, 0, 0, 0.5);
+        margin-right: 0.3em;
+      }
     }
 
     h2 {
