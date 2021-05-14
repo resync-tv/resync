@@ -82,6 +82,7 @@ export type NotifyEvents =
   | "seekTo"
   | "resync"
   | "playbackError"
+  | "queue"
 
 export interface EventNotification {
   event: NotifyEvents

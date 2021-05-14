@@ -158,6 +158,7 @@ class Room {
     this.queue.push(resolveContent(source, startFrom))
 
     this.updateState()
+    this.notify("queue", client)
   }
 
   playQueued(client: Socket, index: number) {

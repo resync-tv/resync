@@ -72,7 +72,7 @@ export default defineComponent({
   }
 
   > ul > li {
-    @apply flex items-center h-17 cursor-pointer mb-4;
+    @apply flex items-center h-17 cursor-pointer mb-4 pr-1;
     position: relative;
 
     > .thumb {
