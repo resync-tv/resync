@@ -12,7 +12,7 @@ import {
 } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
-import { debug, ls } from "@/util"
+import { debug, ls, validateName } from "@/util"
 import { renderNotification } from "@/notify"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
@@ -40,7 +40,9 @@ export default defineComponent({
     const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
 
     let name = ls("resync-displayname")
-    if (!name) {
+    try {
+      validateName(name ?? "")
+    } catch {
       router.replace({
         name: "signup",
         query: {

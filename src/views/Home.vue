@@ -25,7 +25,7 @@ export default defineComponent({
       try {
         validateName(ls("resync-displayname") ?? "")
         router.push(roomRoute)
-      } catch (error) {
+      } catch {
         log("no name set yet")
         router.push({ name: "signup", query: { returnTo: roomRoute.fullPath } })
       }
