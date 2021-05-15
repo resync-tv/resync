@@ -59,7 +59,9 @@ export interface FrontendEmits {
   playbackError: FrontendEmitterTime<{ reason: string; name: string }>
   joinRoom: FrontendEmitterBase<{ name: string }, Callback<RoomState>>
   leaveRoom: FrontendEmitterBase
+
   getNewRandom: (c: Callback<string>) => void
+  search: (query: string, c: Callback<any>) => void
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
