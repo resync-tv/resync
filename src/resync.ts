@@ -1,5 +1,6 @@
 import type { Socket } from "socket.io-client"
-import type { BackendEmits, FrontendEmits, RoomEmit, RoomState } from "$/room"
+import type { RoomState } from "$/room"
+import type { BackendEmits, FrontendEmits, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch } from "vue"
 import { capitalize, debug, ls } from "./util"

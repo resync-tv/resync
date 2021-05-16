@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { ResyncSocketFrontend } from "$/room"
+import type { ResyncSocketFrontend } from "$/socket"
 
 import { defineComponent, inject } from "vue"
 

@@ -1,4 +1,4 @@
-import type { ResyncSocketBackend } from "$/room"
+import type { ResyncSocketBackend } from "$/socket"
 
 import ytsr from "ytsr"
 

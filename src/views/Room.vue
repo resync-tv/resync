@@ -1,5 +1,6 @@
 <script lang="ts">
-import type { EventNotification, ResyncSocketFrontend } from "$/room"
+import type { EventNotification } from "$/room"
+import type { ResyncSocketFrontend } from "$/socket"
 
 import {
   computed,
