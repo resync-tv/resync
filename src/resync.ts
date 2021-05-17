@@ -3,7 +3,7 @@ import type { RoomState } from "$/room"
 import type { BackendEmits, FrontendEmits, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch } from "vue"
-import { capitalize, debug, ls } from "./util"
+import { bufferedStub, capitalize, debug, ls } from "./util"
 
 const log = debug("resync.ts")
 
@@ -15,6 +15,7 @@ export default class Resync {
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
   duration = (): number => NaN
+  buffered = (): HTMLMediaElement["buffered"] => bufferedStub
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.1)

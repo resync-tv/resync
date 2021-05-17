@@ -4,7 +4,7 @@ import Resync, { SocketOff } from "@/resync"
 import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
-import { debug, minMax, timestamp } from "@/util"
+import { bufferedArray, debug, minMax, timestamp } from "@/util"
 
 const log = debug("playercontrols")
 
@@ -28,15 +28,24 @@ export default defineComponent({
     const progress = computed(() => {
       return minMax(currentTime.value / duration.value)
     })
+    const buffered = ref<number[][]>([])
 
+    let interval: NodeJS.Timeout
     const updateProgress = (once = false, current?: number) => {
+      clearInterval(interval)
+
       currentTime.value = current ?? resync.currentTime()
       duration.value = resync.duration()
-      // log("updateProgress", currentTime, duration)
+      buffered.value = bufferedArray(resync.buffered(), resync.duration())
 
       if (!once && (isNaN(progress.value) || !resync.paused.value)) {
         requestAnimationFrame(() => updateProgress())
-      } else log("stopped updating progress")
+      } else {
+        log("stopped updating progress")
+        interval = setInterval(() => {
+          buffered.value = bufferedArray(resync.buffered(), resync.duration())
+        }, 250)
+      }
     }
     updateProgress()
     onMounted(() => updateProgress())
@@ -101,6 +110,7 @@ export default defineComponent({
       duration,
       timestamp,
       fullscreenStateIcon,
+      buffered,
     }
   },
 })
@@ -121,7 +131,11 @@ export default defineComponent({
         />
 
         <div class="flex items-center volume">
-          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon small" />
+          <SvgIcon
+            :name="volumeStateIcon"
+            @click="onVolumeIconClick"
+            class="player-icon small"
+          />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
@@ -152,6 +166,7 @@ export default defineComponent({
     <ResyncSlider
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
+      :buffered="buffered"
       @value="onProgressSliderValue"
       :updateSlack="3"
     />

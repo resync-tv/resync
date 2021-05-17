@@ -1,6 +1,6 @@
 <script lang="ts">
 import { minMax } from "@/util"
-import { defineComponent, ref, toRefs, watch } from "vue"
+import { defineComponent, PropType, ref, toRefs, watch } from "vue"
 
 export const touchEventOffset = (event: any, target?: any) => {
   target = target || event.currentTarget
@@ -18,6 +18,10 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    buffered: {
+      type: Array as PropType<number[][]>,
+      default: [],
+    },
     updateSlack: {
       type: Number,
       default: 0,
@@ -33,7 +37,7 @@ export default defineComponent({
   },
   emits: ["value"],
   setup(props, { emit }) {
-    const { progress, updateSlack, immediate } = toRefs(props)
+    const { progress, buffered, updateSlack, immediate } = toRefs(props)
     const override = ref<number | null>(null)
     const active = ref(false)
     let skipValueUpdates = 0
@@ -77,6 +81,7 @@ export default defineComponent({
       mouseDown,
       override,
       active,
+      buffered,
     }
   },
 })
@@ -91,7 +96,14 @@ export default defineComponent({
       :class="{ active, small }"
     >
       <div class="background"></div>
-      <div class="buffer"></div>
+      <div class="buffer">
+        <div
+          v-for="seg in buffered"
+          :key="seg[0]"
+          :style="{ '--start': `${seg[0] * 100}%`, '--end': `${seg[1] * 100}%` }"
+          class="segment"
+        ></div>
+      </div>
       <div class="progress"></div>
       <div class="handle"></div>
     </div>
@@ -100,10 +112,11 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .slider {
-  --buffer: 0%;
   --progress: 0%;
   --hover-transition: 200ms;
   --color: var(--clr-light);
+
+  --height: 3px;
 
   position: relative;
   height: 22px;
@@ -116,7 +129,7 @@ export default defineComponent({
   }
 
   > div {
-    height: 3px;
+    height: var(--height);
     transition: height var(--hover-transition);
     pointer-events: none;
   }
@@ -127,8 +140,19 @@ export default defineComponent({
   }
 
   > .buffer {
-    background: rgba(255, 255, 255, 0.4);
-    width: var(--buffer);
+    width: 100%;
+
+    > .segment {
+      --start: 0%;
+      --end: 0%;
+
+      position: absolute;
+      left: var(--start);
+      width: calc(var(--end) - var(--start));
+      height: var(--height);
+      transition: height var(--hover-transition);
+      background: rgba(255, 255, 255, 0.4);
+    }
   }
 
   > .progress {
@@ -152,9 +176,8 @@ export default defineComponent({
 
   &:hover:not(.small),
   &.active:not(.small) {
-    > div {
-      height: 5px;
-    }
+    --height: 5px;
+
     > .handle {
       height: 11.5px;
       width: 11.5px;
@@ -163,6 +186,7 @@ export default defineComponent({
 
   &.small {
     height: 16px;
+
     > .handle {
       height: 11.5px;
       width: 11.5px;

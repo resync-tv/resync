@@ -54,3 +54,26 @@ export const validateName = (name: string): string => {
 
   return name
 }
+
+export const bufferedStub: any = []
+bufferedStub.start = () => 0
+bufferedStub.end = () => 0
+
+export const bufferedArray = (
+  buffered: HTMLMediaElement["buffered"],
+  duration: number
+): number[][] => {
+  const ret = []
+
+  for (let i = 0; i < buffered.length; i++) {
+    const start = buffered.start(i) / duration
+    const end = buffered.end(i) / duration
+
+    ret.push([start, end])
+  }
+
+  return ret
+}
+
+// @ts-expect-error abc
+window.bufferedArray = bufferedArray

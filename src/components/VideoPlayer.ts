@@ -2,7 +2,7 @@ import type { VideoMetadata } from "$/room"
 
 import Resync, { SocketOff } from "@/resync"
 import shortcuts from "@/shortcuts"
-import { debug } from "@/util"
+import { bufferedStub, debug } from "@/util"
 
 import {
   computed,
@@ -41,6 +41,7 @@ export default defineComponent({
       if (!video.value) throw new Error("video ref is null")
       resync.currentTime = () => video.value?.currentTime ?? NaN
       resync.duration = () => video.value?.duration ?? NaN
+      resync.buffered = () => video.value?.buffered ?? bufferedStub
 
       video.value.volume = resync.muted.value ? 0 : resync.volume.value
 
