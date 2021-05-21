@@ -38,9 +38,15 @@ export default defineComponent({
       emit("update:modelValue", value)
     }
 
+    const onKeydown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      if (event.key === "Escape") return target?.blur?.()
+    }
+
     return () =>
       h("input", {
         onContextmenu,
+        onKeydown,
         onInput: (event: any) => emit("update:modelValue", event.target.value),
         value: modelValue.value,
         class: classList.value,

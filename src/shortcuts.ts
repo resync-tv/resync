@@ -31,6 +31,8 @@ export default (resync: Resync): (() => void) => {
   window.onkeydown = (event: KeyboardEvent) => {
     const { key } = event
 
+    if (document.activeElement instanceof HTMLInputElement) return
+
     if (key === "ArrowRight") return skip(5)
     if (key === "ArrowLeft") return skip(-5)
     if (key === "l") return skip(10)
