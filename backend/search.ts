@@ -7,6 +7,7 @@ import debug from "debug"
 import { timestampToDuration } from "./util"
 const log = debug("resync:search")
 
+const cacheExpire = 60e3 * 5
 const opt: ytsr.Options = {
   limit: 10,
 }
@@ -29,18 +30,40 @@ const transform = (item: ytsr.Item): MediaSourceAny => {
   }
 }
 
+export interface Cached {
+  result: MediaSourceAny[]
+  expire: Date
+}
+const cached: Record<string, Cached> = {}
+
+const search = async (query: string): Promise<MediaSourceAny[]> => {
+  if (new Date() < cached[query]?.expire) {
+    log("returning cached search result")
+    return cached[query].result
+  }
+
+  const filters = await ytsr.getFilters(query)
+  const videos = filters.get("Type")?.get("Video")
+
+  if (!videos?.url) throw Error("video filter is falsy")
+
+  const items = await ytsr(videos.url, opt)
+  const result = items.items.map(transform)
+
+  cached[query] = {
+    expire: new Date(Date.now() + cacheExpire),
+    result,
+  }
+
+  return result
+}
+
 export default (io: ResyncSocketBackend): void => {
   io.on("connect", async client => {
     client.on("search", async (query, reply) => {
       log(`searching for ${query}`)
 
-      const filters = await ytsr.getFilters(query)
-      const videos = filters.get("Type")?.get("Video")
-
-      if (!videos?.url) throw Error("video filter is falsy")
-
-      const res = await ytsr(videos.url, opt)
-      return reply(res.items.map(transform))
+      return reply(await search(query))
     })
   })
 }
