@@ -4,13 +4,15 @@ import type { BackendEmits, FrontendEmits, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
+import { MediaSourceAny } from "$/mediaSource"
 
 const log = debug("resync.ts")
 
 export type SocketOff = () => void
+export type ResyncSocket = Socket<BackendEmits, FrontendEmits>
 
 export default class Resync {
-  private socket: Socket<BackendEmits, FrontendEmits>
+  private socket: ResyncSocket
   private roomEmit: RoomEmit
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
@@ -66,10 +68,14 @@ export default class Resync {
     }
   }
 
-  static getNewRandom = (socket: Socket<BackendEmits, FrontendEmits>): Promise<string> => {
+  static getNewRandom = (socket: ResyncSocket): Promise<string> => {
     return new Promise(res => {
       socket.emit("getNewRandom", res)
     })
+  }
+
+  search = (query: string): Promise<MediaSourceAny[]> => {
+    return new Promise(res => this.socket.emit("search", query, res))
   }
 
   joinRoom = async (name: string): Promise<void> => {

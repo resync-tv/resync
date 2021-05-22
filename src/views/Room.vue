@@ -19,6 +19,7 @@ import { renderNotification } from "@/notify"
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
+import { MediaSourceAny } from "$/mediaSource"
 
 const log = debug("room")
 
@@ -38,7 +39,7 @@ export default defineComponent({
     const router = useRouter()
     const { roomID } = route.params as Record<string, string>
     const sourceInput = ref("")
-    const sourceValid = computed(() => isURL(sourceInput.value) || !sourceInput.value.length)
+    const sourceIsURL = computed(() => isURL(sourceInput.value))
 
     let name = ls("resync-displayname")
     try {
@@ -93,18 +94,28 @@ export default defineComponent({
     })
 
     const urlForm = ref<HTMLFormElement | null>(null)
+    const playButtonText = computed(() => {
+      if (!sourceInput.value.length) return "stop"
+      if (sourceIsURL.value) return "play"
+
+      return "search"
+    })
+
+    const searchResults = ref<MediaSourceAny[]>([])
 
     onMounted(() => {
       if (!urlForm.value) throw Error("urlForm ref not available")
 
-      urlForm.value.onsubmit = e => {
+      urlForm.value.onsubmit = async e => {
         e.preventDefault()
 
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur()
         }
 
-        resync.playContent(sourceInput.value)
+        if (sourceIsURL.value || !sourceInput.value.length) {
+          resync.playContent(sourceInput.value)
+        } else searchResults.value = await resync.search(sourceInput.value)
       }
     })
 
@@ -128,13 +139,14 @@ export default defineComponent({
     return {
       roomID,
       sourceInput,
-      sourceValid,
       resync,
       recentNotifications,
       renderNotification,
       mountPlayer,
       urlForm,
       queue,
+      playButtonText,
+      searchResults,
     }
   },
 })
@@ -150,24 +162,23 @@ export default defineComponent({
           style="max-width: 75vw"
           ref="urlForm"
         >
-          <ResyncInput
-            v-model="sourceInput"
-            placeholder="url"
-            :invalid="!sourceValid"
-            pastable
-            class="mr-2"
-          />
-          <button class="resync-button" :class="{ invalid: !sourceValid }">play</button>
+          <ResyncInput v-model="sourceInput" placeholder="url" pastable class="mr-2" />
+          <button class="resync-button">{{ playButtonText }}</button>
           <button
             @click="queue"
             class="resync-button"
-            :class="{ invalid: !sourceValid || !sourceInput.length }"
+            :class="{ invalid: !sourceInput.length }"
           >
             queue
           </button>
         </form>
 
-        <PlayerWrapper v-if="mountPlayer" v-show="resync.state.value.source" type="video" />
+        <PlayerWrapper
+          v-if="mountPlayer"
+          v-show="resync.state.value.source"
+          type="video"
+          :searchResults="searchResults"
+        />
       </div>
 
       <div class="top-list left-0">

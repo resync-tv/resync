@@ -1,24 +1,15 @@
 <script lang="ts">
-import type { MediaType } from "$/mediaSource"
+import type { MediaSourceAny, MediaType } from "$/mediaSource"
 import type { VideoMetadata } from "$/room"
 
-import {
-  computed,
-  defineComponent,
-  inject,
-  onMounted,
-  PropType,
-  provide,
-  ref,
-  watch,
-} from "vue"
+import { computed, defineComponent, inject, PropType, provide, ref, toRefs, watch } from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
 import PlayerControls from "@/components/PlayerControls.vue"
 import LoadingSpinner from "@/components/LoadingSpinner.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
-import QueueList from "@/components/QueueList.vue"
+import VideoList from "@/components/VideoList.vue"
 
 import Resync from "@/resync"
 
@@ -32,15 +23,20 @@ export default defineComponent({
     PlayerControls,
     LoadingSpinner,
     SvgIcon,
-    QueueList,
+    VideoList,
   },
   props: {
     type: {
       type: String as PropType<MediaType>,
       required: true,
     },
+    searchResults: {
+      type: Array as PropType<MediaSourceAny[]>,
+      required: true,
+    },
   },
-  setup() {
+  setup(props) {
+    const { searchResults } = toRefs(props)
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
@@ -72,8 +68,8 @@ export default defineComponent({
       const maxW = 0.95
       const maxH = 0.7
 
-      const minW = 0.3
-      const minH = 0.4
+      const minW = 0.5
+      const minH = 0.5
 
       if (screenW.value * minW > videoW.value * m) m = (screenW.value / videoW.value) * minW
       if (screenH.value * minH > videoH.value * m) m = (screenH.value / videoH.value) * minH
@@ -124,15 +120,19 @@ export default defineComponent({
 
     provide("requireUserInteraction", requireUserInteraction)
 
-    const copyURL = async (timestamp?: boolean) => {
+    const copyURL = async (url: string) => {
       const clip = window.navigator.clipboard
       if (!clip) window.alert("please use a modern browser like chrome for this feature.")
-      const source = resync.state.value.source?.originalSource
-      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
-
-      if (source?.youtubeID && timestamp) url += `?t=${Math.floor(resync.currentTime())}`
 
       if (url) await clip.writeText(url)
+    }
+    const copyCurrentURL = (timestamp?: boolean) => {
+      const source = resync.state.value.source?.originalSource
+      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
+      if (!url) return
+      if (source?.youtubeID && timestamp) url += `?t=${Math.floor(resync.currentTime())}`
+
+      copyURL(url)
     }
 
     const openInNew = () => {
@@ -147,6 +147,23 @@ export default defineComponent({
       showQueue.value = false
     }
 
+    const showSpinner = computed(() => {
+      return resync.state.value.membersLoading && resync.state.value.source
+    })
+
+    const showSearch = ref(false)
+    const searchPlay = (i: number) => {
+      resync.playContent(searchResults.value[i].originalSource.url)
+      showSearch.value = false
+    }
+    const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalSource.url)
+    watch(searchResults, () => (showSearch.value = true))
+
+    const closeOverlays = () => {
+      showQueue.value = false
+      showSearch.value = false
+    }
+
     return {
       onMetadata,
       sizeStyle,
@@ -155,10 +172,16 @@ export default defineComponent({
       toggleFullscreen,
       playerWrapper,
       fullscreenEnabled,
-      copyURL,
+      copyCurrentURL,
       openInNew,
       showQueue,
       queuePlay,
+      showSpinner,
+      showSearch,
+      searchResults,
+      searchPlay,
+      searchQueue,
+      closeOverlays,
     }
   },
 })
@@ -174,27 +197,49 @@ export default defineComponent({
   >
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
 
+    <!-- <div v-if="!resync.state.value.source" class="flex-col h-full w-full centerflex">
+      <h1 class="text-error text-3xl">nothing's playing.</h1>
+      <h2 class="mt-3 text-sm opacity-75">
+        paste or search something using the textbox above.
+      </h2>
+    </div> -->
+
     <div
-      id="queue-closer"
+      id="overlay-closer"
       class="h-full w-full absolute"
-      v-if="showQueue"
-      @click="showQueue = false"
+      v-if="showQueue || showSearch"
+      @click="closeOverlays"
     ></div>
 
-    <transition name="queue">
-      <div v-show="showQueue" class="queue-overlay">
-        <QueueList
+    <transition name="video-list-right">
+      <div v-show="showQueue" class="overlay-queue">
+        <VideoList
           @close="showQueue = false"
           @play="queuePlay"
-          @remove="resync.removeQueued"
-          :queue="resync.state.value.queue"
+          @contextMenu="resync.removeQueued"
+          :videos="resync.state.value.queue"
+          title="queue"
+          placeholder="queue is empty"
+        />
+      </div>
+    </transition>
+
+    <transition name="video-list-left">
+      <div v-show="showSearch" class="overlay-search">
+        <VideoList
+          @close="showSearch = false"
+          @play="searchPlay"
+          @contextMenu="searchQueue"
+          :videos="searchResults"
+          title="search"
+          placeholder="no results found"
         />
       </div>
     </transition>
 
     <div
       class="z-5 overlay-gradient hover-overlay lower"
-      :class="{ active: resync.paused.value, hide: showQueue }"
+      :class="{ active: resync.paused.value, hide: showQueue || showSearch }"
     >
       <PlayerControls
         @fullscreen="toggleFullscreen"
@@ -206,7 +251,7 @@ export default defineComponent({
 
     <div
       class="overlay-gradient hover-overlay upper"
-      :class="{ active: resync.paused.value, hide: showQueue }"
+      :class="{ active: resync.paused.value, hide: showQueue || showSearch }"
       v-if="resync.state.value.source?.title"
     >
       <div class="flex h-15 w-full px-5 items-center justify-between relative">
@@ -215,13 +260,13 @@ export default defineComponent({
         </p>
         <div class="flex pointer-events-auto">
           <SvgIcon
-            @click="copyURL()"
+            @click="copyCurrentURL()"
             title="copy source url"
             name="content_paste"
             class="source-icon"
           />
           <SvgIcon
-            @click="copyURL(true)"
+            @click="copyCurrentURL(true)"
             v-if="resync.state.value.source.originalSource.youtubeID"
             title="copy source url with timestamp"
             name="content_paste_time"
@@ -247,36 +292,53 @@ export default defineComponent({
       </button>
     </div>
 
-    <div v-if="resync.state.value.membersLoading" class="overlay-loading-spinner">
+    <div v-if="showSpinner" class="overlay-loading-spinner">
       <LoadingSpinner />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.queue-overlay {
-  @apply h-full right-0 absolute;
-  @apply text-light;
-  width: 50ch;
-  min-width: 25ch;
-  max-width: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+.overlay {
+  &-queue {
+    @apply right-0;
+  }
+  &-search {
+    @apply left-0;
+  }
+  &-queue,
+  &-search {
+    @apply h-full absolute;
+    @apply text-light;
+    width: 50ch;
+    min-width: 25ch;
+    max-width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
 
-  @supports (backdrop-filter: blur(5px)) {
-    backdrop-filter: blur(5px);
-    background: rgba(0, 0, 0, 0.25);
+    @supports (backdrop-filter: blur(5px)) {
+      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.25);
+    }
   }
 }
 
-.queue-enter-active,
-.queue-leave-active {
+.video-list-right-enter-active,
+.video-list-right-leave-active,
+.video-list-left-enter-active,
+.video-list-left-leave-active {
   transition: 500ms var(--ease-in-out-hard);
 }
 
-.queue-enter-from,
-.queue-leave-to {
+.video-list-right-enter-from,
+.video-list-right-leave-to {
   right: -25ch;
+  opacity: 0;
+}
+
+.video-list-left-enter-from,
+.video-list-left-leave-to {
+  left: -25ch;
   opacity: 0;
 }
 

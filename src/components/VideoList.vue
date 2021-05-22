@@ -7,57 +7,66 @@ import SvgIcon from "./SvgIcon.vue"
 
 export default defineComponent({
   components: { SvgIcon },
-  emits: ["close", "play", "remove"],
+  emits: ["close", "play", "contextMenu"],
   props: {
-    queue: {
+    videos: {
       type: Array as PropType<MediaSourceAny[]>,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    placeholder: {
+      type: String,
       required: true,
     },
   },
   setup(props) {
-    const { queue } = toRefs(props)
+    const { videos, title } = toRefs(props)
 
     return {
-      queue,
+      videos,
       timestamp,
+      title,
     }
   },
 })
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-3 px-4 pb-0" id="queue-list">
+  <div class="flex flex-col h-full p-3 px-4 pb-0 video-list">
     <header class="flex mb-4 justify-between items-center">
-      <h1 class="text-3xl">queue</h1>
+      <h1 class="text-3xl">{{ title }}</h1>
       <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
     </header>
-    <ul v-if="queue.length" class="overflow-y-auto overflow-x-hidden pointer-events-auto">
+    <ul v-if="videos.length" class="overflow-y-auto overflow-x-hidden pointer-events-auto">
       <li
-        v-for="(queued, index) in queue"
+        v-for="(video, index) in videos"
         @click="$emit('play', index)"
-        @click.right.prevent="$emit('remove', index)"
-        :key="queued.originalSource.url"
+        @click.right.prevent="$emit('contextMenu', index)"
+        :key="video.originalSource.url"
       >
         <div class="thumb">
-          <img :src="queued.thumb || '/thumbnail.svg'" :title="queued.title" />
-          <span v-if="queued.duration">{{ timestamp(queued.duration) }}</span>
+          <img :src="video.thumb || '/thumbnail.svg'" :title="video.title" />
+          <span v-if="video.duration">{{ timestamp(video.duration) }}</span>
         </div>
 
         <div class="flex flex-col h-full justify-center">
-          <h2 :title="queued.title">{{ queued.title }}</h2>
-          <span class="text-sm opacity-75" v-if="queued.uploader">{{ queued.uploader }}</span>
+          <h2 :title="video.title">{{ video.title }}</h2>
+          <span class="text-sm opacity-75" v-if="video.uploader">{{ video.uploader }}</span>
         </div>
       </li>
     </ul>
 
     <div v-else class="h-full opacity-50 centerflex">
-      <span>queue is empty</span>
+      <span>{{ placeholder }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
-#queue-list {
+.video-list {
   ::-webkit-scrollbar {
     width: 0.25em;
   }
@@ -73,7 +82,7 @@ export default defineComponent({
   }
 
   > ul > li {
-    @apply flex items-center h-17 cursor-pointer mb-4 pr-1;
+    @apply flex items-center h-17 cursor-pointer mb-4 pr-2;
     position: relative;
 
     > .thumb {
