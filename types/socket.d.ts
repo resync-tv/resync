@@ -33,6 +33,7 @@ export interface FrontendEmits {
   playQueued: FrontendEmitterBase<{ index: number }>
   removeQueued: FrontendEmitterBase<{ index: number }>
   queue: FrontendEmitterBase<{ source: string; startFrom?: number }>
+  clearQueue: FrontendEmitterBase
   loaded: FrontendEmitterBase
   finished: FrontendEmitterBase
   pause: FrontendEmitterTime

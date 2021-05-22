@@ -49,7 +49,7 @@ export default defineComponent({
       >
         <div class="thumb">
           <img :src="video.thumb || '/thumbnail.svg'" :title="video.title" />
-          <span v-if="video.duration">{{ timestamp(video.duration) }}</span>
+          <span v-if="video.duration" class="text-light">{{ timestamp(video.duration) }}</span>
         </div>
 
         <div class="flex flex-col h-full justify-center">
@@ -77,7 +77,7 @@ export default defineComponent({
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: var(--clr-light);
+    background-color: currentColor;
     border-radius: 0.125em;
   }
 

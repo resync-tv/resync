@@ -20,7 +20,7 @@ export default defineComponent({
     },
     color: {
       type: String,
-      default: "var(--clr-light)",
+      default: "currentColor",
     },
   },
   setup(props) {

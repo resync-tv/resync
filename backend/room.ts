@@ -157,6 +157,13 @@ class Room {
     this.notify("queue", client)
   }
 
+  clearQueue(client: Socket) {
+    this.queue = []
+
+    this.updateState()
+    this.notify("clearQueue", client)
+  }
+
   playQueued(client: Socket, index: number, remove = false) {
     const [next] = this.queue.splice(index, 1)
     if (!next) return this.log("client requested non-existant item from queue")
@@ -288,6 +295,8 @@ export default (io: ResyncSocketBackend): void => {
     client.on("queue", ({ roomID, source, startFrom = 0 }) => {
       getRoom(roomID).addQueue(client, source, startFrom)
     })
+
+    client.on("clearQueue", ({ roomID }) => getRoom(roomID).clearQueue(client))
 
     client.on("playQueued", ({ roomID, index }) => {
       getRoom(roomID).playQueued(client, index)

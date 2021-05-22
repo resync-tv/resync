@@ -19,4 +19,5 @@ export const renderNotification: RenderNotification = {
   playbackError: n => `${n.name} encountered a playback error`,
   queue: n => `${n.name} queued a video`,
   removeQueued: n => `${n.name} removed a queued video`,
+  clearQueue: n => `${n.name} cleared the queue`,
 }

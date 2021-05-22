@@ -121,7 +121,12 @@ export default defineComponent({
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
         <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
-        <SvgIcon name="skip_next" @click="resync.playQueued(0)" class="player-icon" />
+        <SvgIcon
+          name="skip_next"
+          v-if="resync.state.value.queue.length"
+          @click="resync.playQueued(0)"
+          class="player-icon"
+        />
         <SvgIcon
           name="cached"
           v-if="resync.state.value.members.length > 1"

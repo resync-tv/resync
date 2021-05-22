@@ -17,6 +17,7 @@ import { debug, ls, validateName } from "@/util"
 import { renderNotification } from "@/notify"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
+import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
@@ -33,7 +34,7 @@ const isURL = (str: string) => {
 }
 
 export default defineComponent({
-  components: { PlayerWrapper, ResyncInput },
+  components: { PlayerWrapper, ResyncInput, VideoList },
   setup() {
     const route = useRoute()
     const router = useRouter()
@@ -136,6 +137,20 @@ export default defineComponent({
       resync.queue(sourceInput.value)
     }
 
+    const contentShowing = computed(() => {
+      if (resync.state.value.source) return true
+      if (searchResults.value.length) return true
+      if (resync.state.value.queue.length) return true
+
+      return false
+    })
+
+    const searchPlay = (i: number) => {
+      resync.playContent(searchResults.value[i].originalSource.url)
+      searchResults.value = []
+    }
+    const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalSource.url)
+
     return {
       roomID,
       sourceInput,
@@ -147,6 +162,9 @@ export default defineComponent({
       queue,
       playButtonText,
       searchResults,
+      contentShowing,
+      searchPlay,
+      searchQueue,
     }
   },
 })
@@ -158,7 +176,7 @@ export default defineComponent({
       <div class="flex z-5 relative justify-center">
         <form
           class="flex bottom-full w-md justify-center"
-          :class="{ 'mb-3 absolute': resync.state.value.source }"
+          :class="{ 'mb-3 absolute': contentShowing }"
           style="max-width: 75vw"
           ref="urlForm"
         >
@@ -178,7 +196,33 @@ export default defineComponent({
           v-show="resync.state.value.source"
           type="video"
           :searchResults="searchResults"
+          @clearSearch="searchResults = []"
         />
+
+        <template v-if="!resync.state.value.source">
+          <VideoList
+            v-if="searchResults.length"
+            @close="searchResults = []"
+            @play="searchPlay"
+            @contextMenu="searchQueue"
+            :videos="searchResults"
+            title="search"
+            placeholder="no results found"
+            style="max-height: 70vh"
+            class="min-w-2xl"
+          />
+
+          <VideoList
+            v-else-if="resync.state.value.queue.length"
+            @play="resync.playQueued"
+            @contextMenu="resync.removeQueued"
+            @close="resync.clearQueue"
+            :videos="resync.state.value.queue"
+            title="queue"
+            placeholder="queue is empty"
+            class="min-w-2xl"
+          />
+        </template>
       </div>
 
       <div class="top-list left-0">

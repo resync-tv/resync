@@ -18,6 +18,7 @@ const log = debug("playerwrapper")
 
 export default defineComponent({
   name: "PlayerWrapper",
+  emits: ["clearSearch"],
   components: {
     VideoPlayer,
     PlayerControls,
@@ -35,7 +36,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup(props, { emit }) {
     const { searchResults } = toRefs(props)
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
@@ -155,13 +156,21 @@ export default defineComponent({
     const searchPlay = (i: number) => {
       resync.playContent(searchResults.value[i].originalSource.url)
       showSearch.value = false
+      emit("clearSearch")
     }
     const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalSource.url)
-    watch(searchResults, () => (showSearch.value = true))
+    watch(searchResults, () => {
+      showSearch.value = Boolean(searchResults.value.length)
+    })
+    const closeSearch = () => {
+      showSearch.value = false
+      emit("clearSearch")
+    }
 
     const closeOverlays = () => {
       showQueue.value = false
       showSearch.value = false
+      emit("clearSearch")
     }
 
     return {
@@ -181,6 +190,7 @@ export default defineComponent({
       searchResults,
       searchPlay,
       searchQueue,
+      closeSearch,
       closeOverlays,
     }
   },
@@ -227,7 +237,7 @@ export default defineComponent({
     <transition name="video-list-left">
       <div v-show="showSearch" class="overlay-search">
         <VideoList
-          @close="showSearch = false"
+          @close="closeSearch"
           @play="searchPlay"
           @contextMenu="searchQueue"
           :videos="searchResults"

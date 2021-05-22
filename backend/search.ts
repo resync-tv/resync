@@ -9,7 +9,7 @@ const log = debug("resync:search")
 
 const cacheExpire = 60e3 * 5
 const opt: ytsr.Options = {
-  limit: 10,
+  limit: 25,
 }
 
 const transform = (item: ytsr.Item): MediaSourceAny => {

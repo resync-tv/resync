@@ -31,6 +31,7 @@ export type NotifyEvents =
   | "playbackError"
   | "queue"
   | "removeQueued"
+  | "clearQueue"
 
 export interface EventNotification {
   event: NotifyEvents
