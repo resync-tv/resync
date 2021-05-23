@@ -36,7 +36,7 @@
     "ts-debounce": "^3.0.0",
     "vue": "^3.0.7",
     "vue-router": "^4.0.8",
-    "ytdl-core": "^4.8.0",
+    "ytdl-core": "github:resync-tv/node-ytdl-core",
     "ytsr": "^3.5.0"
   },
   "devDependencies": {
