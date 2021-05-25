@@ -9,16 +9,26 @@ if (process.env.NODE_ENV !== "development") {
   })
 }
 
+const log = debug("main")
+
+import type { MediaMetadata, MediaSession } from "$/MediaSession"
+
 import { createApp } from "vue"
 import App from "@/App.vue"
 import router from "./router"
-import "virtual:windi.css"
-import "vite-plugin-svg-icons/register"
 
 import "@/assets/theme.css"
 import "@/assets/fonts/fonts.css"
 
-import type { MediaMetadata, MediaSession } from "$/MediaSession"
+import "virtual:windi.css"
+import "vite-plugin-svg-icons/register"
+
+import { registerSW } from "virtual:pwa-register"
+import { debug } from "./util"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const updateSW = registerSW({
+  onOfflineReady: () => log("offline ready"),
+})
 
 declare global {
   interface Navigator {
