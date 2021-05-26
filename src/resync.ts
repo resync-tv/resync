@@ -4,6 +4,7 @@ import type { BackendEmits, FrontendEmits, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
+import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
 
 const log = debug("resync.ts")
@@ -14,6 +15,7 @@ export type ResyncSocket = Socket<BackendEmits, FrontendEmits>
 export default class Resync {
   private socket: ResyncSocket
   private roomEmit: RoomEmit
+  private roomID: string
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
   duration = (): number => NaN
@@ -26,6 +28,7 @@ export default class Resync {
 
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
+    this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
       log.extend("roomEmit")(event, { roomID, ...arg }, ...args)
       socket.emit(event, { roomID, ...arg }, ...args)
@@ -50,7 +53,8 @@ export default class Resync {
       this.onState(state => {
         log("new state", state)
         this.state.value = state
-      })
+      }),
+      this.onSource(this.updateMediasession)
     )
   }
   destroy = (): void => this.handlers.forEach(off => off())
@@ -68,6 +72,10 @@ export default class Resync {
     }
   }
 
+  private updateMediasession = (source?: MediaSourceAny) => {
+    if (source) setMetadata(source, `room: ${this.roomID}`)
+  }
+
   static getNewRandom = (socket: ResyncSocket): Promise<string> => {
     return new Promise(res => {
       socket.emit("getNewRandom", res)
@@ -83,7 +91,9 @@ export default class Resync {
       return new Promise<void>(res => {
         this.roomEmit("joinRoom", { name }, state => {
           log("initial room state", state)
+
           this.state.value = state
+          this.updateMediasession(state.source)
 
           res()
         })

@@ -35,7 +35,7 @@ declare global {
     mediaSession?: MediaSession
   }
   interface Window {
-    MediaMetadata?: MediaMetadata
+    MediaMetadata?: typeof MediaMetadata
   }
 }
 
