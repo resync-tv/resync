@@ -28,4 +28,7 @@ export default defineConfig({
       $: resolve(__dirname, "./types"),
     },
   },
+  build: {
+    sourcemap: true,
+  },
 })
