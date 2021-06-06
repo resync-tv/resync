@@ -190,6 +190,7 @@ export default defineComponent({
             placeholder="search or paste url"
             pastable
             class="mr-2"
+            autofocus
           />
           <button class="resync-button" :class="{ invalid: playButtonDisabled }">
             {{ playButtonText }}

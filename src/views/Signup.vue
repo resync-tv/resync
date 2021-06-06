@@ -3,14 +3,14 @@ import { defineComponent, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import ResyncInput from "@/components/ResyncInput"
-import { ls, validateName } from "@/util"
+import { ls, unfocus, validateName } from "@/util"
 
 export default defineComponent({
   components: { ResyncInput },
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const name = ref("")
+    const name = ref(ls("resync-displayname") || "")
     const form = ref<null | HTMLFormElement>(null)
 
     const setDisplayName = () => {
@@ -20,8 +20,11 @@ export default defineComponent({
 
         const path = route.query.returnTo
         if (path && typeof path === "string") router.replace({ path })
+        else router.replace("/")
       } catch (error) {
         alert(error)
+      } finally {
+        unfocus()
       }
     }
 
@@ -49,7 +52,13 @@ export default defineComponent({
   <main class="flex-col signup centerflex">
     <h1 class="mb-6 text-3xl">choose a display name</h1>
     <form ref="form" class="flex max-w-screen -sm:flex-col">
-      <ResyncInput v-model="name" placeholder="username" class="w-xs sm:mr-2" maxlength="16" />
+      <ResyncInput
+        autofocus
+        v-model="name"
+        placeholder="username"
+        class="w-xs sm:mr-2"
+        maxlength="16"
+      />
       <button class="resync-button -sm:mt-2">set name</button>
     </form>
   </main>

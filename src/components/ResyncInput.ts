@@ -1,4 +1,4 @@
-import { computed, defineComponent, h, toRefs } from "vue"
+import { computed, defineComponent, h, onMounted, ref, toRefs } from "vue"
 
 export default defineComponent({
   name: "ResyncInput",
@@ -16,6 +16,10 @@ export default defineComponent({
       default: "",
     },
     pastable: {
+      type: Boolean,
+      default: false,
+    },
+    autofocus: {
       type: Boolean,
       default: false,
     },
@@ -43,10 +47,20 @@ export default defineComponent({
       if (event.key === "Escape") return target?.blur?.()
     }
 
+    const el = ref<HTMLInputElement | null>(null)
+    onMounted(() => {
+      if (!el.value) throw new Error("input ref is null")
+      if (props.autofocus) {
+        console.log("autofocus", el.value)
+        el.value.focus()
+      }
+    })
+
     return () =>
       h("input", {
         onContextmenu,
         onKeydown,
+        ref: el,
         onInput: (event: any) => emit("update:modelValue", event.target.value),
         value: modelValue.value,
         class: classList.value,

@@ -75,5 +75,4 @@ export const bufferedArray = (
   return ret
 }
 
-// @ts-expect-error abc
-window.bufferedArray = bufferedArray
+export const unfocus = (): void => (window.document.activeElement as HTMLElement)?.blur?.()

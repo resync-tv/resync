@@ -6,7 +6,7 @@ import { defineComponent, inject } from "vue"
 import ResyncLogo from "@/components/ResyncLogo"
 import Resync from "@/resync"
 import { useRouter } from "vue-router"
-import { debug, ls, validateName } from "@/util"
+import { debug, ls, unfocus, validateName } from "@/util"
 
 const log = debug("home")
 
@@ -28,6 +28,8 @@ export default defineComponent({
       } catch {
         log("no name set yet")
         router.push({ name: "signup", query: { returnTo: roomRoute.fullPath } })
+      } finally {
+        unfocus()
       }
     }
 
