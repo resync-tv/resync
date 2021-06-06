@@ -96,10 +96,13 @@ export default defineComponent({
 
     const urlForm = ref<HTMLFormElement | null>(null)
     const playButtonText = computed(() => {
-      if (!sourceInput.value.length) return "stop"
-      if (sourceIsURL.value) return "play"
+      if (!sourceInput.value.length && resync.state.value.source) return "stop"
+      if (sourceIsURL.value || !sourceInput.value.length) return "play"
 
       return "search"
+    })
+    const playButtonDisabled = computed(() => {
+      return !resync.state.value.source && !sourceInput.value.length
     })
 
     const searchResults = ref<MediaSourceAny[]>([])
@@ -161,10 +164,12 @@ export default defineComponent({
       urlForm,
       queue,
       playButtonText,
+      playButtonDisabled,
       searchResults,
       contentShowing,
       searchPlay,
       searchQueue,
+      sourceIsURL,
     }
   },
 })
@@ -180,13 +185,16 @@ export default defineComponent({
           style="max-width: 75vw"
           ref="urlForm"
         >
-          <ResyncInput v-model="sourceInput" placeholder="url" pastable class="mr-2" />
-          <button class="resync-button">{{ playButtonText }}</button>
-          <button
-            @click="queue"
-            class="resync-button"
-            :class="{ invalid: !sourceInput.length }"
-          >
+          <ResyncInput
+            v-model="sourceInput"
+            placeholder="search or paste url"
+            pastable
+            class="mr-2"
+          />
+          <button class="resync-button" :class="{ invalid: playButtonDisabled }">
+            {{ playButtonText }}
+          </button>
+          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">
             queue
           </button>
         </form>
