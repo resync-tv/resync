@@ -65,7 +65,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .video-list {
   ::-webkit-scrollbar {
     width: 0.25em;
@@ -86,15 +86,15 @@ export default defineComponent({
     position: relative;
 
     > .thumb {
-      @apply mr-3;
+      @apply mr-3 flex-shrink-0;
       position: relative;
-      height: 4.25rem;
-      width: calc(4.25rem / 9 * 16);
       display: table;
 
       > img {
         @apply rounded;
         object-fit: cover;
+        height: 4.25rem;
+        width: calc(4.25rem / 9 * 16);
       }
 
       > span {
