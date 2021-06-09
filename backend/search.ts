@@ -25,7 +25,7 @@ const transform = (item: ytsr.Item): MediaSourceAny => {
     startFrom: 0,
     title: video.title,
     type: "video",
-    thumb: video.bestThumbnail.url ?? undefined,
+    thumb: video.bestThumbnail?.url ?? undefined,
     uploader: video.author?.name ?? undefined,
   }
 }
