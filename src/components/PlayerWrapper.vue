@@ -85,7 +85,12 @@ export default defineComponent({
     const fullscreenEnabled = ref(false)
     const toggleFullscreen = async () => {
       if (fullscreenEnabled.value) {
-        await document.exitFullscreen()
+        try {
+          await document.exitFullscreen()
+        } catch {
+          log.extend("error")("exiting fullscreen didn't work")
+        }
+
         fullscreenEnabled.value = Boolean(document.fullscreenElement)
         return
       }
@@ -94,9 +99,8 @@ export default defineComponent({
         if (!playerWrapper.value) throw Error("player-wrapper ref not found")
         await playerWrapper.value.requestFullscreen()
         fullscreenEnabled.value = Boolean(document.fullscreenElement)
-      } catch (error) {
+      } catch {
         log.extend("error")("fullscreen didn't work")
-        throw error
       }
     }
 
