@@ -27,7 +27,7 @@ export default defineComponent({
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
-    const src = computed(() => resync.state.value.source?.video?.[0].url)
+    const src = computed(() => resync.state.value.source?.video?.[0]?.url)
     const video = ref<null | HTMLVideoElement>(null)
     const muted = ref(false)
     const autoplay = ref(false)
