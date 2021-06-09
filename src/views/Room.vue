@@ -13,7 +13,7 @@ import {
 } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
-import { debug, ls, validateName } from "@/util"
+import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
@@ -23,15 +23,6 @@ import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 
 const log = debug("room")
-
-const isURL = (str: string) => {
-  try {
-    new URL(str)
-    return true
-  } catch (error) {
-    return false
-  }
-}
 
 export default defineComponent({
   components: { PlayerWrapper, ResyncInput, VideoList },
