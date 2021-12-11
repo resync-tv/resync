@@ -1,15 +1,19 @@
 import type { MediaRawSource } from "../types/mediaSource"
 
 import ytdl_core from "ytdl-core"
-import { average } from "./util"
-
-import YT_DL, { yt_dl, adapters } from "@resync-tv/yt-dl"
-
-const ytdlpAdapter = new adapters.ytdlp()
-const ytdl = new YT_DL([ytdl_core.getInfo, ytdlpAdapter.getInfo], "first-to-resolve")
+import { average, once } from "./util"
 
 import debug from "debug"
 const log = debug("resync:youtube")
+
+import YT_DL, { yt_dl, adapters, ensureBinaries } from "@resync-tv/yt-dl"
+const ytdlpAdapter = new adapters.ytdlp()
+const ytdl = new YT_DL([ytdl_core.getInfo, ytdlpAdapter.getInfo], "first-to-resolve")
+
+const ensureBinariesOnce = once(() => {
+  log("ensuring binaries")
+  return ensureBinaries(true)
+})
 
 const urlExpire = (url: string): number => {
   const { searchParams } = new URL(url)
@@ -44,6 +48,7 @@ const fetchVideo = async (source: string) => {
   }
 
   log(`fetching formats for ${id}`)
+  await ensureBinariesOnce()
   const { formats, videoDetails } = await ytdl.getInfo(id)
   const averageExpire = average(...formats.map(f => urlExpire(f.url)).filter(e => !isNaN(e)))
   const expires = new Date(averageExpire * 1e3)

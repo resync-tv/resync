@@ -25,7 +25,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "@resync-tv/yt-dl": "^0.1.1",
+    "@resync-tv/yt-dl": "^0.1.2",
     "@sentry/browser": "^6.7.2",
     "@sentry/node": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
