@@ -38,12 +38,20 @@ export default (resync: Resync): (() => void) => {
     if (key === "l") return skip(10)
     if (key === "j") return skip(-10)
 
+    if (key === "Home") return resync.seekTo(0)
+    if (key === "End") {
+      if (resync.state.value.queue.length) return resync.playQueued(0)
+      else resync.playContent("")
+    }
+
     if (key === "k" || key === " ")
       return resync.state.value.paused ? resync.resume() : pause()
 
     if (key === "m") return (resync.muted.value = !resync.muted.value)
     if (key === "ArrowUp") return volume(0.05)
     if (key === "ArrowDown") return volume(-0.05)
+
+    if (key === "q") return log("TODO: toggle queue")
 
     if (key === "f") return log("TODO: fullscreen")
 
