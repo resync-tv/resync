@@ -235,18 +235,7 @@ export default defineComponent({
 
       <div class="top-list right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
-          <div
-            class="
-              bg-gradient-to-t
-              from-light
-              h-25
-              w-full
-              bottom-0
-              z-3
-              absolute
-              dark:from-dark
-            "
-          ></div>
+          <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient"></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
@@ -263,6 +252,13 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+.fade-out-gradient {
+  background: linear-gradient(to top, var(--clr-light), transparent);
+}
+.dark .fade-out-gradient {
+  background: linear-gradient(to top, var(--clr-dark), transparent);
+}
+
 .top-list {
   @apply opacity-25 pt-2 top-0 absolute;
 }
