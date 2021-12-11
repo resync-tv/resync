@@ -153,7 +153,9 @@ export default defineComponent({
     }
 
     const showSpinner = computed(() => {
-      return resync.state.value.membersLoading && resync.state.value.source
+      return (
+        resync.state.value.membersLoading && resync.state.value.source && resync.paused.value
+      )
     })
 
     const showSearch = ref(false)
@@ -358,12 +360,12 @@ export default defineComponent({
 
 .overlay-gradient {
   @apply flex h-1/3 w-full absolute justify-center;
-  @apply pointer-events-none text-light transition-opacity;
+  @apply text-light transition-opacity pointer-events-none;
   --gradient: rgba(0, 0, 0, 0.333), rgba(0, 0, 0, 0.125) 30%, transparent;
 
   &.lower {
     background: linear-gradient(to top, var(--gradient));
-    @apply items-end bottom-0;
+    @apply bottom-0 items-end;
   }
 
   &.upper {
