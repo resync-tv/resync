@@ -236,12 +236,21 @@ export default defineComponent({
       <div class="top-list right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
           <div
-            class="bg-gradient-to-t from-light h-25 w-full bottom-0 z-3 absolute dark:from-dark"
+            class="
+              bg-gradient-to-t
+              from-light
+              h-25
+              w-full
+              bottom-0
+              z-3
+              absolute
+              dark:from-dark
+            "
           ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
-              :key="notification"
+              :key="notification.id"
               class="top-text text-right z-2"
             >
               {{ renderNotification[notification.event](notification) }}
@@ -255,11 +264,11 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .top-list {
-  @apply absolute opacity-25 pt-2 top-0;
+  @apply opacity-25 pt-2 top-0 absolute;
 }
 
 .top-text {
-  @apply h-5 text-sm mx-2 overflow-hidden;
+  @apply h-5 mx-2 text-sm overflow-hidden;
 }
 
 .resync-button:not(:last-of-type) {

@@ -1,7 +1,12 @@
 import type { MediaRawSource } from "../types/mediaSource"
 
-import ytdl from "ytdl-core"
+import ytdl_core from "ytdl-core"
 import { average } from "./util"
+
+import YT_DL, { yt_dl, adapters } from "@resync-tv/yt-dl"
+
+const ytdlpAdapter = new adapters.ytdlp()
+const ytdl = new YT_DL([ytdl_core.getInfo, ytdlpAdapter.getInfo], "first-to-resolve")
 
 import debug from "debug"
 const log = debug("resync:youtube")
@@ -14,22 +19,22 @@ const urlExpire = (url: string): number => {
   else return Number(expires)
 }
 
-const transformFormat = (format: ytdl.videoFormat): MediaRawSource => {
+const transformFormat = (format: yt_dl.EnsuredVideoFormat): MediaRawSource => {
   return {
     url: format.url,
-    quality: format.hasVideo ? format.qualityLabel : `${format.audioBitrate} kbps`,
+    quality: format.hasVideo ? format.quality : `${format.audioBitrate} kbps`,
   }
 }
 
 interface Cached {
-  formats: ytdl.videoFormat[]
+  formats: yt_dl.EnsuredVideoFormat[]
   expires: Date
-  videoDetails: ytdl.MoreVideoDetails
+  videoDetails: yt_dl.EnsuredMoreVideoDetails
 }
 const cached: Record<string, Cached> = {}
 
 const fetchVideo = async (source: string) => {
-  const id = ytdl.getVideoID(source)
+  const id = ytdl_core.getVideoID(source)
 
   if (cached[id]) {
     log(`cached formats found for ${id}`)
@@ -57,7 +62,7 @@ export const getCombinedStream = async (source: string): Promise<MediaRawSource[
   return sorted.map(transformFormat)
 }
 
-export const getInfo = async (source: string): Promise<ytdl.MoreVideoDetails> => {
+export const getInfo = async (source: string): Promise<yt_dl.EnsuredMoreVideoDetails> => {
   const { videoDetails } = await fetchVideo(source)
   return videoDetails
 }

@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== "development") {
 
 const log = debug("main")
 
-import type { MediaMetadata, MediaSession } from "$/MediaSession"
+import type { MediaMetadata } from "$/MediaSession"
 
 import { createApp } from "vue"
 import App from "@/App.vue"
@@ -31,9 +31,10 @@ const updateSW = registerSW({
 })
 
 declare global {
-  interface Navigator {
-    mediaSession?: MediaSession
-  }
+  //? seems to be in typescript itself now
+  // interface Navigator {
+  //   mediaSession?: MediaSession
+  // }
   interface Window {
     MediaMetadata?: typeof MediaMetadata
   }

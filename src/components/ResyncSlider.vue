@@ -100,7 +100,10 @@ export default defineComponent({
         <div
           v-for="seg in buffered"
           :key="seg[0]"
-          :style="{ '--start': `${seg[0] * 100}%`, '--end': `${seg[1] * 100}%` }"
+          :style="{
+            '--start': `${seg[0] * 100}%`,
+            '--end': `${seg[1] * 100}%`,
+          }"
           class="segment"
         ></div>
       </div>
