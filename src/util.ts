@@ -8,7 +8,7 @@ interface LocalStored {
 }
 
 const urlReg =
-  //? researching this can lead to deeeep rabbit holes, but i think i'd consider this good enough.
+  //? researching this can lead to very deep rabbit holes, but i think i'd consider this good enough.
   /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)/i
 
 export const isURL = (str: string): boolean => urlReg.test(str)

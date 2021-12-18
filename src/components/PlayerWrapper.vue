@@ -227,7 +227,7 @@ export default defineComponent({
       @click="closeOverlays"
     ></div>
 
-    <transition name="video-list-right">
+    <Transition name="video-list-right">
       <div v-show="showQueue" class="overlay-queue">
         <VideoList
           @close="showQueue = false"
@@ -238,9 +238,9 @@ export default defineComponent({
           placeholder="queue is empty"
         />
       </div>
-    </transition>
+    </Transition>
 
-    <transition name="video-list-left">
+    <Transition name="video-list-left">
       <div v-show="showSearch" class="overlay-search">
         <VideoList
           @close="closeSearch"
@@ -251,7 +251,7 @@ export default defineComponent({
           placeholder="no results found"
         />
       </div>
-    </transition>
+    </Transition>
 
     <div
       class="z-5 overlay-gradient hover-overlay lower"

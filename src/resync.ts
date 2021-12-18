@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io-client"
 import type { RoomState } from "$/room"
-import type { BackendEmits, FrontendEmits, RoomEmit } from "$/socket"
+import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
@@ -10,10 +10,9 @@ import { MediaSourceAny } from "$/mediaSource"
 const log = debug("resync.ts")
 
 export type SocketOff = () => void
-export type ResyncSocket = Socket<BackendEmits, FrontendEmits>
 
 export default class Resync {
-  private socket: ResyncSocket
+  private socket: ResyncSocketFrontend
   private roomEmit: RoomEmit
   private roomID: string
   private handlers: SocketOff[] = []
@@ -66,6 +65,7 @@ export default class Resync {
       log(`registered on${capitalize(event)} handler`)
 
       return () => {
+        // @ts-expect-error I am clueless as to why this errors
         this.socket.off(event, fn)
         log(`unregistered on${capitalize(event)} handler`)
       }
@@ -76,7 +76,7 @@ export default class Resync {
     if (source) setMetadata(source, `room: ${this.roomID}`)
   }
 
-  static getNewRandom = (socket: ResyncSocket): Promise<string> => {
+  static getNewRandom = (socket: ResyncSocketFrontend): Promise<string> => {
     return new Promise(res => {
       socket.emit("getNewRandom", res)
     })

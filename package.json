@@ -37,7 +37,7 @@
     "ts-debounce": "^3.0.0",
     "vue": "^3.2.26",
     "vue-router": "^4.0.10",
-    "ytdl-core": "^4.9.1",
+    "ytdl-core": "^4.9.2",
     "ytsr": "^3.5.0"
   },
   "devDependencies": {
