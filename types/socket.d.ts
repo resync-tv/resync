@@ -44,7 +44,7 @@ export interface FrontendEmits {
   playbackError: FrontendEmitterTime<{ reason: string; name: string }>
   joinRoom: FrontendEmitterBase<{ name: string }, Callback<RoomState>>
   leaveRoom: FrontendEmitterBase
-  message: FrontendEmitterBase<{ msg: string}>
+  message: FrontendEmitterBase<{ msg: string }>
   getNewRandom: (c: Callback<string>) => void
   search: (query: string, c: Callback<any>) => void
 }
