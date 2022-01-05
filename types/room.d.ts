@@ -3,7 +3,7 @@ import type { MediaSourceAny } from "./mediaSource"
 import { Socket as BackendSocket } from "socket.io"
 
 
-export enum HostMode {
+export const enum HostMode {
   Everyone,
   HostOnly
 }
