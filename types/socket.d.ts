@@ -4,6 +4,8 @@ import type { Socket } from "socket.io-client"
 import type { EventNotification, RoomState } from "./room"
 import type { MediaSourceAny } from "./mediaSource"
 
+import { HostMode } from "$/room"
+
 type Callback<A = void> = (x: A) => void
 
 type BackendEmitterBase<A = void> = (x: A) => void
@@ -30,6 +32,9 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
+  givePermission: FrontendEmitterBase<{secret: string, name: string}>
+  removePermission: FrontendEmitterBase<{secret: string, name: string}>
+  setHostMode: FrontendEmitterBase<{secret: string, hostMode: HostMode}>
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
   playQueued: FrontendEmitterBase<{ index: number }>
   removeQueued: FrontendEmitterBase<{ index: number }>

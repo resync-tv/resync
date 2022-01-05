@@ -2,6 +2,12 @@ import type { MediaSourceAny } from "./mediaSource"
 
 import { Socket as BackendSocket } from "socket.io"
 
+
+export enum HostMode {
+  Everyone,
+  HostOnly
+}
+
 export interface Member {
   name: string
   client: BackendSocket
