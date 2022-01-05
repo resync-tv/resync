@@ -128,6 +128,7 @@ export default class Resync {
   resume = (): void => this.roomEmit("resume")
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
+  message = (msg: string): void => this.roomEmit("message", { msg })
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })
@@ -139,4 +140,5 @@ export default class Resync {
   onRequestTime = this.eventHandler("requestTime")
   onNotify = this.eventHandler("notifiy")
   onState = this.eventHandler("state")
+  onMessage = this.eventHandler("message")
 }

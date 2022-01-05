@@ -1,6 +1,6 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { MediaSourceAny } from "$/mediaSource"
-import type { NotifyEvents, RoomState, Member } from "$/room"
+import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
 import type { BackendEmits, ResyncSocketBackend } from "$/socket"
 
 import { average } from "./util"
@@ -59,7 +59,7 @@ class Room {
     const member = this.getMember(id)
     if (member) name = member.name
 
-    const notification = {
+    const notification: EventNotification = {
       event,
       id,
       name,
@@ -68,6 +68,22 @@ class Room {
     }
     this.broadcast.emit("notifiy", notification)
     this.log(`[${event}](${name})`, additional || "")
+  }
+
+  message(msg: string, client: Socket) {
+    const { id } = client
+    let name = id
+
+    const member = this.getMember(id)
+    if (member) name = member.name
+
+    const msgObj = {
+      name,
+      msg,
+      key: nanoid(),
+    }
+
+    this.broadcast.emit("message", msgObj)
   }
 
   get state(): Promise<RoomState> {
@@ -277,6 +293,10 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
+    client.on("message", ({ msg, roomID }) => {
+      getRoom(roomID).message(msg, client)
+    })
+
     client.on("joinRoom", async ({ roomID, name }, reply) => {
       const room = getRoom(roomID)
       room.join(client, name)
