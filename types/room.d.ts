@@ -45,3 +45,9 @@ export interface VideoMetadata {
   videoHeight: number
   videoWidth: number
 }
+
+export interface Message {
+  name: string,
+  msg: string,
+  key: string
+}

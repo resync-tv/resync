@@ -58,7 +58,7 @@ export default defineComponent({
   </main>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .arrow-after {
   position: relative;
 

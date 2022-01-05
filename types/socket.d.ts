@@ -10,6 +10,7 @@ type BackendEmitterBase<A = void> = (x: A) => void
 
 export interface BackendEmits {
   notifiy: BackendEmitterBase<EventNotification>
+  message: BackendEmitterBase<Message>
   source: BackendEmitterBase<MediaSourceAny | undefined>
   pause: BackendEmitterBase
   resume: BackendEmitterBase
@@ -43,7 +44,7 @@ export interface FrontendEmits {
   playbackError: FrontendEmitterTime<{ reason: string; name: string }>
   joinRoom: FrontendEmitterBase<{ name: string }, Callback<RoomState>>
   leaveRoom: FrontendEmitterBase
-
+  message: FrontendEmitterBase<{ msg: string}>
   getNewRandom: (c: Callback<string>) => void
   search: (query: string, c: Callback<any>) => void
 }
