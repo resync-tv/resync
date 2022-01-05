@@ -9,21 +9,33 @@ https://github.com/resync-tv/resync
 -->
 <html class="h-full" lang="en">
   <head>
+    <style>
+      /* prefers-color-scheme */
+      @media screen and (prefers-color-scheme: dark) {
+        body {
+          background-color: #0c151d;
+          color: #fcfcfc;
+        }
+      }
+
+      }
+    </style>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" id="favicon" />
     <link rel="icon" href="/favicon.svg" id="favicon-svg" />
     <script>
+      const activateDarkMode = bool => {
+        document.body.classList.add(bool ? "dark" : "light")
+        document.body.classList.remove(bool ? "light" : "dark")
+
+        document.querySelector("#favicon").href = `/favicon${bool ? "-dark" : ""}.ico`
+        document.querySelector("#favicon-svg").href = `/favicon${bool ? "-dark" : ""}.svg`
+      }
+
       window.onload = () => {
         const dark = window.matchMedia("(prefers-color-scheme:dark)")
-        const activateDarkMode = bool => {
-          document.body.classList.add(bool ? "dark" : "light")
-          document.body.classList.remove(bool ? "light" : "dark")
-
-          document.querySelector("#favicon").href = `/favicon${bool ? "-dark" : ""}.ico`
-          document.querySelector("#favicon-svg").href = `/favicon${bool ? "-dark" : ""}.svg`
-        }
-
         activateDarkMode(dark.matches)
+
         dark.onchange = ({ matches }) => activateDarkMode(matches)
       }
     </script>
@@ -31,6 +43,10 @@ https://github.com/resync-tv/resync
     <title>resync</title>
   </head>
   <body class="bg-auto h-full text-auto">
+    <script>
+      const dark = window.matchMedia("(prefers-color-scheme:dark)")
+      activateDarkMode(dark.matches)
+    </script>
     <div id="app" class="h-full"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
