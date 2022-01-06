@@ -14,6 +14,12 @@ import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 
+const enum Permission {
+  Host = 1 << 0,
+  PlayerControl = 1 << 1,
+  QueueContorl = 1 << 2
+}
+
 const log = debug("room")
 
 const route = useRoute()
@@ -63,6 +69,10 @@ if (name)
     mountPlayer.value = true
     ls("resync-last-room", roomID)
   })
+
+const offSecret = resync.onSecret((secret: string) => {
+  ls('secret', secret)
+})
 
 const recentNotifications = ref<EventNotification[]>([])
 const offNotifiy = resync.onNotify(notification => {
@@ -209,9 +219,17 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
         <transition-group name="text-height">
           <div
             v-for="member in resync.state.value.members"
-            :key="member.id"
+            :key="member.name"
             class="top-text"
-          >{{ member.name }}</div>
+          >{{ member.name }}
+            <template v-if="(member.permission & Permission.Host) === Permission.Host">
+              This is the host!
+            </template>
+            <template v-else>
+              <input type="checkbox" id="player" name="Player Control">
+              <input type="checkbox" id="queue" name="Queue Control">
+            </template>
+          </div>
         </transition-group>
       </div>
 

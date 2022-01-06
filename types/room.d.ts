@@ -2,19 +2,21 @@ import type { MediaSourceAny } from "./mediaSource"
 
 import { Socket as BackendSocket } from "socket.io"
 
-
-export const enum HostMode {
-  Everyone,
-  HostOnly
+export const enum Permission {
+  Host = 1 << 0,
+  PlayerControl = 1 << 1,
+  QueueContorl = 1 << 2
 }
 
 export interface Member {
   name: string
   client: BackendSocket
+  permission: Permission
 }
 
 export interface PublicMember extends Omit<Member, "client"> {
-  id: string
+  name: string
+  permission: Permission
 }
 
 export interface RoomState<S = MediaSourceAny> {

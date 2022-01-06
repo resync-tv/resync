@@ -29,8 +29,9 @@ export default class Resync {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      log.extend("roomEmit")(event, { roomID, ...arg }, ...args)
-      socket.emit(event, { roomID, ...arg }, ...args)
+      let secret = ls('secret')
+      log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
+      socket.emit(event, { roomID, secret, ...arg }, ...args)
     }
 
     this.state = ref({
@@ -141,4 +142,5 @@ export default class Resync {
   onNotify = this.eventHandler("notifiy")
   onState = this.eventHandler("state")
   onMessage = this.eventHandler("message")
+  onSecret = this.eventHandler("secret")
 }
