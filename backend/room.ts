@@ -168,6 +168,18 @@ class Room {
   leave(client: Socket) {
     this.notify("leave", client)
 
+    let member = this.getMember(client.id)
+    if(member && (member.permission & Permission.Host) === Permission.Host) 
+    {
+      let newHost = this.members.filter(m => m.client.id !== client.id)[0]
+      if(newHost) {
+        newHost.permission ^= Permission.Host
+        let secret = genSecret()
+        this.hostSecret = secret
+        newHost.client.emit("secret", secret)
+      }
+    }
+
     client.leave(this.roomID)
     this.removeMember(client.id)
 
