@@ -43,6 +43,7 @@ export default class Resync {
     }
 
     this.state = ref({
+      looped: false,
       paused: this.paused.value,
       source: undefined,
       lastSeekedTo: 0,
@@ -94,6 +95,8 @@ export default class Resync {
   search = (query: string): Promise<MediaSourceAny[]> => {
     return new Promise(res => this.socket.emit("search", query, res))
   }
+
+  loop = () => this.roomEmit("loop", { newLooped: !this.state.value.looped })
 
   joinRoom = async (name: string): Promise<void> => {
     const join = () => {

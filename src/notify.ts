@@ -6,6 +6,7 @@ type RenderNotification = {
 }
 
 export const renderNotification: RenderNotification = {
+  looped: n => `${n.name} ${n.additional.newLooped ? 'enabled' : 'disabled'} looping`,
   join: n => `${n.name} joined the room`,
   leave: n => `${n.name} left the room`,
   playContent: n => {

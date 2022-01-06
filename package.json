@@ -16,7 +16,7 @@
     "start": "node -r dotenv/config lib",
     "back:build": "rimraf lib && tsc -p tsconfig.backend.json",
     "back:dev": "nodemon",
-    "front:dev": "vite --port 8080",
+    "front:dev": "vite --port 80",
     "front:build": "vite build",
     "front:serve": "vite preview",
     "commit": "cz -S"

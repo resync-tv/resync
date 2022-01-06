@@ -35,6 +35,7 @@ interface PlaybackErrorArg {
 }
 
 class Room {
+  private looped: boolean
   private hostSecret: string
   private standardPermission: Permission
   readonly roomID: string
@@ -53,6 +54,7 @@ class Room {
 
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
+    this.looped = false
     this.hostSecret = secret ?? ""
     this.standardPermission = 0//Permission.QueueControl | Permission.PlayerControl
     this.roomID = roomID
@@ -129,6 +131,7 @@ class Room {
   get state(): Promise<RoomState> {
     return (async () => {
       return {
+        looped: this.looped,
         paused: this.paused,
         source: this.source,
         lastSeekedTo: this.lastSeekedTo,
@@ -269,6 +272,11 @@ class Room {
     this.log(`members playing: ${this.membersPlaying}`)
 
     if (this.membersPlaying <= 0) {
+      if (this.looped) {
+        this.seekTo({ seconds: 0, secret:this.hostSecret })
+        this.resume(undefined, this.hostSecret)
+        return
+      }
       const next = this.queue.shift()
       if (next) return this.playContent(undefined, next, 0)
 
@@ -294,6 +302,15 @@ class Room {
 
     this.updateState()
     if (client) this.notify("resume", client)
+  }
+
+  updateLooped(newLooped: boolean, client?: Socket, secret?: string) {
+    if (!this.hasPermission(Permission.PlayerControl, client?.id, secret)) return
+    this.looped = newLooped
+
+    this.updateState()
+
+    if (client) this.notify("looped", client, { newLooped })
   }
 
   seekTo({ client, seconds, secret }: { client?: Socket; seconds: number; secret?: string }) {
@@ -374,6 +391,10 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID).message(msg, client)
     })
 
+    client.on("loop", ({ secret, newLooped, roomID }) => {
+      getRoom(roomID, client).updateLooped(newLooped, client, secret)
+    })
+  
     client.on("givePermission", ({ secret, id, permission, roomID }) => {
       if(secret) getRoom(roomID).givePermission(secret, id, permission)
     })

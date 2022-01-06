@@ -21,6 +21,7 @@ export interface PublicMember extends Omit<Member, "client"> {
 }
 
 export interface RoomState<S = MediaSourceAny> {
+  looped: boolean
   paused: boolean
   source: S | undefined
   lastSeekedTo: number
@@ -30,6 +31,7 @@ export interface RoomState<S = MediaSourceAny> {
 }
 
 export type NotifyEvents =
+  | "looped"
   | "join"
   | "leave"
   | "playContent"
