@@ -7,18 +7,13 @@ import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
+import { Permission } from "$/room"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
-
-const enum Permission {
-  Host = 1 << 0,
-  PlayerControl = 1 << 1,
-  QueueContorl = 1 << 2
-}
 
 const log = debug("room")
 
@@ -74,6 +69,14 @@ const offSecret = resync.onSecret((secret: string) => {
   ls('secret', secret)
 })
 
+const permissionChange = (event: any, id: string, permission: Permission) => {
+  if(event.target.checked) {
+    resync.givePermission(id, permission)
+  } else {
+    resync.removePermission(id, permission)
+  }
+}
+
 const recentNotifications = ref<EventNotification[]>([])
 const offNotifiy = resync.onNotify(notification => {
   const { event, name, additional } = notification
@@ -128,6 +131,7 @@ onBeforeUnmount(() => {
   offMessage()
   offNotifiy()
   resetScope()
+  offSecret()
   document.title = "resync"
   resync.destroy()
 
@@ -217,17 +221,20 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
       <div id="memberlist" class="top-list left-0">
         <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.name"
-            class="top-text"
-          >{{ member.name }}
-            <template v-if="(member.permission & Permission.Host) === Permission.Host">
-              This is the host!
-            </template>
+          <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
+            {{ member.name }}
+            <template
+              v-if="(member.permission & Permission.Host) === Permission.Host"
+            >This is the host!</template>
             <template v-else>
-              <input type="checkbox" id="player" name="Player Control">
-              <input type="checkbox" id="queue" name="Queue Control">
+              <input :checked="(member.permission & Permission.PlayerControl) === Permission.PlayerControl" 
+              @change="permissionChange($event, member.id, Permission.PlayerControl)"
+               type="checkbox" id="player" name="Player Control" 
+               :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"/>
+              <input :checked="(member.permission & Permission.QueueControl) === Permission.QueueControl" 
+              @change="permissionChange($event, member.id, Permission.QueueControl)"
+               type="checkbox" id="queue" name="Queue Control" 
+               :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"/>
             </template>
           </div>
         </transition-group>

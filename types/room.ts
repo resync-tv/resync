@@ -5,7 +5,7 @@ import { Socket as BackendSocket } from "socket.io"
 export const enum Permission {
   Host = 1 << 0,
   PlayerControl = 1 << 1,
-  QueueContorl = 1 << 2
+  QueueControl = 1 << 2
 }
 
 export interface Member {
@@ -16,6 +16,7 @@ export interface Member {
 
 export interface PublicMember extends Omit<Member, "client"> {
   name: string
+  id: string
   permission: Permission
 }
 

@@ -2,10 +2,11 @@ import type { Socket } from "socket.io-client"
 import type { RoomState } from "$/room"
 import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
 
-import { Ref, ref, watch } from "vue"
+import { Ref, ref, watch, computed } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
+import { Permission } from "$/room"
 
 const log = debug("resync.ts")
 
@@ -25,11 +26,18 @@ export default class Resync {
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
 
+  ownPermission = computed(() => {
+    const selfMember = this.state.value.members.find(m => m.id === this.socket.id)
+    if (!selfMember) throw "can't find myself"
+
+    return selfMember.permission
+  })
+
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      let secret = ls('secret')
+      let secret = ls("secret")
       log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
       socket.emit(event, { roomID, secret, ...arg }, ...args)
     }
@@ -130,6 +138,8 @@ export default class Resync {
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
   message = (msg: string): void => this.roomEmit("message", { msg })
+  givePermission = (id: string, permission: Permission): void => this.roomEmit("givePermission", {permission, id})
+  removePermission = (id: string, permission: Permission): void => this.roomEmit("removePermission", {permission, id})
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })

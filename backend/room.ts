@@ -9,6 +9,8 @@ import { nolookalikesSafe } from "nanoid-dictionary"
 
 import { Permission } from "$/room"
 
+import { randomBytes } from "crypto"
+
 const nanoid = customAlphabet(nolookalikesSafe, 6)
 
 import { resolveContent } from "./content"
@@ -16,12 +18,7 @@ import { resolveContent } from "./content"
 import debug from "debug"
 const log = debug("resync:room")
 
-const crypto = require('crypto')
-const genSecret = () : string => {
-  return crypto.randomBytes(256, (err: any, buffer: any) => {
-    return buffer.toString('hex')
-  })
-}
+const genSecret = () => randomBytes(256).toString("hex")
 
 const rooms: Record<string, Room> = {}
 const getNewRandom = () => {
@@ -36,7 +33,6 @@ interface PlaybackErrorArg {
   reason: string
   name: string
 }
-
 
 class Room {
   private hostSecret: string
@@ -58,20 +54,24 @@ class Room {
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
     this.hostSecret = secret ?? ""
-    this.standardPermission = Permission.PlayerControl | Permission.QueueContorl
+    this.standardPermission = 0//Permission.QueueControl | Permission.PlayerControl
     this.roomID = roomID
     this.io = io
     this.broadcast = this.io.to(roomID)
     this.log = log.extend(roomID)
-
   }
 
   private hasPermission(permission: Permission, id?: string, secret?: string) {
-    if(id) var member = this.getMember(id)
-    return  (
-      this.hostSecret === secret ||
-      (member && permission === (member.permission & permission))
-    )
+    const isHost = this.hostSecret === secret
+    if (isHost) return true
+
+    let member: Member | undefined
+    if (id) member = this.getMember(id)
+
+    if (member) {
+      const hasPermission = permission === (member?.permission & permission)
+      return hasPermission
+    }
   }
 
   private notify(event: NotifyEvents, client: Socket, additional?: any) {
@@ -92,20 +92,22 @@ class Room {
     this.log(`[${event}](${name})`, additional || "")
   }
 
-  givePermission(secret: string, name: string, permission: Permission) {
+  givePermission(secret: string, id: string, permission: Permission) {
     if (this.hostSecret === secret) {
-      let id = this.getId(name)
-      if(id) var member = this.getMember(id)
-      if(member && (member?.permission & permission) !== permission) member.permission &= permission
+      let member = this.getMember(id)
+      if (member && (member?.permission & permission) !== permission)
+        member.permission ^= permission
     }
+    this.updateState()
   }
 
-  removePermission(secret: string, name: string, permission: Permission) {
+  removePermission(secret: string, id: string, permission: Permission) {
     if (this.hostSecret === secret) {
-      let id = this.getId(name)
-      if(id) var member = this.getMember(id)
-      if(member && (member?.permission & permission) === permission) member.permission &= permission
+      let member = this.getMember(id)
+      if (member && (member?.permission & permission) === permission)
+        member.permission ^= permission
     }
+    this.updateState()
   }
 
   message(msg: string, client: Socket) {
@@ -130,7 +132,11 @@ class Room {
         paused: this.paused,
         source: this.source,
         lastSeekedTo: this.lastSeekedTo,
-        members: this.members.map(({ client: { id }, name, permission }) => ({ name, permission })),
+        members: this.members.map(({ client: { id }, name, permission }) => ({
+          name,
+          permission,
+          id,
+        })),
         membersLoading: this.membersLoading,
         queue: await Promise.all(this.queue),
       }
@@ -146,7 +152,10 @@ class Room {
   }
 
   join(client: Socket, name: string) {
-    let permission = this.members.length == 0 ? Permission.Host | this.standardPermission : this.standardPermission
+    let permission =
+      this.members.length == 0
+        ? Permission.Host | Permission.QueueControl | Permission.PlayerControl
+        : this.standardPermission
     this.members.push({ name, client, permission })
     client.join(this.roomID)
 
@@ -174,7 +183,7 @@ class Room {
     startFrom: number,
     secret?: string
   ) {
-    if (!this.hasPermission(Permission.QueueContorl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
     let sourceID = ""
     const currentSourceID =
       this.source?.originalSource.youtubeID ?? this.source?.originalSource.url
@@ -194,7 +203,7 @@ class Room {
 
       this.lastSeekedTo = 0
       this.seekTo({ client, seconds: 0 })
-      this.resume()
+      this.resume(client, secret)
       return
     }
 
@@ -209,7 +218,7 @@ class Room {
   }
 
   addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if (!this.hasPermission(Permission.QueueContorl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
     this.queue.push(resolveContent(source, startFrom))
 
     this.updateState()
@@ -217,7 +226,7 @@ class Room {
   }
 
   clearQueue(client: Socket, secret?: string) {
-    if (!this.hasPermission(Permission.QueueContorl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
     this.queue = []
 
     this.updateState()
@@ -225,7 +234,7 @@ class Room {
   }
 
   playQueued(client: Socket, index: number, remove = false, secret?: string) {
-    if (!this.hasPermission(Permission.QueueContorl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
     const [next] = this.queue.splice(index, 1)
     if (!next) return this.log("client requested non-existant item from queue")
 
@@ -239,7 +248,7 @@ class Room {
     this.membersLoading--
     this.updateState()
 
-    if (this.membersLoading <= 0) this.resume()
+    if (this.membersLoading === 0) this.resume(undefined, this.hostSecret)
     this.log(`members loading: ${this.membersLoading}`)
   }
 
@@ -353,12 +362,12 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID).message(msg, client)
     })
 
-    client.on("givePermission", ({ secret, name, permission, roomID }) => {
-      getRoom(roomID).givePermission(secret, name, permission)
+    client.on("givePermission", ({ secret, id, permission, roomID }) => {
+      if(secret) getRoom(roomID).givePermission(secret, id, permission)
     })
 
-    client.on("removePermission", ({ secret, name, permission, roomID }) => {
-      getRoom(roomID).removePermission(secret, name, permission)
+    client.on("removePermission", ({ secret, id, permission, roomID }) => {
+      if(secret) getRoom(roomID).removePermission(secret, id, permission)
     })
 
     client.on("joinRoom", async ({ roomID, name }, reply) => {
