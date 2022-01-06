@@ -37,6 +37,7 @@ interface PlaybackErrorArg {
   name: string
 }
 
+
 class Room {
   private hostSecret: string
   private standardPermission: Permission
