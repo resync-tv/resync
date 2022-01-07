@@ -290,7 +290,7 @@ class Room {
       const next = this.queue.shift()
       if (next) return this.playContent(undefined, next, 0)
 
-      this.playContent(undefined, "", 0)
+      this.playContent(undefined, "", 0, this.hostSecret)
     }
   }
 
