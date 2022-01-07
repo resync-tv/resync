@@ -161,7 +161,7 @@ class Room {
     let permission: Permission
 
     if (this.members.length) permission = this.defaultPermission
-    else permission = Permission.Host | Permission.QueueControl | Permission.PlaybackControl
+    else permission = Permission.Host | this.defaultPermission
 
     this.members.push({ name, client, permission })
     client.join(this.roomID)
