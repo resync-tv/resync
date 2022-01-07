@@ -10,14 +10,27 @@ https://github.com/resync-tv/resync
 <html class="h-full" lang="en">
   <head>
     <style>
-      /* prefers-color-scheme */
+      body {
+        background-color: #fcfcfc;
+        color: #0c151d;
+        overflow: hidden;
+      }
       @media screen and (prefers-color-scheme: dark) {
         body {
           background-color: #0c151d;
           color: #fcfcfc;
         }
       }
-
+      noscript {
+        font-family: "ManropeVariable", sans-serif;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      noscript a {
+        color: #1a78ca;
+        text-decoration: none;
       }
     </style>
     <meta charset="UTF-8" />
@@ -47,6 +60,12 @@ https://github.com/resync-tv/resync
       const dark = window.matchMedia("(prefers-color-scheme:dark)")
       activateDarkMode(dark.matches)
     </script>
+    <noscript>
+      this site requires javascript.
+      <br />
+      click <a href="https://support.google.com/adsense/answer/12654">here</a> to learn how to
+      enable it.
+    </noscript>
     <div id="app" class="h-full"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
