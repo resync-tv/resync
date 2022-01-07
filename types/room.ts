@@ -5,7 +5,7 @@ import { Socket as BackendSocket } from "socket.io"
 export const enum Permission {
   Host = 1 << 0,
   PlayerControl = 1 << 1,
-  QueueControl = 1 << 2
+  QueueControl = 1 << 2,
 }
 
 export interface Member {
@@ -58,7 +58,7 @@ export interface VideoMetadata {
 }
 
 export interface Message {
-  name: string,
-  msg: string,
+  name: string
+  msg: string
   key: string
 }

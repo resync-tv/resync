@@ -141,8 +141,10 @@ export default class Resync {
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
   message = (msg: string): void => this.roomEmit("message", { msg })
-  givePermission = (id: string, permission: Permission): void => this.roomEmit("givePermission", {permission, id})
-  removePermission = (id: string, permission: Permission): void => this.roomEmit("removePermission", {permission, id})
+  givePermission = (id: string, permission: Permission): void =>
+    this.roomEmit("givePermission", { permission, id })
+  removePermission = (id: string, permission: Permission): void =>
+    this.roomEmit("removePermission", { permission, id })
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })

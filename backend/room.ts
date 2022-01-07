@@ -8,7 +8,6 @@ import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
 
 import { Permission } from "$/room"
-
 import { randomBytes } from "crypto"
 
 const nanoid = customAlphabet(nolookalikesSafe, 6)
@@ -56,7 +55,7 @@ class Room {
     log(`constructing room ${roomID}`)
     this.looped = false
     this.hostSecret = secret ?? ""
-    this.standardPermission = 0//Permission.QueueControl | Permission.PlayerControl
+    this.standardPermission = 0 //Permission.QueueControl | Permission.PlayerControl
     this.roomID = roomID
     this.io = io
     this.broadcast = this.io.to(roomID)
@@ -172,10 +171,9 @@ class Room {
     this.notify("leave", client)
 
     let member = this.getMember(client.id)
-    if(member && (member.permission & Permission.Host) === Permission.Host) 
-    {
+    if (member && (member.permission & Permission.Host) === Permission.Host) {
       let newHost = this.members.filter(m => m.client.id !== client.id)[0]
-      if(newHost) {
+      if (newHost) {
         newHost.permission ^= Permission.Host
         let secret = genSecret()
         this.hostSecret = secret
@@ -273,7 +271,7 @@ class Room {
 
     if (this.membersPlaying <= 0) {
       if (this.looped) {
-        this.seekTo({ seconds: 0, secret:this.hostSecret })
+        this.seekTo({ seconds: 0, secret: this.hostSecret })
         this.resume(undefined, this.hostSecret)
         return
       }
@@ -394,13 +392,13 @@ export default (io: ResyncSocketBackend): void => {
     client.on("loop", ({ secret, newLooped, roomID }) => {
       getRoom(roomID, client).updateLooped(newLooped, client, secret)
     })
-  
+
     client.on("givePermission", ({ secret, id, permission, roomID }) => {
-      if(secret) getRoom(roomID).givePermission(secret, id, permission)
+      if (secret) getRoom(roomID).givePermission(secret, id, permission)
     })
 
     client.on("removePermission", ({ secret, id, permission, roomID }) => {
-      if(secret) getRoom(roomID).removePermission(secret, id, permission)
+      if (secret) getRoom(roomID).removePermission(secret, id, permission)
     })
 
     client.on("joinRoom", async ({ roomID, name }, reply) => {

@@ -23,7 +23,7 @@ export interface BackendEmits {
 }
 
 interface RoomEmitBase {
-  roomID: string,
+  roomID: string
   secret?: string
 }
 interface RoomEmitTime extends RoomEmitBase {
@@ -34,9 +34,9 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
-  loop: FrontendEmitterBase<{newLooped: boolean }>
-  givePermission: FrontendEmitterBase<{ id: string, permission: Permission }>
-  removePermission: FrontendEmitterBase<{ id: string, permission: Permission }>
+  loop: FrontendEmitterBase<{ newLooped: boolean }>
+  givePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
+  removePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
   playQueued: FrontendEmitterBase<{ index: number }>
   removeQueued: FrontendEmitterBase<{ index: number }>
