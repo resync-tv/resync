@@ -4,8 +4,6 @@ import type { Socket } from "socket.io-client"
 import type { EventNotification, RoomState } from "./room"
 import type { MediaSourceAny } from "./mediaSource"
 
-import { HostMode } from "$/room"
-
 type Callback<A = void> = (x: A) => void
 
 type BackendEmitterBase<A = void> = (x: A) => void

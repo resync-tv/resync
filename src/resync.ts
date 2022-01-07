@@ -37,7 +37,7 @@ export default class Resync {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      let secret = ls("secret")
+      const secret = ls("secret")
       log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
       socket.emit(event, { roomID, secret, ...arg }, ...args)
     }

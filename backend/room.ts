@@ -95,7 +95,7 @@ class Room {
 
   givePermission(secret: string, id: string, permission: Permission) {
     if (this.hostSecret === secret) {
-      let member = this.getMember(id)
+      const member = this.getMember(id)
       if (member && (member?.permission & permission) !== permission)
         member.permission ^= permission
     }
@@ -104,7 +104,7 @@ class Room {
 
   removePermission(secret: string, id: string, permission: Permission) {
     if (this.hostSecret === secret) {
-      let member = this.getMember(id)
+      const member = this.getMember(id)
       if (member && (member?.permission & permission) === permission)
         member.permission ^= permission
     }
@@ -154,8 +154,8 @@ class Room {
   }
 
   join(client: Socket, name: string) {
-    let permission =
-      this.members.length == 0
+    const permission =
+      this.members.length === 0
         ? Permission.Host | Permission.QueueControl | Permission.PlayerControl
         : this.standardPermission
     this.members.push({ name, client, permission })
@@ -170,12 +170,12 @@ class Room {
   leave(client: Socket) {
     this.notify("leave", client)
 
-    let member = this.getMember(client.id)
+    const member = this.getMember(client.id)
     if (member && (member.permission & Permission.Host) === Permission.Host) {
-      let newHost = this.members.filter(m => m.client.id !== client.id)[0]
+      const newHost = this.members.filter(m => m.client.id !== client.id)[0]
       if (newHost) {
         newHost.permission ^= Permission.Host
-        let secret = genSecret()
+        const secret = genSecret()
         this.hostSecret = secret
         newHost.client.emit("secret", secret)
       }
@@ -374,7 +374,7 @@ export default (io: ResyncSocketBackend): void => {
   const getRoom = (roomID: string, client?: Socket) => {
     if (!rooms[roomID]) {
       if (client) {
-        let secret = genSecret()
+        const secret = genSecret()
         client.emit("secret", secret)
         rooms[roomID] = new Room(roomID, io, secret)
       } else {
