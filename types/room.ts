@@ -4,7 +4,7 @@ import { Socket as BackendSocket } from "socket.io"
 
 export const enum Permission {
   Host = 1 << 0,
-  PlayerControl = 1 << 1,
+  PlaybackControl = 1 << 1,
   QueueControl = 1 << 2,
 }
 
@@ -21,7 +21,7 @@ export interface PublicMember extends Omit<Member, "client"> {
 }
 
 export interface RoomState<S = MediaSourceAny> {
-  looped: boolean
+  looping: boolean
   paused: boolean
   source: S | undefined
   lastSeekedTo: number
@@ -31,7 +31,7 @@ export interface RoomState<S = MediaSourceAny> {
 }
 
 export type NotifyEvents =
-  | "looped"
+  | "looping"
   | "join"
   | "leave"
   | "playContent"

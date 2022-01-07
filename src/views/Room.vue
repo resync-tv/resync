@@ -66,14 +66,14 @@ if (name)
   })
 
 const offSecret = resync.onSecret((secret: string) => {
-  ls("secret", secret)
+  ls("resync-secret", secret)
 })
 
 const permissionChange = (event: any, id: string, permission: Permission) => {
   if (event.target.checked) {
-    resync.givePermission(id, permission)
+    resync.grantPermission(id, permission)
   } else {
-    resync.removePermission(id, permission)
+    resync.revokePermission(id, permission)
   }
 }
 
@@ -227,16 +227,16 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             :key="member.name"
             class="top-text"
           >
-            {{ member.name }}
-            <template v-if="(member.permission & Permission.Host) === Permission.Host"
-              >This is the host!</template
-            >
+            <template v-if="(member.permission & Permission.Host) === Permission.Host">
+              [host]
+            </template>
             <template v-else>
               <input
                 :checked="
-                  (member.permission & Permission.PlayerControl) === Permission.PlayerControl
+                  (member.permission & Permission.PlaybackControl) ===
+                  Permission.PlaybackControl
                 "
-                @change="permissionChange($event, member.id, Permission.PlayerControl)"
+                @change="permissionChange($event, member.id, Permission.PlaybackControl)"
                 type="checkbox"
                 id="player"
                 name="Player Control"
@@ -253,6 +253,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
                 :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
               />
             </template>
+            {{ member.name }}
           </div>
         </transition-group>
       </div>

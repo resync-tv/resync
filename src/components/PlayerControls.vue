@@ -155,9 +155,9 @@ export default defineComponent({
 
       <div class="flex">
         <SvgIcon
-          :name="resync.state.value.looped ? 'cached' : 'pause'"
+          :name="resync.state.value.looping ? 'cached' : 'pause'"
           @click="resync.loop()"
-          title="looped"
+          title="looping"
           class="player-icon small"
         />
         <SvgIcon

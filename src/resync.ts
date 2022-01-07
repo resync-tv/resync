@@ -27,23 +27,23 @@ export default class Resync {
   state: Ref<RoomState>
 
   ownPermission = computed(() => {
-    const selfMember = this.state.value.members.find(m => m.id === this.socket.id)
-    if (!selfMember) throw "can't find myself"
+    const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
+    if (!ownMember) throw "i just can't find myself"
 
-    return selfMember.permission
+    return ownMember.permission
   })
 
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      const secret = ls("secret")
+      const secret = ls("resync-secret")
       log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
       socket.emit(event, { roomID, secret, ...arg }, ...args)
     }
 
     this.state = ref({
-      looped: false,
+      looping: false,
       paused: this.paused.value,
       source: undefined,
       lastSeekedTo: 0,
@@ -96,7 +96,7 @@ export default class Resync {
     return new Promise(res => this.socket.emit("search", query, res))
   }
 
-  loop = () => this.roomEmit("loop", { newLooped: !this.state.value.looped })
+  loop = () => this.roomEmit("loop", { newState: !this.state.value.looping })
 
   joinRoom = async (name: string): Promise<void> => {
     const join = () => {
@@ -141,9 +141,9 @@ export default class Resync {
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
   message = (msg: string): void => this.roomEmit("message", { msg })
-  givePermission = (id: string, permission: Permission): void =>
+  grantPermission = (id: string, permission: Permission): void =>
     this.roomEmit("givePermission", { permission, id })
-  removePermission = (id: string, permission: Permission): void =>
+  revokePermission = (id: string, permission: Permission): void =>
     this.roomEmit("removePermission", { permission, id })
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
