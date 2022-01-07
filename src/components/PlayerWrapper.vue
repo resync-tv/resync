@@ -211,7 +211,7 @@ export default defineComponent({
     id="player-wrapper"
     ref="playerWrapper"
   >
-    <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
+    <VideoPlayer @metadata="onMetadata" @fullscreen="toggleFullscreen" :style="sizeStyle" />
 
     <!-- <div v-if="!resync.state.value.source" class="flex-col h-full w-full centerflex">
       <h1 class="text-error text-3xl">nothing's playing.</h1>
