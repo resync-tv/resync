@@ -53,7 +53,10 @@ export default class Resync {
         log("new state", state)
         this.state.value = state
       }),
-      this.onSource(this.updateMediasession)
+      this.onSource((source?: MediaSourceAny) => {
+        this.updateMediasession(source)
+        if(source) this.seekTo(source.startFrom)
+      })
     )
   }
   destroy = (): void => this.handlers.forEach(off => off())
@@ -117,8 +120,8 @@ export default class Resync {
     await join()
   }
 
-  playContent = (source: string): void => this.roomEmit("playContent", { source })
-  queue = (source: string): void => this.roomEmit("queue", { source })
+  playContent = (source: string, startFrom?: number): void => this.roomEmit("playContent", { source, startFrom })
+  queue = (source: string, startFrom?: number): void => this.roomEmit("queue", { source, startFrom })
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")
   removeQueued = (index: number): void => this.roomEmit("removeQueued", { index })
