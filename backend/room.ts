@@ -371,7 +371,7 @@ class Room {
     this.pause()
 
     const avg = await this.requestTime(client)
-    this.seekTo({ seconds: avg })
+    this.seekTo({ seconds: avg, secret: this.hostSecret })
     this.resume()
 
     this.updateState()
@@ -401,7 +401,7 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
-    client.on("message", ({ msg, roomID }) => {
+    client.on("message", ({ msg, roomID, secret }) => {
       getRoom(roomID).message(msg, client)
     })
 
@@ -417,48 +417,48 @@ export default (io: ResyncSocketBackend): void => {
       if (secret) getRoom(roomID).revokePermission(secret, id, permission)
     })
 
-    client.on("joinRoom", async ({ roomID, name }, reply) => {
+    client.on("joinRoom", async ({ roomID, name, secret }, reply) => {
       const room = getRoom(roomID, client)
       room.join(client, name)
 
       reply(await room.state)
     })
 
-    client.on("leaveRoom", ({ roomID }) => {
+    client.on("leaveRoom", ({ roomID, secret }) => {
       getRoom(roomID).leave(client)
     })
 
-    client.on("playContent", ({ roomID, source, startFrom = 0 }) => {
-      getRoom(roomID).playContent(client, source, startFrom)
+    client.on("playContent", ({ roomID, source, startFrom = 0, secret }) => {
+      getRoom(roomID).playContent(client, source, startFrom, secret)
     })
 
-    client.on("queue", ({ roomID, source, startFrom = 0 }) => {
-      getRoom(roomID).addQueue(client, source, startFrom)
+    client.on("queue", ({ roomID, source, startFrom = 0, secret }) => {
+      getRoom(roomID).addQueue(client, source, startFrom, secret)
     })
 
-    client.on("clearQueue", ({ roomID }) => getRoom(roomID).clearQueue(client))
+    client.on("clearQueue", ({ roomID, secret }) => getRoom(roomID).clearQueue(client, secret))
 
-    client.on("playQueued", ({ roomID, index }) => {
-      getRoom(roomID).playQueued(client, index)
+    client.on("playQueued", ({ roomID, index, secret }) => {
+      getRoom(roomID).playQueued(client, index, false, secret)
     })
 
-    client.on("removeQueued", ({ roomID, index }) => {
-      getRoom(roomID).playQueued(client, index, true)
+    client.on("removeQueued", ({ roomID, index, secret }) => {
+      getRoom(roomID).playQueued(client, index, true, secret)
     })
 
     client.on("loaded", ({ roomID }) => getRoom(roomID).loaded())
     client.on("finished", ({ roomID }) => getRoom(roomID).finished())
 
-    client.on("pause", ({ roomID, currentTime }) => {
-      getRoom(roomID).pause(currentTime, client)
+    client.on("pause", ({ roomID, currentTime, secret }) => {
+      getRoom(roomID).pause(currentTime, client, secret)
     })
 
-    client.on("resume", ({ roomID }) => {
-      getRoom(roomID).resume(client)
+    client.on("resume", ({ roomID, secret }) => {
+      getRoom(roomID).resume(client, secret)
     })
 
-    client.on("seekTo", ({ roomID, currentTime }) => {
-      getRoom(roomID).seekTo({ client, seconds: currentTime })
+    client.on("seekTo", ({ roomID, currentTime, secret }) => {
+      getRoom(roomID).seekTo({ client, seconds: currentTime, secret })
     })
 
     client.on("resync", ({ roomID }) => getRoom(roomID).resync(client))
