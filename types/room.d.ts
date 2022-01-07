@@ -2,11 +2,7 @@ import type { MediaSourceAny } from "./mediaSource"
 
 import { Socket as BackendSocket } from "socket.io"
 
-export const enum Permission {
-  Host = 1 << 0,
-  PlaybackControl = 1 << 1,
-  QueueControl = 1 << 2,
-}
+import { Permission } from "./permissionTypes"
 
 export interface Member {
   name: string
