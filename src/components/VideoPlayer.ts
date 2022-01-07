@@ -29,7 +29,7 @@ export default defineComponent({
 
     const delay = 300
     let clicks = 0
-    let singleClickTimeout: NodeJS.Timeout | undefined
+    let singleClickTimeout: NodeJS.Timeout
     const singleClick = () => {
       resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
       clicks = 0
@@ -42,7 +42,6 @@ export default defineComponent({
     const video = ref<null | HTMLVideoElement>(null)
     const muted = ref(false)
     const autoplay = ref(false)
-
 
     const requireUserInteraction = inject<() => Promise<void>>("requireUserInteraction")
     if (!requireUserInteraction) throw new Error("requireUserInteraction injection failed")
@@ -171,7 +170,7 @@ export default defineComponent({
 
       video.value.onclick = () => {
         clicks++
-        if(clicks === 1) {
+        if (clicks === 1) {
           singleClickTimeout = setTimeout(singleClick, delay)
         } else {
           if (singleClickTimeout) clearTimeout(singleClickTimeout)
