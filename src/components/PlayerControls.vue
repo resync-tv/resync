@@ -155,15 +155,15 @@ export default defineComponent({
 
       <div class="flex">
         <SvgIcon
-          :name="resync.state.value.looping ? 'cached' : 'pause'"
-          @click="resync.loop()"
-          title="looping"
-          class="player-icon small"
-        />
-        <SvgIcon
           name="playlist"
           title="show/hide queue"
           @click="$emit('queue')"
+          class="player-icon"
+        />
+        <SvgIcon
+          :name="resync.state.value.looping ? 'repeat_on' : 'repeat'"
+          @click="resync.loop()"
+          title="looping"
           class="player-icon"
         />
         <SvgIcon
@@ -191,6 +191,7 @@ export default defineComponent({
   &.small {
     font-size: 20px;
     height: 24px;
+    width: 20px;
   }
 }
 
