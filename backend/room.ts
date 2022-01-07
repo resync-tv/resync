@@ -151,7 +151,6 @@ class Room {
   }
 
   getMember = (id: string) => this.members.find(m => m.client.id === id)
-  getId = (name: string) => this.members.find(m => m.name === name)?.client.id
   removeMember = (id: string) => (this.members = this.members.filter(m => m.client.id !== id))
 
   async updateState() {
