@@ -34,6 +34,7 @@
     "nanoid-dictionary": "^4.3.0",
     "socket.io": "^4.1.2",
     "socket.io-client": "^4.1.2",
+    "sponsorblock-api": "^0.2.2",
     "ts-debounce": "^3.0.0",
     "vue": "^3.2.26",
     "vue-router": "^4.0.10",

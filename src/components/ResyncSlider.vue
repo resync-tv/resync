@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { minMax } from "@/util"
 import { PropType, ref, toRefs, watch } from "vue"
-
 const emit = defineEmits(["value", "slide"])
 const props = defineProps({
   progress: {
@@ -9,6 +8,10 @@ const props = defineProps({
     required: true,
   },
   buffered: {
+    type: Array as PropType<number[][]>,
+    default: [],
+  },
+  blocked: {
     type: Array as PropType<number[][]>,
     default: [],
   },
@@ -33,12 +36,10 @@ const props = defineProps({
     default: 0,
   },
 })
-
-const { progress, buffered, updateSlack, immediate } = toRefs(props)
+const { progress, buffered, blocked, updateSlack, immediate } = toRefs(props)
 const override = ref<number | null>(null)
 const active = ref(false)
 let skipValueUpdates = 0
-
 watch(progress, () => {
   if (skipValueUpdates > 1) skipValueUpdates--
   else if (skipValueUpdates === 1) {
@@ -46,7 +47,6 @@ watch(progress, () => {
     override.value = null
   }
 })
-
 const mouseDown = (event: MouseEvent) => {
   if (props.disabled) return
   const target = event.target as HTMLElement
@@ -54,38 +54,31 @@ const mouseDown = (event: MouseEvent) => {
   let { offsetX } = event
   override.value = event.offsetX / target.offsetWidth
   active.value = true
-
   window.onmousemove = (evt: MouseEvent) => {
     offsetX += evt.movementX / window.devicePixelRatio
     override.value = minMax(offsetX / offsetWidth)
     emit("slide", override.value)
-
     if (immediate.value) emit("value", override.value)
   }
-
   window.onmouseup = () => {
     emit("value", override.value)
-
     if (updateSlack.value > 0) skipValueUpdates = updateSlack.value
     else override.value = null
-
     window.onmousemove = null
     window.onmouseup = null
     active.value = false
   }
 }
-
 const onwheel = (event: WheelEvent) => {
   if (!props.wheelSteps) return
   event.preventDefault()
   event.stopPropagation()
-
   const { deltaY } = event
-
   if (deltaY < 0) emit("value", progress.value + props.wheelSteps)
   else emit("value", progress.value - props.wheelSteps)
 }
 </script>
+
 
 <template>
   <div class="resync-slider" :class="{ active }" @wheel="onwheel">
@@ -107,6 +100,16 @@ const onwheel = (event: WheelEvent) => {
           }"
           class="segment"
         ></div>
+        <div
+          v-for="seg in blocked"
+          :key="seg[0]"
+          :style="{
+            // @ts-expect-error
+            '--start': `${seg[0] * 100}%`,
+            '--end': `${seg[1] * 100}%`,
+          }"
+          class="segment blocked"
+        ></div>
       </div>
       <div class="progress"></div>
       <div class="handle"></div>
@@ -127,6 +130,7 @@ const onwheel = (event: WheelEvent) => {
   cursor: pointer;
   display: flex;
   align-items: center;
+  z-index:0;
 
   > div:not(.background) {
     position: absolute;
@@ -156,6 +160,12 @@ const onwheel = (event: WheelEvent) => {
       height: var(--height);
       transition: height var(--hover-transition);
       background: rgba(255, 255, 255, 0.4);
+      z-index:1;
+    }
+
+    > .blocked {
+      background: rgba(255, 0, 0, 1);
+      z-index:2;
     }
   }
 

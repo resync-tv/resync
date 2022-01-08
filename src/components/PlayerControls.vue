@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import Resync, { SocketOff } from "@/resync"
-
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
 import { Permission } from "../../backend/permission"
 import { emit } from "process"
-
 const log = debug("playercontrols")
-
 defineEmits(["fullscreen", "queue"])
 const props = defineProps({
   fullscreenEnabled: {
@@ -19,7 +16,6 @@ const props = defineProps({
 })
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
-
 const offHandlers: SocketOff[] = []
 const currentTime = ref(0)
 const duration = ref(0)
@@ -27,15 +23,14 @@ const progress = computed(() => {
   return minMax(currentTime.value / duration.value)
 })
 const buffered = ref<number[][]>([])
-
+const blocked = ref<number[][]>([])
 let interval: NodeJS.Timeout
 const updateProgress = (once = false, current?: number) => {
   clearInterval(interval)
-
   currentTime.value = current ?? resync.currentTime()
   duration.value = resync.duration()
   buffered.value = bufferedArray(resync.buffered(), resync.duration())
-
+  blocked.value = resync.blocked() ?? []
   if (!once && (isNaN(progress.value) || !resync.paused.value)) {
     requestAnimationFrame(() => updateProgress())
   } else {
@@ -47,17 +42,13 @@ const updateProgress = (once = false, current?: number) => {
 }
 updateProgress()
 onMounted(() => updateProgress())
-
 const playWatcher = watch(resync.paused, () => updateProgress())
 offHandlers.push(playWatcher)
-
 const offSeekTo = resync.onSeekTo(to => {
   updateProgress(true, to)
 })
 offHandlers.push(offSeekTo)
-
 onBeforeUnmount(() => offHandlers.forEach(off => off()))
-
 const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
 const volumeStateIcon = computed(() => {
   if (resync.muted.value) return "volume_off"
@@ -65,43 +56,33 @@ const volumeStateIcon = computed(() => {
   if (resync.volume.value < 0.5) return "volume_down"
   else return "volume_up"
 })
-
 const onPlayIconClick = () => {
   resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
 }
-
 const onVolumeIconClick = () => {
   if (!resync.muted.value && resync.volume.value === 0) {
     resync.volume.value = 0.3
-
     return
   }
-
   resync.muted.value = !resync.muted.value
 }
-
 const onVolumeSlider = (value: number) => {
   resync.muted.value = false
   resync.volume.value = value
 }
-
 const onProgressSliderValue = (value: number) => {
   log("onProgressSliderValue", value)
   resync.seekTo(resync.duration() * value)
 }
-
 const onProgressSliding = (value: number) => {
   currentTime.value = resync.duration() * value
 }
-
 const fullscreenStateIcon = computed(() => {
   if (props.fullscreenEnabled) return "fullscreen_exit"
   return "fullscreen"
 })
-
 const volumeScroll = (event: WheelEvent) => {
   const { deltaY } = event
-
   if (deltaY < 0) resync.volume.value = minMax(resync.volume.value + 0.05)
   else resync.volume.value = minMax(resync.volume.value - 0.05)
 }
@@ -187,6 +168,7 @@ const volumeScroll = (event: WheelEvent) => {
         !resync.hasPermission(Permission.Host) &&
         !resync.hasPermission(Permission.PlaybackControl)
       "
+      :blocked="blocked"
       @value="onProgressSliderValue"
       @slide="onProgressSliding"
       :updateSlack="3"

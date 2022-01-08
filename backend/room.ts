@@ -2,7 +2,9 @@ import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { MediaSourceAny } from "$/mediaSource"
 import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
 import type { BackendEmits, ResyncSocketBackend } from "$/socket"
+import type { Category, Segment } from "sponsorblock-api"
 
+import { SponsorBlock } from 'sponsorblock-api';
 import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
@@ -15,9 +17,13 @@ const nanoid = customAlphabet(nolookalikesSafe, 6)
 import { resolveContent } from "./content"
 
 import debug from "debug"
+import { clear } from "console"
 const log = debug("resync:room")
 
 const genSecret = () => randomBytes(256).toString("hex")
+const sponsorBlock = new SponsorBlock("resync-sponsorblock")
+const allCategories : Category[] = ['sponsor' , 'intro' , 'outro' ,
+'interaction' , 'selfpromo' , 'music_offtopic' , 'preview'] //todo: move this somewhere
 
 const rooms: Record<string, Room> = {}
 const getNewRandom = () => {
@@ -38,6 +44,8 @@ class Room {
   private hostSecret: string
   private defaultPermission: Permission
   readonly roomID: string
+  private blockedCategories: Category[]
+  private segmentTimeouts: NodeJS.Timeout[]
   private io: ResyncSocketBackend
   private log: debug.Debugger
   readonly broadcast: BroadcastOperator<BackendEmits>
@@ -56,6 +64,9 @@ class Room {
     this.looping = false
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
+
+    this.blockedCategories = allCategories
+    this.segmentTimeouts = []
     this.roomID = roomID
     this.io = io
     this.broadcast = this.io.to(roomID)
@@ -227,6 +238,15 @@ class Room {
       sourceID = this.source.originalSource.youtubeID ?? this.source.originalSource.url
     }
 
+
+    if(this.source && !this.source.segments) 
+    try {
+      this.source.segments = await sponsorBlock.getSegments(sourceID, allCategories)
+    } catch(e) {
+      //no segments for video
+    }
+    startFrom = this.updateSegmentTimeouts(startFrom)
+
     if (sourceID === currentSourceID) {
       this.log(`same video, starting from ${this.source?.startFrom}`)
 
@@ -246,9 +266,36 @@ class Room {
     if (client) this.notify("playContent", client, { source, startFrom })
   }
 
-  addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if (!this.hasPermission(Permission.ContentControl, client.id, secret)) return
+  skipSegment(segment: Segment) {
+    if (!this.paused && this.blockedCategories.includes(segment.category)) {
+      this.seekTo({ seconds: segment.endTime })
+    }
+  }
 
+  updateSegmentTimeouts(oldTime: number) : number {
+    for (const segmentTimeout of this.segmentTimeouts) clearTimeout(segmentTimeout)
+    if(this.source?.segments) {
+      for (const segment of this.source.segments) {
+        if (this.blockedCategories.includes(segment.category) 
+          && segment.endTime > oldTime && oldTime > segment.startTime) oldTime = segment.endTime
+      }
+      for (const segment of this.source.segments) {
+        if (segment.startTime > oldTime) {
+          this.segmentTimeouts.push(
+            setTimeout(() => this.skipSegment(segment), 1e3*(segment.startTime - oldTime))
+          )
+        }
+      }
+    } 
+    return oldTime
+  }
+
+  clearSegmentTimeouts() : void {
+    for (const segmentTimeout of this.segmentTimeouts) clearTimeout(segmentTimeout)
+  }
+
+  addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
+    if(!this.hasPermission(Permission.ContentControl, client.id, secret)) return
     this.queue.push(resolveContent(source, startFrom))
 
     this.updateState()
@@ -304,6 +351,8 @@ class Room {
   pause(seconds?: number, client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
 
+    this.clearSegmentTimeouts()
+    
     this.paused = true
     this.broadcast.emit("pause")
 
@@ -316,6 +365,7 @@ class Room {
   resume(client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
 
+    this.updateSegmentTimeouts(this.lastSeekedTo)
     this.paused = false
     this.broadcast.emit("resume")
 
@@ -335,12 +385,14 @@ class Room {
 
   seekTo({ client, seconds, secret }: { client?: Socket; seconds: number; secret?: string }) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
+    seconds = this.updateSegmentTimeouts(seconds)
 
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
 
     this.updateState()
     if (client) this.notify("seekTo", client, { seconds })
+      else this.log(`Seeking to ${seconds}`)
   }
 
   async requestTime(client: Socket) {
