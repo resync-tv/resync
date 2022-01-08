@@ -53,6 +53,10 @@ export default defineComponent({
       resync.currentTime = () => video.value?.currentTime ?? NaN
       resync.duration = () => video.value?.duration ?? NaN
       resync.buffered = () => video.value?.buffered ?? bufferedStub
+      resync.blocked = () => {
+        const segments = computed(() => resync.state.value.source?.segments).value
+        return segments?.map(segment => [segment.startTime/resync.duration(), segment.endTime/resync.duration()])
+      }
 
       video.value.volume = resync.muted.value ? 0 : resync.volume.value
 

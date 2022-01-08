@@ -22,6 +22,10 @@ export default defineComponent({
       type: Array as PropType<number[][]>,
       default: [],
     },
+    blocked: {
+      type: Array as PropType<number[][]>,
+      default: [],
+    },
     updateSlack: {
       type: Number,
       default: 0,
@@ -37,7 +41,7 @@ export default defineComponent({
   },
   emits: ["value"],
   setup(props, { emit }) {
-    const { progress, buffered, updateSlack, immediate } = toRefs(props)
+    const { progress, buffered, blocked, updateSlack, immediate } = toRefs(props)
     const override = ref<number | null>(null)
     const active = ref(false)
     let skipValueUpdates = 0
@@ -82,6 +86,7 @@ export default defineComponent({
       override,
       active,
       buffered,
+      blocked,
     }
   },
 })
@@ -101,10 +106,21 @@ export default defineComponent({
           v-for="seg in buffered"
           :key="seg[0]"
           :style="{
+            // @ts-expect-error
             '--start': `${seg[0] * 100}%`,
             '--end': `${seg[1] * 100}%`,
           }"
           class="segment"
+        ></div>
+        <div
+          v-for="seg in blocked"
+          :key="seg[0]"
+          :style="{
+            // @ts-expect-error
+            '--start': `${seg[0] * 100}%`,
+            '--end': `${seg[1] * 100}%`,
+          }"
+          class="segment blocked"
         ></div>
       </div>
       <div class="progress"></div>
@@ -126,6 +142,7 @@ export default defineComponent({
   cursor: pointer;
   display: flex;
   align-items: center;
+  z-index:0;
 
   > div:not(.background) {
     position: absolute;
@@ -155,6 +172,12 @@ export default defineComponent({
       height: var(--height);
       transition: height var(--hover-transition);
       background: rgba(255, 255, 255, 0.4);
+      z-index:1;
+    }
+
+    > .blocked {
+      background: rgba(255, 0, 0, 1);
+      z-index:2;
     }
   }
 

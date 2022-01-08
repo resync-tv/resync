@@ -1,3 +1,5 @@
+import { Segment } from "sponsorblock-api"
+
 export type Platform = "youtube" | "soundcloud" | "other"
 
 export interface MediaRawSource {
@@ -18,6 +20,7 @@ export interface MediaBase {
   title: string
   uploader?: string
   thumb?: string
+  segments?: Segment[]
   duration: number
   type: MediaType
   originalSource: OriginalSource
