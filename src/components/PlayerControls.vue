@@ -161,6 +161,12 @@ export default defineComponent({
           class="player-icon"
         />
         <SvgIcon
+          :name="resync.state.value.looping ? 'repeat_on' : 'repeat'"
+          @click="resync.loop()"
+          title="looping"
+          class="player-icon"
+        />
+        <SvgIcon
           :name="fullscreenStateIcon"
           title="fullscreen"
           @click="$emit('fullscreen')"
@@ -185,6 +191,7 @@ export default defineComponent({
   &.small {
     font-size: 20px;
     height: 24px;
+    width: 20px;
   }
 }
 
@@ -192,12 +199,12 @@ export default defineComponent({
   > .resync-slider {
     @apply transition transition-all;
     @apply mx-1;
-    @apply w-0 opacity-0;
+    @apply opacity-0 w-0;
   }
 
   &:hover > .resync-slider,
   > .resync-slider.active {
-    @apply w-15 opacity-100;
+    @apply opacity-100 w-15;
   }
 }
 

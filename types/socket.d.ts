@@ -9,6 +9,7 @@ type Callback<A = void> = (x: A) => void
 type BackendEmitterBase<A = void> = (x: A) => void
 
 export interface BackendEmits {
+  secret: BackendEmitterBase<string>
   notifiy: BackendEmitterBase<EventNotification>
   message: BackendEmitterBase<Message>
   source: BackendEmitterBase<MediaSourceAny | undefined>
@@ -21,6 +22,7 @@ export interface BackendEmits {
 
 interface RoomEmitBase {
   roomID: string
+  secret?: string
 }
 interface RoomEmitTime extends RoomEmitBase {
   currentTime: number
@@ -30,6 +32,9 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
+  loop: FrontendEmitterBase<{ newState: boolean }>
+  givePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
+  removePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
   playQueued: FrontendEmitterBase<{ index: number }>
   removeQueued: FrontendEmitterBase<{ index: number }>
