@@ -2,16 +2,22 @@ import type { MediaSourceAny } from "./mediaSource"
 
 import { Socket as BackendSocket } from "socket.io"
 
+import { Permission } from "./permissionTypes"
+
 export interface Member {
   name: string
   client: BackendSocket
+  permission: Permission
 }
 
 export interface PublicMember extends Omit<Member, "client"> {
+  name: string
   id: string
+  permission: Permission
 }
 
 export interface RoomState<S = MediaSourceAny> {
+  looping: boolean
   paused: boolean
   source: S | undefined
   lastSeekedTo: number
@@ -21,6 +27,7 @@ export interface RoomState<S = MediaSourceAny> {
 }
 
 export type NotifyEvents =
+  | "looping"
   | "join"
   | "leave"
   | "playContent"
@@ -47,7 +54,7 @@ export interface VideoMetadata {
 }
 
 export interface Message {
-  name: string,
-  msg: string,
+  name: string
+  msg: string
   key: string
 }

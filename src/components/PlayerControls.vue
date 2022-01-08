@@ -164,6 +164,12 @@ export default defineComponent({
           class="player-icon"
         />
         <SvgIcon
+          :name="resync.state.value.looping ? 'repeat_on' : 'repeat'"
+          @click="resync.loop()"
+          title="looping"
+          class="player-icon"
+        />
+        <SvgIcon
           :name="fullscreenStateIcon"
           title="fullscreen"
           @click="$emit('fullscreen')"
@@ -189,6 +195,7 @@ export default defineComponent({
   &.small {
     font-size: 20px;
     height: 24px;
+    width: 20px;
   }
 }
 

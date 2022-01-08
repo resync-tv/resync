@@ -7,6 +7,7 @@ import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
+import { Permission } from "$/permissionTypes"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
@@ -65,6 +66,18 @@ if (name)
     ls("resync-last-room", roomID)
   })
 
+const offSecret = resync.onSecret((secret: string) => {
+  ls("resync-secret", secret)
+})
+
+const permissionChange = (event: any, id: string, permission: Permission) => {
+  if (event.target.checked) {
+    resync.grantPermission(id, permission)
+  } else {
+    resync.revokePermission(id, permission)
+  }
+}
+
 const recentNotifications = ref<EventNotification[]>([])
 const offNotifiy = resync.onNotify(notification => {
   const { event, name, additional } = notification
@@ -120,6 +133,7 @@ onBeforeUnmount(() => {
   offMessage()
   offNotifiy()
   resetScope()
+  offSecret()
   document.title = "resync"
   resync.destroy()
 
@@ -169,11 +183,12 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="mr-2"
             autofocus
           />
-          <button
-            class="resync-button"
-            :class="{ invalid: playButtonDisabled }"
-          >{{ playButtonText }}</button>
-          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">queue</button>
+          <button class="resync-button" :class="{ invalid: playButtonDisabled }">
+            {{ playButtonText }}
+          </button>
+          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">
+            queue
+          </button>
         </form>
 
         <PlayerWrapper
@@ -214,9 +229,37 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
         <transition-group name="text-height">
           <div
             v-for="member in resync.state.value.members"
-            :key="member.id"
+            :key="member.name"
             class="top-text"
-          >{{ member.name }}</div>
+          >
+            <template v-if="(member.permission & Permission.Host) === Permission.Host">
+              [host]
+            </template>
+            <template v-else>
+              <input
+                :checked="
+                  (member.permission & Permission.PlaybackControl) ===
+                  Permission.PlaybackControl
+                "
+                @change="permissionChange($event, member.id, Permission.PlaybackControl)"
+                type="checkbox"
+                id="player"
+                name="Player Control"
+                :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
+              />
+              <input
+                :checked="
+                  (member.permission & Permission.QueueControl) === Permission.QueueControl
+                "
+                @change="permissionChange($event, member.id, Permission.QueueControl)"
+                type="checkbox"
+                id="queue"
+                name="Queue Control"
+                :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
+              />
+            </template>
+            {{ member.name }}
+          </div>
         </transition-group>
       </div>
 
@@ -228,21 +271,31 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
               v-for="notification in recentNotifications"
               :key="notification.key"
               class="top-text text-right z-2"
-            >{{ renderNotification[notification.event](notification) }}</div>
+            >
+              {{ renderNotification[notification.event](notification) }}
+            </div>
           </transition-group>
         </div>
       </div>
 
       <div id="chat" class="bottom-list min-w-75 right-0">
-        <div class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end">
-          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
-          <div class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"></div>
+        <div
+          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+        >
+          <div
+            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
+          ></div>
+          <div
+            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
+          ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
               v-for="message in recentMessages"
               :key="message.key"
               class="top-text text-right opacity-25 z-2"
-            >{{ message.name + ": " + message.msg }}</div>
+            >
+              {{ message.name + ": " + message.msg }}
+            </div>
           </transition-group>
           <input
             @keypress.enter="sendMessage"
