@@ -14,6 +14,7 @@ import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
+import { getTimestamp } from "@/timestamp"
 
 const log = debug("room")
 
@@ -122,7 +123,8 @@ onMounted(() => {
     }
 
     if (sourceIsURL.value || !sourceInput.value.length) {
-      resync.playContent(sourceInput.value)
+      let startFrom = getTimestamp(sourceInput.value)
+      resync.playContent(sourceInput.value, startFrom)
     } else searchResults.value = await resync.search(sourceInput.value)
   }
 })
@@ -143,7 +145,10 @@ const queue = (e: MouseEvent) => {
   e.preventDefault()
   e.stopPropagation()
   log(`queue ${sourceInput.value}`)
-  resync.queue(sourceInput.value)
+
+  let startFrom = getTimestamp(sourceInput.value)
+
+  resync.queue(sourceInput.value, startFrom)
 }
 
 const contentShowing = computed(() => {
