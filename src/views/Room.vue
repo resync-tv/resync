@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EventNotification, Message } from "$/room"
+import type { EventNotification, Message, PublicMember } from "$/room"
 import type { ResyncSocketFrontend } from "$/socket"
 
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
@@ -14,6 +14,7 @@ import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
+import SvgIcon from "../components/SvgIcon.vue"
 
 const log = debug("room")
 
@@ -69,11 +70,13 @@ const offSecret = resync.onSecret((secret: string) => {
   resync.hostSecret = secret
 })
 
-const permissionChange = (event: any, id: string, permission: Permission) => {
-  if (event.target.checked) {
-    resync.grantPermission(id, permission)
-  } else {
-    resync.revokePermission(id, permission)
+const permissionToggle = (member: PublicMember, permission: Permission) => {
+  const granted = (member.permission & permission) === permission
+
+  if (granted) {
+    resync.revokePermission(member.id, permission)
+    } else {
+    resync.grantPermission(member.id, permission)
   }
 }
 
@@ -227,16 +230,19 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             :key="member.name"
             class="top-text"
           >
-            <template v-if="(member.permission & Permission.Host) === Permission.Host">
-              [host]
-            </template>
-            <template v-else>
-              <input
+            <div
+              class="permissions"
+              v-if="(member.permission & Permission.Host) === Permission.Host"
+            >
+              <SvgIcon class="host" name="star" />
+            </div>
+            <div class="permissions" v-else>
+              <!-- <input
                 :checked="
                   (member.permission & Permission.PlaybackControl) ===
                   Permission.PlaybackControl
                 "
-                @change="permissionChange($event, member.id, Permission.PlaybackControl)"
+                @change="permissionToggle($event, member.id, Permission.PlaybackControl)"
                 type="checkbox"
                 id="player"
                 name="Player Control"
@@ -246,26 +252,43 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
                 :checked="
                   (member.permission & Permission.QueueControl) === Permission.QueueControl
                 "
-                @change="permissionChange($event, member.id, Permission.QueueControl)"
+                @change="permissionToggle($event, member.id, Permission.QueueControl)"
                 type="checkbox"
                 id="queue"
                 name="Queue Control"
                 :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
+              /> -->
+              <SvgIcon
+                name="play_arrow"
+                @click="permissionToggle(member, Permission.PlaybackControl)"
+                :class="{
+                  enabled:
+                    (member.permission & Permission.PlaybackControl) ===
+                    Permission.PlaybackControl,
+                }"
               />
-            </template>
-            {{ member.name }}
+              <SvgIcon
+                name="playlist"
+                @click="permissionToggle(member, Permission.QueueControl)"
+                :class="{
+                  enabled:
+                    (member.permission & Permission.QueueControl) === Permission.QueueControl,
+                }"
+              />
+            </div>
+            <div class="opacity-50">{{ member.name }}</div>
           </div>
         </transition-group>
       </div>
 
-      <div id="notifications" class="top-list right-0">
+      <div id="notifications" class="top-list opacity-50 right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
           <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
               :key="notification.key"
-              class="top-text text-right z-2"
+              class="top-text text-right z-2 justify-end"
             >
               {{ renderNotification[notification.event](notification) }}
             </div>
@@ -287,7 +310,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             <div
               v-for="message in recentMessages"
               :key="message.key"
-              class="top-text text-right opacity-25 z-2"
+              class="top-text text-right opacity-25 z-2 justify-end"
             >
               {{ message.name + ": " + message.msg }}
             </div>
@@ -339,7 +362,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 }
 
 .top-list {
-  @apply opacity-25 pt-2 top-0 absolute;
+  @apply pt-2 top-0 absolute;
 }
 
 .bottom-list {
@@ -348,6 +371,32 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
 .top-text {
   @apply h-5 mx-2 text-sm overflow-hidden;
+  display: flex;
+  align-items: center;
+  // justify-content: end;
+
+  .permissions {
+    background: rgba(128, 128, 128, 0.25);
+    border-radius: 10px;
+    margin-right: 5px;
+    display: flex;
+    padding: 0 2.5px;
+  }
+
+  svg {
+    height: 16px;
+    width: 16px;
+    opacity: 0.25;
+
+    &.enabled {
+      opacity: 1;
+    }
+
+    &.host {
+      width: 32px;
+      opacity: 1;
+    }
+  }
 }
 
 .resync-button:not(:last-of-type) {
