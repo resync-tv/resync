@@ -1,11 +1,11 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
-import { io } from "socket.io-client"
+import { io, Socket } from "socket.io-client"
 
 import NavBar from "@/components/NavBar.vue"
 
-import { debug } from "@/util"
+import { debug, isStaging } from "@/util"
 const log = debug("app")
 
 export default defineComponent({
@@ -15,11 +15,12 @@ export default defineComponent({
     const route = useRoute()
 
     const development = process.env.NODE_ENV === "development"
-
     const socketConnected = ref(false)
-    const socket = development
-      ? io(`http://${location.hostname}:3020`)
-      : io("https://hetzner.vaaski.dev", { path: "/resync" })
+
+    let socket: Socket
+    if (development) socket = io(`http://${location.hostname}:3020`)
+    else if (isStaging()) socket = io("https://hetzner.vaaski.dev", { path: "/resync-staging" })
+    else socket = io("https://hetzner.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
     socket.on("disconnect", () => (socketConnected.value = false))
@@ -111,8 +112,8 @@ main {
   @apply py-2 px-4 w-3xl;
   @apply rounded outline-none transition-all;
   @apply bg-light text-dark;
-  @apply light:(shadow focus:shadow-md);
-  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100);
+  @apply light:(shadow focus:shadow-md) ;
+  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100) ;
 }
 
 .dark .resync-input {
@@ -132,13 +133,13 @@ main {
 }
 
 .resync-button {
-  @apply px-4 py-2;
+  @apply py-2 px-4;
   @apply rounded outline-none transition-all;
-  @apply dark:(text-light text-opacity-50);
+  @apply dark:(text-light text-opacity-50) ;
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
-  @apply hover:light:shadow-md
-  @apply active:light:shadow;
+  @apply @apply
+  hover:light:shadow-md active:light:shadow;
 }
 
 .dark .resync-button {
@@ -152,7 +153,7 @@ main {
 
 .dark .resync-button:active {
   box-shadow: 0 0 0 2px var(--clr-light);
-  @apply duration-50 text-light;
+  @apply text-light duration-50;
 }
 
 .resync-button.invalid {
