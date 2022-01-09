@@ -1,6 +1,6 @@
 {
   "script": "./lib/index.js",
-  "name": "resync",
+  "name": "resync-staging",
   "node_args": "-r dotenv/config",
   "env": {
     "NODE_ENV": "staging"
