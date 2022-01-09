@@ -1,26 +1,20 @@
-export function getTimestamp(url: string) : number {
-    let startFrom = 0
-    const timestamp = (new URL(url)).searchParams.get('t')
-    if (timestamp) {
-      const match = /^(?:((\d*?)m(\d*?)s)|(\d*?))$/g.exec(timestamp)
-      if (match && match[2] && match[3]) {
-        startFrom = parseInt(match[2])*60 + parseInt(match[3])
-      } else if (match && match[4]) {
-        startFrom =  parseInt(match[4])
-      }
-    }
-    return startFrom
-}
+const timestampRegex = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/g
+const onlyNumbers = /^\d+$/
 
-export function hasTimestamp(url: string) : boolean {
-    const timestamp = (new URL(url)).searchParams.get('t')
-    if (timestamp) {
-      const match = /^(?:((\d*?)m(\d*?)s)|(\d*?))$/g.exec(timestamp)
-      if (match && match[2] && match[3]) {
-          return true
-      } else if (match && match[4]) {
-          return true
-      }
-    }
-    return false
+export const getTimestamp = (url: string): number => {
+  const timestamp = new URL(url).searchParams.get("t")
+
+  if (!timestamp) return 0
+  if (onlyNumbers.test(timestamp)) return parseInt(timestamp)
+
+  let startFrom = 0
+
+  const match = timestampRegex.exec(timestamp)
+  if (match) {
+    const [, hours, minutes, seconds] = match
+    if (hours) startFrom += parseInt(hours) * 60 * 60
+    if (minutes) startFrom += parseInt(minutes) * 60
+    if (seconds) startFrom += parseInt(seconds)
+  }
+  return startFrom
 }

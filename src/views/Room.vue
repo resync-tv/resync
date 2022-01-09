@@ -110,7 +110,7 @@ onMounted(() => {
     }
 
     if (sourceIsURL.value || !sourceInput.value.length) {
-      let startFrom = getTimestamp(sourceInput.value)
+      const startFrom = getTimestamp(sourceInput.value)
       resync.playContent(sourceInput.value, startFrom)
     } else searchResults.value = await resync.search(sourceInput.value)
   }
