@@ -161,7 +161,12 @@ class Room {
     let permission: Permission
 
     if (this.members.length) permission = this.defaultPermission
-    else permission = Permission.Host | this.defaultPermission
+    else {
+      permission = Permission.Host | this.defaultPermission
+      const secret = genSecret()
+      this.hostSecret = secret
+      client.emit("secret", secret)
+    }
 
     this.members.push({ name, client, permission })
     client.join(this.roomID)
