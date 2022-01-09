@@ -55,7 +55,7 @@ class Room {
     log(`constructing room ${roomID}`)
     this.looping = false
     this.hostSecret = secret ?? ""
-    this.defaultPermission = 0 // Permission.QueueControl | Permission.PlayerControl
+    this.defaultPermission = 0 // Permission.QueueControl | Permission.PlaybackControl
     this.roomID = roomID
     this.io = io
     this.broadcast = this.io.to(roomID)
@@ -70,7 +70,10 @@ class Room {
     if (id) member = this.getMember(id)
 
     if (member) {
-      return requiredPermission === (member?.permission & requiredPermission)
+      const hasPermission = requiredPermission === (member?.permission & requiredPermission)
+      if(!hasPermission) 
+        this.log(`${member.name} doesnt have ${requiredPermission}`)
+      return hasPermission
     }
   }
 
@@ -305,7 +308,7 @@ class Room {
     this.paused = true
     this.broadcast.emit("pause")
 
-    if (seconds) this.seekTo({ seconds })
+    if (seconds) this.seekTo({ seconds, client })
 
     this.updateState()
     if (client) this.notify("pause", client)
@@ -373,11 +376,11 @@ class Room {
   }
 
   async resync(client: Socket) {
-    this.pause()
+    this.pause(undefined, undefined, this.hostSecret)
 
     const avg = await this.requestTime(client)
     this.seekTo({ seconds: avg, secret: this.hostSecret })
-    this.resume()
+    this.resume(undefined, this.hostSecret)
 
     this.updateState()
     this.notify("resync", client)
@@ -385,8 +388,8 @@ class Room {
 
   playbackError({ client, reason, name }: PlaybackErrorArg, seconds: number) {
     this.notify("playbackError", client, { reason, name })
-    this.pause()
-    this.seekTo({ seconds })
+    this.pause(undefined, undefined, this.hostSecret)
+    this.seekTo({ seconds, secret: this.hostSecret })
     this.updateState()
   }
 }
