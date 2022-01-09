@@ -66,7 +66,7 @@ if (name)
   })
 
 const offSecret = resync.onSecret((secret: string) => {
-  ls("resync-secret", secret)
+  resync.hostSecret = secret
 })
 
 const permissionChange = (event: any, id: string, permission: Permission) => {

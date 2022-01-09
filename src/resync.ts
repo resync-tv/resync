@@ -20,6 +20,7 @@ export default class Resync {
   currentTime = (): number => NaN
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
+  hostSecret = ""
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
@@ -37,7 +38,7 @@ export default class Resync {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      const secret = ls("resync-secret")
+      const secret = this.hostSecret
       log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
       socket.emit(event, { roomID, secret, ...arg }, ...args)
     }

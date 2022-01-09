@@ -5,7 +5,6 @@ interface LocalStored {
   "resync-volume": number
   "resync-muted": boolean
   "resync-last-room": string
-  "resync-secret": string
 }
 
 const urlReg =
