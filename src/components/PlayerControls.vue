@@ -99,7 +99,9 @@ const fullscreenStateIcon = computed(() => {
   <div class="h-10 w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
-        <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
+        <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" 
+        :class="{ disabled: !resync.hasPermission(Permission.Host) &&
+        !resync.hasPermission(Permission.PlaybackControl) }"/>
         <SvgIcon
           name="skip_next"
           v-if="resync.state.value.queue.length"
@@ -140,6 +142,8 @@ const fullscreenStateIcon = computed(() => {
           @click="resync.loop()"
           title="looping"
           class="player-icon"
+          :class="{ disabled: !resync.hasPermission(Permission.Host) &&
+        !resync.hasPermission(Permission.PlaybackControl) }"
         />
         <SvgIcon
           :name="fullscreenStateIcon"
@@ -172,6 +176,10 @@ const fullscreenStateIcon = computed(() => {
     height: 24px;
     width: 20px;
   }
+}
+
+.disabled {
+  @apply cursor-default;
 }
 
 .volume {

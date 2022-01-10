@@ -35,9 +35,13 @@ export default defineComponent({
       type: Array as PropType<MediaSourceAny[]>,
       required: true,
     },
+    queueDisabled : {
+      type: Boolean,
+      required: true,
+    }
   },
   setup(props, { emit }) {
-    const { searchResults } = toRefs(props)
+    const { searchResults, queueDisabled } = toRefs(props)
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
@@ -198,6 +202,7 @@ export default defineComponent({
       searchQueue,
       closeSearch,
       closeOverlays,
+      queueDisabled,
     }
   },
 })
@@ -233,6 +238,7 @@ export default defineComponent({
           @close="showQueue = false"
           @play="queuePlay"
           @contextMenu="resync.removeQueued"
+          :disabled="queueDisabled"
           :videos="resync.state.value.queue"
           title="queue"
           placeholder="queue is empty"
@@ -246,6 +252,7 @@ export default defineComponent({
           @close="closeSearch"
           @play="searchPlay"
           @contextMenu="searchQueue"
+          :disabled="queueDisabled"
           :videos="searchResults"
           title="search"
           placeholder="no results found"

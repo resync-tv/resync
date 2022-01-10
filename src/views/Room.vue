@@ -15,6 +15,7 @@ import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 import SvgIcon from "../components/SvgIcon.vue"
+import { hasUncaughtExceptionCaptureCallback } from "process"
 
 const log = debug("room")
 
@@ -108,8 +109,15 @@ const playButtonText = computed(() => {
 
   return "search"
 })
-const playButtonDisabled = computed(() => {
-  return !resync.state.value.source && !sourceInput.value.length
+const queueDisabled = computed(() => {
+  return !sourceIsURL.value || (!resync.hasPermission(Permission.ContentControl) && 
+  !resync.hasPermission(Permission.Host))
+})
+const playDisabled = computed(() => {
+  return (!resync.state.value.source && !sourceInput.value.length) ||
+    (((!sourceInput.value.length && resync.state.value.source) || 
+    (sourceIsURL.value || !sourceInput.value.length)) && 
+    !resync.hasPermission(Permission.PlaybackControl) && !resync.hasPermission(Permission.Host))
 })
 
 const searchResults = ref<MediaSourceAny[]>([])
@@ -183,9 +191,9 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           />
           <button
             class="resync-button"
-            :class="{ invalid: playButtonDisabled }"
+            :class="{ invalid: playDisabled }"
           >{{ playButtonText }}</button>
-          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">queue</button>
+          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">queue</button>
         </form>
 
         <PlayerWrapper
@@ -193,6 +201,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           v-show="resync.state.value.source"
           type="video"
           :searchResults="searchResults"
+          :queueDisabled="queueDisabled"
           @clearSearch="searchResults = []"
         />
 
@@ -203,6 +212,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             @play="searchPlay"
             @contextMenu="searchQueue"
             :videos="searchResults"
+            :disabled="queueDisabled"
             title="search"
             placeholder="no results found"
             style="max-height: 70vh"
@@ -215,6 +225,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             @contextMenu="resync.removeQueued"
             @close="resync.clearQueue"
             :videos="resync.state.value.queue"
+            :disabled="queueDisabled"
             title="queue"
             placeholder="queue is empty"
             class="min-w-2xl"

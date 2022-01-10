@@ -182,7 +182,7 @@ const mouseDown = (event: MouseEvent) => {
   }
 
   &.disabled {
-    cursor: default;
+    @apply cursor-default
   }
 }
 </style>
