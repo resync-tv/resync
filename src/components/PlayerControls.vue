@@ -1,118 +1,97 @@
-<script lang="ts">
+<script setup lang="ts">
 import Resync, { SocketOff } from "@/resync"
 
-import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
+import { Permission } from "../../backend/permission"
 
 const log = debug("playercontrols")
 
-export default defineComponent({
-  components: { ResyncSlider, SvgIcon },
-  name: "PlayerControls",
-  emits: ["fullscreen", "queue"],
-  props: {
-    fullscreenEnabled: {
-      type: Boolean,
-      default: false,
-    },
+defineEmits(["fullscreen", "queue"])
+const props = defineProps({
+  fullscreenEnabled: {
+    type: Boolean,
+    default: false,
   },
-  setup(props) {
-    const resync = inject<Resync>("resync")
-    if (!resync) throw new Error("resync injection failed")
+})
+const resync = inject<Resync>("resync")
+if (!resync) throw new Error("resync injection failed")
 
-    const offHandlers: SocketOff[] = []
-    const currentTime = ref(0)
-    const duration = ref(0)
-    const progress = computed(() => {
-      return minMax(currentTime.value / duration.value)
-    })
-    const buffered = ref<number[][]>([])
+const offHandlers: SocketOff[] = []
+const currentTime = ref(0)
+const duration = ref(0)
+const progress = computed(() => {
+  return minMax(currentTime.value / duration.value)
+})
+const buffered = ref<number[][]>([])
 
-    let interval: NodeJS.Timeout
-    const updateProgress = (once = false, current?: number) => {
-      clearInterval(interval)
+let interval: NodeJS.Timeout
+const updateProgress = (once = false, current?: number) => {
+  clearInterval(interval)
 
-      currentTime.value = current ?? resync.currentTime()
-      duration.value = resync.duration()
+  currentTime.value = current ?? resync.currentTime()
+  duration.value = resync.duration()
+  buffered.value = bufferedArray(resync.buffered(), resync.duration())
+
+  if (!once && (isNaN(progress.value) || !resync.paused.value)) {
+    requestAnimationFrame(() => updateProgress())
+  } else {
+    log("stopped updating progress")
+    interval = setInterval(() => {
       buffered.value = bufferedArray(resync.buffered(), resync.duration())
+    }, 250)
+  }
+}
+updateProgress()
+onMounted(() => updateProgress())
 
-      if (!once && (isNaN(progress.value) || !resync.paused.value)) {
-        requestAnimationFrame(() => updateProgress())
-      } else {
-        log("stopped updating progress")
-        interval = setInterval(() => {
-          buffered.value = bufferedArray(resync.buffered(), resync.duration())
-        }, 250)
-      }
-    }
-    updateProgress()
-    onMounted(() => updateProgress())
+const playWatcher = watch(resync.paused, () => updateProgress())
+offHandlers.push(playWatcher)
 
-    const playWatcher = watch(resync.paused, () => updateProgress())
-    offHandlers.push(playWatcher)
+const offSeekTo = resync.onSeekTo(to => {
+  updateProgress(true, to)
+})
+offHandlers.push(offSeekTo)
 
-    const offSeekTo = resync.onSeekTo(to => {
-      updateProgress(true, to)
-    })
-    offHandlers.push(offSeekTo)
+onBeforeUnmount(() => offHandlers.forEach(off => off()))
 
-    onBeforeUnmount(() => offHandlers.forEach(off => off()))
+const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
+const volumeStateIcon = computed(() => {
+  if (resync.muted.value) return "volume_off"
+  if (resync.volume.value === 0) return "volume_mute"
+  if (resync.volume.value < 0.5) return "volume_down"
+  else return "volume_up"
+})
 
-    const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
-    const volumeStateIcon = computed(() => {
-      if (resync.muted.value) return "volume_off"
-      if (resync.volume.value === 0) return "volume_mute"
-      if (resync.volume.value < 0.5) return "volume_down"
-      else return "volume_up"
-    })
+const onPlayIconClick = () => {
+  resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
+}
 
-    const onPlayIconClick = () => {
-      resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
-    }
+const onVolumeIconClick = () => {
+  if (!resync.muted.value && resync.volume.value === 0) {
+    resync.volume.value = 0.3
 
-    const onVolumeIconClick = () => {
-      if (!resync.muted.value && resync.volume.value === 0) {
-        resync.volume.value = 0.3
+    return
+  }
 
-        return
-      }
+  resync.muted.value = !resync.muted.value
+}
 
-      resync.muted.value = !resync.muted.value
-    }
+const onVolumeSlider = (value: number) => {
+  resync.muted.value = false
+  resync.volume.value = value
+}
 
-    const onVolumeSlider = (value: number) => {
-      resync.muted.value = false
-      resync.volume.value = value
-    }
+const onProgressSliderValue = (value: number) => {
+  log("onProgressSliderValue", value)
+  resync.seekTo(resync.duration() * value)
+}
 
-    const onProgressSliderValue = (value: number) => {
-      log("onProgressSliderValue", value)
-      resync.seekTo(resync.duration() * value)
-    }
-
-    const fullscreenStateIcon = computed(() => {
-      if (props.fullscreenEnabled) return "fullscreen_exit"
-      return "fullscreen"
-    })
-
-    return {
-      playStateIcon,
-      volumeStateIcon,
-      onPlayIconClick,
-      onVolumeIconClick,
-      onVolumeSlider,
-      progress,
-      onProgressSliderValue,
-      resync,
-      currentTime,
-      duration,
-      timestamp,
-      fullscreenStateIcon,
-      buffered,
-    }
-  },
+const fullscreenStateIcon = computed(() => {
+  if (props.fullscreenEnabled) return "fullscreen_exit"
+  return "fullscreen"
 })
 </script>
 
@@ -136,20 +115,16 @@ export default defineComponent({
         />
 
         <div class="flex items-center volume">
-          <SvgIcon
-            :name="volumeStateIcon"
-            @click="onVolumeIconClick"
-            class="player-icon small"
-          />
+          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon small" />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
             small
             immediate
           />
-          <div class="font-timestamp mx-1 align-middle">
-            {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
-          </div>
+          <div
+            class="font-timestamp mx-1 align-middle"
+          >{{ timestamp(currentTime) }} / {{ timestamp(duration) }}</div>
         </div>
       </div>
 
@@ -158,6 +133,12 @@ export default defineComponent({
           name="playlist"
           title="show/hide queue"
           @click="$emit('queue')"
+          class="player-icon"
+        />
+        <SvgIcon
+          :name="resync.state.value.looping ? 'repeat_on' : 'repeat'"
+          @click="resync.loop()"
+          title="looping"
           class="player-icon"
         />
         <SvgIcon
@@ -172,6 +153,10 @@ export default defineComponent({
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
       :buffered="buffered"
+      :disabled="
+        !resync.hasPermission(Permission.Host) &&
+        !resync.hasPermission(Permission.PlaybackControl)
+      "
       @value="onProgressSliderValue"
       :updateSlack="3"
     />
@@ -185,6 +170,7 @@ export default defineComponent({
   &.small {
     font-size: 20px;
     height: 24px;
+    width: 20px;
   }
 }
 
@@ -192,12 +178,12 @@ export default defineComponent({
   > .resync-slider {
     @apply transition transition-all;
     @apply mx-1;
-    @apply w-0 opacity-0;
+    @apply opacity-0 w-0;
   }
 
   &:hover > .resync-slider,
   > .resync-slider.active {
-    @apply w-15 opacity-100;
+    @apply opacity-100 w-15;
   }
 }
 

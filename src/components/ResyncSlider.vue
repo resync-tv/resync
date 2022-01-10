@@ -1,90 +1,74 @@
-<script lang="ts">
+<script setup lang="ts">
 import { minMax } from "@/util"
-import { defineComponent, PropType, ref, toRefs, watch } from "vue"
+import { PropType, ref, toRefs, watch } from "vue"
 
-export const touchEventOffset = (event: any, target?: any) => {
-  target = target || event.currentTarget
-
-  const cx = event.clientX || 0
-  const cy = event.clientY || 0
-  const rect = target.getBoundingClientRect()
-
-  return [cx - rect.left, cy - rect.top]
-}
-
-export default defineComponent({
-  props: {
-    progress: {
-      type: Number,
-      required: true,
-    },
-    buffered: {
-      type: Array as PropType<number[][]>,
-      default: [],
-    },
-    updateSlack: {
-      type: Number,
-      default: 0,
-    },
-    small: {
-      type: Boolean,
-      default: false,
-    },
-    immediate: {
-      type: Boolean,
-      default: false,
-    },
+const emit = defineEmits(["value"])
+const props = defineProps({
+  progress: {
+    type: Number,
+    required: true,
   },
-  emits: ["value"],
-  setup(props, { emit }) {
-    const { progress, buffered, updateSlack, immediate } = toRefs(props)
-    const override = ref<number | null>(null)
-    const active = ref(false)
-    let skipValueUpdates = 0
-
-    watch(progress, () => {
-      if (skipValueUpdates > 1) skipValueUpdates--
-      else if (skipValueUpdates === 1) {
-        skipValueUpdates--
-        override.value = null
-      }
-    })
-
-    const mouseDown = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      const { offsetWidth } = target
-      let { offsetX } = event
-      override.value = event.offsetX / target.offsetWidth
-      active.value = true
-
-      window.onmousemove = (evt: MouseEvent) => {
-        offsetX += evt.movementX / window.devicePixelRatio
-        override.value = minMax(offsetX / offsetWidth)
-
-        if (immediate.value) emit("value", override.value)
-      }
-
-      window.onmouseup = () => {
-        emit("value", override.value)
-
-        if (updateSlack.value > 0) skipValueUpdates = updateSlack.value
-        else override.value = null
-
-        window.onmousemove = null
-        window.onmouseup = null
-        active.value = false
-      }
-    }
-
-    return {
-      progress,
-      mouseDown,
-      override,
-      active,
-      buffered,
-    }
+  buffered: {
+    type: Array as PropType<number[][]>,
+    default: [],
+  },
+  updateSlack: {
+    type: Number,
+    default: 0,
+  },
+  small: {
+    type: Boolean,
+    default: false,
+  },
+  immediate: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
+
+const { progress, buffered, updateSlack, immediate } = toRefs(props)
+const override = ref<number | null>(null)
+const active = ref(false)
+let skipValueUpdates = 0
+
+watch(progress, () => {
+  if (skipValueUpdates > 1) skipValueUpdates--
+  else if (skipValueUpdates === 1) {
+    skipValueUpdates--
+    override.value = null
+  }
+})
+
+const mouseDown = (event: MouseEvent) => {
+  if (props.disabled) return
+  const target = event.target as HTMLElement
+  const { offsetWidth } = target
+  let { offsetX } = event
+  override.value = event.offsetX / target.offsetWidth
+  active.value = true
+
+  window.onmousemove = (evt: MouseEvent) => {
+    offsetX += evt.movementX / window.devicePixelRatio
+    override.value = minMax(offsetX / offsetWidth)
+
+    if (immediate.value) emit("value", override.value)
+  }
+
+  window.onmouseup = () => {
+    emit("value", override.value)
+
+    if (updateSlack.value > 0) skipValueUpdates = updateSlack.value
+    else override.value = null
+
+    window.onmousemove = null
+    window.onmouseup = null
+    active.value = false
+  }
+}
 </script>
 
 <template>
@@ -93,7 +77,7 @@ export default defineComponent({
       class="slider"
       :style="`--progress: ${override ?? progress};`"
       @mousedown="mouseDown"
-      :class="{ active, small }"
+      :class="{ active, small, disabled }"
     >
       <div class="background"></div>
       <div class="buffer">
@@ -101,6 +85,7 @@ export default defineComponent({
           v-for="seg in buffered"
           :key="seg[0]"
           :style="{
+            // @ts-expect-error
             '--start': `${seg[0] * 100}%`,
             '--end': `${seg[1] * 100}%`,
           }"
@@ -177,8 +162,8 @@ export default defineComponent({
     left: calc(var(--progress) * 100%);
   }
 
-  &:hover:not(.small),
-  &.active:not(.small) {
+  &:hover:not(.small):not(.disabled),
+  &.active:not(.small):not(.disabled) {
     --height: 5px;
 
     > .handle {

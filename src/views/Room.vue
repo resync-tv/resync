@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EventNotification, Message } from "$/room"
+import type { EventNotification, Message, PublicMember } from "$/room"
 import type { ResyncSocketFrontend } from "$/socket"
 
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
@@ -7,12 +7,14 @@ import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
+import { checkPermission, Permission } from "../../backend/permission"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
+import SvgIcon from "../components/SvgIcon.vue"
 
 const log = debug("room")
 
@@ -63,6 +65,20 @@ if (name)
     mountPlayer.value = true
     ls("resync-last-room", roomID)
   })
+
+const offSecret = resync.onSecret((secret: string) => {
+  resync.hostSecret = secret
+})
+
+const permissionToggle = (member: PublicMember, permission: Permission) => {
+  const granted = checkPermission(member.permission, permission)
+
+  if (granted) {
+    resync.revokePermission(member.id, permission)
+  } else {
+    resync.grantPermission(member.id, permission)
+  }
+}
 
 const recentNotifications = ref<EventNotification[]>([])
 const offNotifiy = resync.onNotify(notification => {
@@ -118,6 +134,7 @@ onBeforeUnmount(() => {
   offMessage()
   offNotifiy()
   resetScope()
+  offSecret()
   document.title = "resync"
   resync.destroy()
 
@@ -207,22 +224,42 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
       <div id="memberlist" class="top-list left-0">
         <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.id"
-            class="top-text"
-          >{{ member.name }}</div>
+          <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
+            <div
+              class="permissions"
+              v-if="checkPermission(member.permission, Permission.Host)"
+            >
+              <SvgIcon class="host" name="star" />
+            </div>
+            <div class="permissions" v-else>
+              <SvgIcon
+                name="play_arrow"
+                @click="permissionToggle(member, Permission.PlaybackControl)"
+                :class="{
+                  enabled: checkPermission(member.permission, Permission.PlaybackControl),
+                }"
+              />
+              <SvgIcon
+                name="playlist"
+                @click="permissionToggle(member, Permission.ContentControl)"
+                :class="{
+                  enabled: checkPermission(member.permission, Permission.ContentControl),
+                }"
+              />
+            </div>
+            <div class="opacity-50">{{ member.name }}</div>
+          </div>
         </transition-group>
       </div>
 
-      <div id="notifications" class="top-list right-0">
+      <div id="notifications" class="top-list opacity-50 right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
           <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
               :key="notification.key"
-              class="top-text text-right z-2"
+              class="top-text text-right z-2 justify-end"
             >{{ renderNotification[notification.event](notification) }}</div>
           </transition-group>
         </div>
@@ -236,7 +273,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             <div
               v-for="message in recentMessages"
               :key="message.key"
-              class="top-text text-right opacity-25 z-2"
+              class="top-text text-right opacity-25 z-2 justify-end"
             >{{ message.name + ": " + message.msg }}</div>
           </transition-group>
           <input
@@ -286,7 +323,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 }
 
 .top-list {
-  @apply opacity-25 pt-2 top-0 absolute;
+  @apply pt-2 top-0 absolute;
 }
 
 .bottom-list {
@@ -295,6 +332,32 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
 .top-text {
   @apply h-5 mx-2 text-sm overflow-hidden;
+  display: flex;
+  align-items: center;
+  // justify-content: end;
+
+  .permissions {
+    background: rgba(128, 128, 128, 0.25);
+    border-radius: 10px;
+    margin-right: 5px;
+    display: flex;
+    padding: 0 2.5px;
+  }
+
+  svg {
+    height: 16px;
+    width: 16px;
+    opacity: 0.25;
+
+    &.enabled {
+      opacity: 1;
+    }
+
+    &.host {
+      width: 32px;
+      opacity: 1;
+    }
+  }
 }
 
 .resync-button:not(:last-of-type) {
