@@ -2,7 +2,7 @@
 import type { EventNotification, Message, PublicMember } from "$/room"
 import type { ResyncSocketFrontend } from "$/socket"
 
-import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
+import { computed, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
@@ -15,7 +15,6 @@ import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 import SvgIcon from "../components/SvgIcon.vue"
-import { hasUncaughtExceptionCaptureCallback } from "process"
 
 const log = debug("room")
 
@@ -45,9 +44,10 @@ if (!socket) throw new Error("socket injection failed")
 const resync = new Resync(socket, roomID)
 provide("resync", resync)
 
-if (log.enabled)
+if (log.enabled) {
   // @ts-expect-error for manual testing
   window.resync = resync
+}
 
 sentry.configureScope(scope => {
   scope.setTag("roomID", roomID)

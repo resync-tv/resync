@@ -247,7 +247,7 @@ class Room {
   }
 
   addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client.id, secret)) return
 
     this.queue.push(resolveContent(source, startFrom))
 
@@ -256,7 +256,7 @@ class Room {
   }
 
   clearQueue(client: Socket, secret?: string) {
-    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client.id, secret)) return
 
     this.queue = []
 
@@ -265,7 +265,7 @@ class Room {
   }
 
   playQueued(client: Socket, index: number, remove = false, secret?: string) {
-    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client.id, secret)) return
 
     const [next] = this.queue.splice(index, 1)
     if (!next) return this.log("client requested non-existant item from queue")
@@ -273,7 +273,7 @@ class Room {
     if (remove) {
       this.notify("removeQueued", client)
       this.updateState()
-    } else this.playContent(client, next, 0)
+    } else this.playContent(client, next, 0, secret)
   }
 
   loaded() {
