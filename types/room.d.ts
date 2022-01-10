@@ -2,7 +2,7 @@ import type { MediaSourceAny } from "./mediaSource"
 
 import { Socket as BackendSocket } from "socket.io"
 
-import { Permission } from "./permissionTypes"
+import { Permission } from "../backend/permission"
 
 export interface Member {
   name: string

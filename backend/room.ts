@@ -7,7 +7,7 @@ import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
 
-import { checkPermission, Permission } from "$/permissionTypes"
+import { checkPermission, Permission } from "./permission"
 import { randomBytes } from "crypto"
 
 const nanoid = customAlphabet(nolookalikesSafe, 6)

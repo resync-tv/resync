@@ -6,7 +6,7 @@ import { Ref, ref, watch, computed } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
-import { Permission, checkPermission } from "$/permissionTypes"
+import { Permission, checkPermission } from "../backend/permission"
 
 const log = debug("resync.ts")
 
