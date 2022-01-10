@@ -9,7 +9,10 @@ const log = debug("resync:server")
 const isDev = process.env.NODE_ENV === "development"
 log("dev", isDev)
 
-const origin = isDev ? "*" : ["https://resync.tv", /\.netlify\.app$/]
+let origin = isDev ? "*" : ["https://resync.tv", /\.netlify\.app$/]
+if (process.env.NODE_ENV === "staging") {
+  origin = ["https://staging.resync.tv", /\.netlify\.app$/]
+}
 
 export default (port: number): Promise<void> => {
   return new Promise((res, rej) => {

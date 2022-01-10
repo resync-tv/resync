@@ -1,50 +1,47 @@
-<script lang="ts">
+<script setup lang="ts">
 import type { ResyncSocketFrontend } from "$/socket"
 
-import { defineComponent, inject } from "vue"
+import { inject, ref } from "vue"
 
 import ResyncLogo from "@/components/ResyncLogo"
 import Resync from "@/resync"
 import { useRouter } from "vue-router"
-import { debug, ls, unfocus, validateName } from "@/util"
+import { debug, ls, unfocus, validateName, isStaging } from "@/util"
 
 const log = debug("home")
+const router = useRouter()
 
-export default defineComponent({
-  components: { ResyncLogo },
-  setup() {
-    const router = useRouter()
+const socket = inject<ResyncSocketFrontend>("socket")
+if (!socket) throw new Error("socket injection failed")
 
-    const socket = inject<ResyncSocketFrontend>("socket")
-    if (!socket) throw new Error("socket injection failed")
+const enterRoom = async (roomID?: string | null) => {
+  if (!roomID) roomID = await Resync.getNewRandom(socket)
+  const roomRoute = router.resolve({ name: "room", params: { roomID } })
 
-    const enterRoom = async (roomID?: string | null) => {
-      if (!roomID) roomID = await Resync.getNewRandom(socket)
-      const roomRoute = router.resolve({ name: "room", params: { roomID } })
+  try {
+    validateName(ls("resync-displayname") ?? "")
+    router.push(roomRoute)
+  } catch {
+    log("no name set yet")
+    router.push({ name: "signup", query: { returnTo: roomRoute.fullPath } })
+  } finally {
+    unfocus()
+  }
+}
 
-      try {
-        validateName(ls("resync-displayname") ?? "")
-        router.push(roomRoute)
-      } catch {
-        log("no name set yet")
-        router.push({ name: "signup", query: { returnTo: roomRoute.fullPath } })
-      } finally {
-        unfocus()
-      }
-    }
+const lastRoom = ls("resync-last-room")
 
-    const lastRoom = ls("resync-last-room")
+const slogan = ref("watch videos with your friends.")
 
-    return { enterRoom, lastRoom }
-  },
-})
+if (isStaging()) slogan.value = "shit might be wonky."
+
 </script>
 
 <template>
   <main id="home" class="centerflex">
     <div class="flex flex-col items-center">
       <ResyncLogo class="max-w-full fill-dark w-100 dark:fill-light" />
-      <span class="text-lg opacity-75 -sm:text-sm">watch videos with your friends.</span>
+      <span class="text-lg opacity-75 -sm:text-sm">{{ slogan }}</span>
     </div>
     <div class="bottom-button-container">
       <button @click="enterRoom()">
