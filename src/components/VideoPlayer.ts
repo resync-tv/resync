@@ -22,21 +22,11 @@ const logLocal = log.extend("local")
 
 export default defineComponent({
   name: "VideoPlayer",
-  emits: ["metadata", "fullscreen"],
+  emits: ["metadata"],
   setup(_, { emit }) {
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
-    const delay = 300
-    let clicks = 0
-    let singleClickTimeout: NodeJS.Timeout
-    const singleClick = () => {
-      resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
-      clicks = 0
-    }
-    const doubleClick = () => {
-      emit("fullscreen")
-    }
 
     const src = computed(() => resync.state.value.source?.video?.[0]?.url)
     const video = ref<null | HTMLVideoElement>(null)
@@ -169,14 +159,7 @@ export default defineComponent({
       }
 
       video.value.onclick = () => {
-        clicks++
-        if (clicks === 1) {
-          singleClickTimeout = setTimeout(singleClick, delay)
-        } else {
-          if (singleClickTimeout) clearTimeout(singleClickTimeout)
-          clicks = 0
-          doubleClick()
-        }
+        resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
       }
       video.value.oncontextmenu = e => e.preventDefault()
     })
