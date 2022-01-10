@@ -213,6 +213,8 @@ class Room {
   ) {
     if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
+    this.log(`playContent(source: ${source}, startFrom: ${startFrom})`)
+
     let sourceID = ""
     const currentSourceID =
       this.source?.originalSource.youtubeID ?? this.source?.originalSource.url
@@ -228,10 +230,8 @@ class Room {
     }
 
     if (sourceID === currentSourceID) {
-      this.log("same video")
-
-      this.lastSeekedTo = 0
-      this.seekTo({ client, seconds: 0 })
+      this.lastSeekedTo = this.source?.startFrom ?? 0
+      this.seekTo({ client, seconds: this.source?.startFrom ?? 0, secret })
       this.resume(client, secret)
       return
     }
