@@ -180,5 +180,9 @@ const mouseDown = (event: MouseEvent) => {
       width: 11.5px;
     }
   }
+
+  &.disabled {
+    cursor: default;
+  }
 }
 </style>
