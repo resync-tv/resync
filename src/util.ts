@@ -81,6 +81,8 @@ export const bufferedArray = (
   return ret
 }
 
+export const isStaging = () => location.hostname === "staging.resync.tv"
+
 export const unfocus = (): void => (window.document.activeElement as HTMLElement)?.blur?.()
 
 // TODO: consider removing
