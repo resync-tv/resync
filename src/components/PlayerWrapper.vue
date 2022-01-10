@@ -132,7 +132,6 @@ export default defineComponent({
     let mouseMovedTimeout : NodeJS.Timeout
     let mouseMoved = ref(false)
     const onMouseMoved = () => {
-      console.log(mouseMoved)
       if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
       mouseMoved.value = true
       mouseMovedTimeout = setTimeout(() => { mouseMoved.value = false }, 2*1e3)
