@@ -98,15 +98,29 @@ const fullscreenStateIcon = computed(() => {
   if (props.fullscreenEnabled) return "fullscreen_exit"
   return "fullscreen"
 })
+
+const volumeScroll = (event: WheelEvent) => {
+  const { deltaY } = event
+
+  if (deltaY < 0) resync.volume.value = minMax(resync.volume.value + 0.05)
+  else resync.volume.value = minMax(resync.volume.value - 0.05)
+}
 </script>
 
 <template>
   <div class="h-10 w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
-        <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" 
-        :class="{ disabled: !resync.hasPermission(Permission.Host) &&
-        !resync.hasPermission(Permission.PlaybackControl) }"/>
+        <SvgIcon
+          :name="playStateIcon"
+          @click="onPlayIconClick"
+          class="player-icon"
+          :class="{
+            disabled:
+              !resync.hasPermission(Permission.Host) &&
+              !resync.hasPermission(Permission.PlaybackControl),
+          }"
+        />
         <SvgIcon
           name="skip_next"
           v-if="resync.state.value.queue.length"
@@ -121,17 +135,21 @@ const fullscreenStateIcon = computed(() => {
           class="player-icon small"
         />
 
-        <div class="flex items-center volume">
-          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon small" />
+        <div class="flex items-center volume" @wheel.prevent.stop="volumeScroll">
+          <SvgIcon
+            :name="volumeStateIcon"
+            @click="onVolumeIconClick"
+            class="player-icon small"
+          />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
             small
             immediate
           />
-          <div
-            class="font-timestamp mx-1 align-middle"
-          >{{ timestamp(currentTime) }} / {{ timestamp(duration) }}</div>
+        </div>
+        <div class="font-timestamp my-auto mx-1 align-middle">
+          {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
         </div>
       </div>
 
@@ -147,8 +165,11 @@ const fullscreenStateIcon = computed(() => {
           @click="resync.loop()"
           title="looping"
           class="player-icon"
-          :class="{ disabled: !resync.hasPermission(Permission.Host) &&
-        !resync.hasPermission(Permission.PlaybackControl) }"
+          :class="{
+            disabled:
+              !resync.hasPermission(Permission.Host) &&
+              !resync.hasPermission(Permission.PlaybackControl),
+          }"
         />
         <SvgIcon
           :name="fullscreenStateIcon"

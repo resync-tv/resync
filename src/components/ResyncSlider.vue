@@ -28,6 +28,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  wheelSteps: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const { progress, buffered, updateSlack, immediate } = toRefs(props)
@@ -70,10 +74,21 @@ const mouseDown = (event: MouseEvent) => {
     active.value = false
   }
 }
+
+const onwheel = (event: WheelEvent) => {
+  if (!props.wheelSteps) return
+  event.preventDefault()
+  event.stopPropagation()
+
+  const { deltaY } = event
+
+  if (deltaY < 0) emit("value", progress.value + props.wheelSteps)
+  else emit("value", progress.value - props.wheelSteps)
+}
 </script>
 
 <template>
-  <div class="resync-slider" :class="{ active }">
+  <div class="resync-slider" :class="{ active }" @wheel="onwheel">
     <div
       class="slider"
       :style="`--progress: ${override ?? progress};`"
@@ -183,7 +198,7 @@ const mouseDown = (event: MouseEvent) => {
   }
 
   &.disabled {
-    @apply cursor-default
+    @apply cursor-default;
   }
 }
 </style>
