@@ -70,9 +70,8 @@ class Room {
     if (id) member = this.getMember(id)
 
     if (member) {
-      const hasPermission = checkPermission(member?.permission, requiredPermission)
-      if(!hasPermission) 
-        this.log(`${member.name} doesnt have ${requiredPermission}`)
+      const hasPermission = checkPermission(member.permission, requiredPermission)
+      if (!hasPermission) this.log(`${member.name} doesn't have ${requiredPermission}`)
       return hasPermission
     }
   }

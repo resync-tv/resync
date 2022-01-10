@@ -102,7 +102,6 @@ const sendMessage = () => {
   messageInput.value = ""
 }
 
-const urlForm = ref<HTMLFormElement | null>(null)
 const playButtonText = computed(() => {
   if (!sourceInput.value.length && resync.state.value.source) return "stop"
   if (sourceIsURL.value || !sourceInput.value.length) return "play"
@@ -110,33 +109,36 @@ const playButtonText = computed(() => {
   return "search"
 })
 const queueDisabled = computed(() => {
-  return !sourceIsURL.value || (!resync.hasPermission(Permission.ContentControl) && 
-  !resync.hasPermission(Permission.Host))
+  const hasControl = resync.hasPermission(Permission.ContentControl)
+  const isHost = resync.hasPermission(Permission.Host)
+  const isAllowed = isHost || hasControl
+
+  return !isAllowed || !sourceIsURL.value
 })
+
 const playDisabled = computed(() => {
-  return (!resync.state.value.source && !sourceInput.value.length) ||
-    (((!sourceInput.value.length && resync.state.value.source) || 
-    (sourceIsURL.value || !sourceInput.value.length)) && 
-    !resync.hasPermission(Permission.PlaybackControl) && !resync.hasPermission(Permission.Host))
+  const hasControl = resync.hasPermission(Permission.ContentControl)
+  const isHost = resync.hasPermission(Permission.Host)
+  const isAllowed = isHost || hasControl
+
+  const somethingPlaying = resync.state.value.source
+  const somethingInInput = sourceInput.value.length
+  const noContent = !somethingPlaying && !somethingInInput
+
+  return !isAllowed || noContent
 })
 
 const searchResults = ref<MediaSourceAny[]>([])
 
-onMounted(() => {
-  if (!urlForm.value) throw Error("urlForm ref not available")
-
-  urlForm.value.onsubmit = async e => {
-    e.preventDefault()
-
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur()
-    }
-
-    if (sourceIsURL.value || !sourceInput.value.length) {
-      resync.playContent(sourceInput.value)
-    } else searchResults.value = await resync.search(sourceInput.value)
+const inputSubmit = async () => {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur()
   }
-})
+
+  if (sourceIsURL.value || !sourceInput.value.length) {
+    resync.playContent(sourceInput.value)
+  } else searchResults.value = await resync.search(sourceInput.value)
+}
 
 onBeforeUnmount(() => {
   offMessage()
@@ -145,9 +147,6 @@ onBeforeUnmount(() => {
   offSecret()
   document.title = "resync"
   resync.destroy()
-
-  if (!urlForm.value) throw Error("urlForm ref not available")
-  urlForm.value.onsubmit = null
 })
 
 const queue = (e: MouseEvent) => {
@@ -180,7 +179,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           class="flex bottom-full w-md justify-center"
           :class="{ 'mb-3 absolute': contentShowing }"
           style="max-width: 75vw"
-          ref="urlForm"
+          @submit.prevent="inputSubmit"
         >
           <ResyncInput
             v-model="sourceInput"
@@ -189,11 +188,12 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="mr-2"
             autofocus
           />
-          <button
-            class="resync-button"
-            :class="{ invalid: playDisabled }"
-          >{{ playButtonText }}</button>
-          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">queue</button>
+          <button class="resync-button" :class="{ invalid: playDisabled }">
+            {{ playButtonText }}
+          </button>
+          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">
+            queue
+          </button>
         </form>
 
         <PlayerWrapper
@@ -235,7 +235,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
       <div id="memberlist" class="top-list left-0">
         <transition-group name="text-height">
-          <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
+          <div
+            v-for="member in resync.state.value.members"
+            :key="member.name"
+            class="top-text"
+          >
             <div
               class="permissions"
               v-if="checkPermission(member.permission, Permission.Host)"
@@ -271,21 +275,31 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
               v-for="notification in recentNotifications"
               :key="notification.key"
               class="top-text text-right z-2 justify-end"
-            >{{ renderNotification[notification.event](notification) }}</div>
+            >
+              {{ renderNotification[notification.event](notification) }}
+            </div>
           </transition-group>
         </div>
       </div>
 
       <div id="chat" class="bottom-list min-w-75 right-0">
-        <div class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end">
-          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
-          <div class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"></div>
+        <div
+          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+        >
+          <div
+            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
+          ></div>
+          <div
+            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
+          ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
               v-for="message in recentMessages"
               :key="message.key"
               class="top-text text-right opacity-25 z-2 justify-end"
-            >{{ message.name + ": " + message.msg }}</div>
+            >
+              {{ message.name + ": " + message.msg }}
+            </div>
           </transition-group>
           <input
             @keypress.enter="sendMessage"
