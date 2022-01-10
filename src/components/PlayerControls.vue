@@ -154,9 +154,8 @@ const fullscreenStateIcon = computed(() => {
       :progress="progress"
       :buffered="buffered"
       :disabled="
-        ((resync.ownPermission.value & Permission.PlaybackControl) !==
-          Permission.PlaybackControl) && (resync.ownPermission.value & Permission.Host) !==
-        Permission.Host
+        !resync.hasPermission(Permission.Host) &&
+        !resync.hasPermission(Permission.PlaybackControl)
       "
       @value="onProgressSliderValue"
       :updateSlack="3"
