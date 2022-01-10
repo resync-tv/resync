@@ -136,9 +136,11 @@ const inputSubmit = async () => {
     document.activeElement.blur()
   }
 
+  if (!sourceInput.value.length) resync.playContent("")
+
   if (sourceIsURL.value || !sourceInput.value.length) {
-      const startFrom = getTimestamp(sourceInput.value)
-      resync.playContent(sourceInput.value, startFrom)
+    const startFrom = getTimestamp(sourceInput.value)
+    resync.playContent(sourceInput.value, startFrom)
   } else searchResults.value = await resync.search(sourceInput.value)
 }
 
@@ -151,13 +153,10 @@ onBeforeUnmount(() => {
   resync.destroy()
 })
 
-const queue = (e: MouseEvent) => {
-  e.preventDefault()
-  e.stopPropagation()
-  log(`queue ${sourceInput.value}`)
+const queue = () => {
+  const startFrom = getTimestamp(sourceInput.value)
 
-  let startFrom = getTimestamp(sourceInput.value)
-
+  log(`queue ${sourceInput.value}, starting from ${startFrom}`)
   resync.queue(sourceInput.value, startFrom)
 }
 
@@ -196,7 +195,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           <button class="resync-button" :class="{ invalid: playDisabled }">
             {{ playButtonText }}
           </button>
-          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">
+          <button
+            @click.prevent.stop="queue"
+            class="resync-button"
+            :class="{ invalid: queueDisabled }"
+          >
             queue
           </button>
         </form>
