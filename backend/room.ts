@@ -307,7 +307,7 @@ class Room {
     this.paused = true
     this.broadcast.emit("pause")
 
-    if (seconds) this.seekTo({ seconds, client })
+    if (seconds) this.seekTo({ seconds, secret: this.hostSecret })
 
     this.updateState()
     if (client) this.notify("pause", client)
