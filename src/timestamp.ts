@@ -1,4 +1,4 @@
-const timestampRegex = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/g
+const timestampRegex = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/
 const onlyNumbers = /^\d+$/
 
 export const getTimestamp = (url: string): number => {
