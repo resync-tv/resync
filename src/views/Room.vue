@@ -7,7 +7,7 @@ import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
-import { Permission } from "$/permissionTypes"
+import { checkPermission, Permission } from "$/permissionTypes"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
@@ -71,7 +71,7 @@ const offSecret = resync.onSecret((secret: string) => {
 })
 
 const permissionToggle = (member: PublicMember, permission: Permission) => {
-  const granted = (member.permission & permission) === permission
+  const granted = checkPermission(member.permission, permission)
 
   if (granted) {
     resync.revokePermission(member.id, permission)
@@ -227,47 +227,23 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
             <div
               class="permissions"
-              v-if="(member.permission & Permission.Host) === Permission.Host"
+              v-if="checkPermission(member.permission, Permission.Host)"
             >
               <SvgIcon class="host" name="star" />
             </div>
             <div class="permissions" v-else>
-              <!-- <input
-                :checked="
-                  (member.permission & Permission.PlaybackControl) ===
-                  Permission.PlaybackControl
-                "
-                @change="permissionToggle($event, member.id, Permission.PlaybackControl)"
-                type="checkbox"
-                id="player"
-                name="Player Control"
-                :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
-              />
-              <input
-                :checked="
-                  (member.permission & Permission.QueueControl) === Permission.QueueControl
-                "
-                @change="permissionToggle($event, member.id, Permission.QueueControl)"
-                type="checkbox"
-                id="queue"
-                name="Queue Control"
-                :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
-              />-->
               <SvgIcon
                 name="play_arrow"
                 @click="permissionToggle(member, Permission.PlaybackControl)"
                 :class="{
-                  enabled:
-                    (member.permission & Permission.PlaybackControl) ===
-                    Permission.PlaybackControl,
+                  enabled: checkPermission(member.permission, Permission.PlaybackControl),
                 }"
               />
               <SvgIcon
                 name="playlist"
                 @click="permissionToggle(member, Permission.ContentControl)"
                 :class="{
-                  enabled:
-                    (member.permission & Permission.ContentControl) === Permission.ContentControl,
+                  enabled: checkPermission(member.permission, Permission.ContentControl),
                 }"
               />
             </div>

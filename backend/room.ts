@@ -7,7 +7,7 @@ import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
 
-import { Permission } from "$/permissionTypes"
+import { checkPermission, Permission } from "$/permissionTypes"
 import { randomBytes } from "crypto"
 
 const nanoid = customAlphabet(nolookalikesSafe, 6)
@@ -55,7 +55,7 @@ class Room {
     log(`constructing room ${roomID}`)
     this.looping = false
     this.hostSecret = secret ?? ""
-    this.defaultPermission = 0 // Permission.QueueControl | Permission.PlaybackControl
+    this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
     this.roomID = roomID
     this.io = io
     this.broadcast = this.io.to(roomID)
@@ -100,7 +100,7 @@ class Room {
 
     const member = this.getMember(id)
 
-    if (member && (member?.permission & permission) !== permission) {
+    if (member && !checkPermission(member.permission, permission)) {
       member.permission ^= permission
     }
 
@@ -112,7 +112,7 @@ class Room {
 
     const member = this.getMember(id)
 
-    if (member && (member?.permission & permission) === permission) {
+    if (member && checkPermission(member.permission, permission)) {
       member.permission ^= permission
     }
 
@@ -184,7 +184,7 @@ class Room {
     this.notify("leave", client)
 
     const member = this.getMember(client.id)
-    const memberWasHost = member && (member.permission & Permission.Host) === Permission.Host
+    const memberWasHost = member && checkPermission(member.permission, Permission.Host)
 
     if (memberWasHost) {
       const [newHost] = this.members.filter(m => m.client.id !== client.id)
@@ -212,7 +212,7 @@ class Room {
     startFrom: number,
     secret?: string
   ) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     let sourceID = ""
     const currentSourceID =
@@ -248,7 +248,7 @@ class Room {
   }
 
   addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     this.queue.push(resolveContent(source, startFrom))
 
@@ -257,7 +257,7 @@ class Room {
   }
 
   clearQueue(client: Socket, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     this.queue = []
 
@@ -266,7 +266,7 @@ class Room {
   }
 
   playQueued(client: Socket, index: number, remove = false, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     const [next] = this.queue.splice(index, 1)
     if (!next) return this.log("client requested non-existant item from queue")
