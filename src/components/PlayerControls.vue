@@ -6,6 +6,7 @@ import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
 import { Permission } from "../../backend/permission"
+import { emit } from "process"
 
 const log = debug("playercontrols")
 
@@ -89,6 +90,10 @@ const onProgressSliderValue = (value: number) => {
   resync.seekTo(resync.duration() * value)
 }
 
+const onProgressSliding = (value: number) => {
+  currentTime.value = resync.duration() * value
+}
+
 const fullscreenStateIcon = computed(() => {
   if (props.fullscreenEnabled) return "fullscreen_exit"
   return "fullscreen"
@@ -162,6 +167,7 @@ const fullscreenStateIcon = computed(() => {
         !resync.hasPermission(Permission.PlaybackControl)
       "
       @value="onProgressSliderValue"
+      @slide="onProgressSliding"
       :updateSlack="3"
     />
   </div>

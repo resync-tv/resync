@@ -2,7 +2,7 @@
 import { minMax } from "@/util"
 import { PropType, ref, toRefs, watch } from "vue"
 
-const emit = defineEmits(["value"])
+const emit = defineEmits(["value", "slide"])
 const props = defineProps({
   progress: {
     type: Number,
@@ -54,6 +54,7 @@ const mouseDown = (event: MouseEvent) => {
   window.onmousemove = (evt: MouseEvent) => {
     offsetX += evt.movementX / window.devicePixelRatio
     override.value = minMax(offsetX / offsetWidth)
+    emit("slide", override.value)
 
     if (immediate.value) emit("value", override.value)
   }
