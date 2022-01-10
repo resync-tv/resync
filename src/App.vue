@@ -138,8 +138,8 @@ main {
   @apply dark:(text-light text-opacity-50) ;
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
-  @apply @apply
-  hover:light:shadow-md active:light:shadow;
+  @apply hover:light:shadow-md;
+  @apply active:light:shadow;
 }
 
 .dark .resync-button {
