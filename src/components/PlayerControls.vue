@@ -5,7 +5,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
-import { Permission } from "$/permissionTypes"
+import { Permission } from "../../backend/permission"
 
 const log = debug("playercontrols")
 

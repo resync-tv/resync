@@ -7,7 +7,7 @@ import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
-import { checkPermission, Permission } from "$/permissionTypes"
+import { checkPermission, Permission } from "../../backend/permission"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
