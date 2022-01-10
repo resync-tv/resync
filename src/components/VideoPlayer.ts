@@ -120,9 +120,11 @@ export default defineComponent({
           logRemote(`onRequestTime`)
           callback(resync.currentTime())
         }),
-        resync.onSource(() => {
+        resync.onSource(source => {
           if (!video.value) throw new Error("video ref is null")
           autoplay.value = false
+
+          if (source) video.value.currentTime = source.startFrom
 
           video.value.oncanplaythrough = () => {
             resync.loaded()

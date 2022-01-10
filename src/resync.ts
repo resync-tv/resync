@@ -70,7 +70,6 @@ export default class Resync {
       }),
       this.onSource((source?: MediaSourceAny) => {
         this.updateMediasession(source)
-        if (source) this.seekTo(source.startFrom)
       })
     )
   }
