@@ -124,8 +124,6 @@ export default defineComponent({
           if (!video.value) throw new Error("video ref is null")
           autoplay.value = false
 
-          if (source) video.value.currentTime = source.startFrom
-
           video.value.oncanplaythrough = () => {
             resync.loaded()
 
@@ -141,6 +139,11 @@ export default defineComponent({
         }),
         watch(src, () => {
           log(src.value)
+
+          nextTick().then(() => {
+            const startFrom = resync.state.value.source?.startFrom
+            if (video.value && startFrom) video.value.currentTime = startFrom
+          })
 
           if (src.value) offShortcuts = shortcuts(resync)
           else offShortcutsRef()
