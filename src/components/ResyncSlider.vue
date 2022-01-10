@@ -85,7 +85,7 @@ const mouseDown = (event: MouseEvent) => {
           v-for="seg in buffered"
           :key="seg[0]"
           :style="{
-            //@ts-expect-error
+            // @ts-expect-error
             '--start': `${seg[0] * 100}%`,
             '--end': `${seg[1] * 100}%`,
           }"

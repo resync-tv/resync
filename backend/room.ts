@@ -71,8 +71,7 @@ class Room {
 
     if (member) {
       const hasPermission = requiredPermission === (member?.permission & requiredPermission)
-      if(!hasPermission) 
-        this.log(`${member.name} doesnt have ${requiredPermission}`)
+      if (!hasPermission) this.log(`${member.name} doesnt have ${requiredPermission}`)
       return hasPermission
     }
   }
@@ -212,7 +211,7 @@ class Room {
     startFrom: number,
     secret?: string
   ) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     let sourceID = ""
     const currentSourceID =
@@ -248,7 +247,7 @@ class Room {
   }
 
   addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     this.queue.push(resolveContent(source, startFrom))
 
@@ -257,7 +256,7 @@ class Room {
   }
 
   clearQueue(client: Socket, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     this.queue = []
 
@@ -266,7 +265,7 @@ class Room {
   }
 
   playQueued(client: Socket, index: number, remove = false, secret?: string) {
-    if (!this.hasPermission(Permission.QueueControl, client?.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client?.id, secret)) return
 
     const [next] = this.queue.splice(index, 1)
     if (!next) return this.log("client requested non-existant item from queue")

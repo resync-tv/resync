@@ -115,20 +115,16 @@ const fullscreenStateIcon = computed(() => {
         />
 
         <div class="flex items-center volume">
-          <SvgIcon
-            :name="volumeStateIcon"
-            @click="onVolumeIconClick"
-            class="player-icon small"
-          />
+          <SvgIcon :name="volumeStateIcon" @click="onVolumeIconClick" class="player-icon small" />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
             @value="onVolumeSlider"
             small
             immediate
           />
-          <div class="font-timestamp mx-1 align-middle">
-            {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
-          </div>
+          <div
+            class="font-timestamp mx-1 align-middle"
+          >{{ timestamp(currentTime) }} / {{ timestamp(duration) }}</div>
         </div>
       </div>
 
@@ -159,7 +155,7 @@ const fullscreenStateIcon = computed(() => {
       :buffered="buffered"
       :disabled="
         ((resync.ownPermission.value & Permission.PlaybackControl) !==
-        Permission.PlaybackControl) && (resync.ownPermission.value & Permission.Host) !==
+          Permission.PlaybackControl) && (resync.ownPermission.value & Permission.Host) !==
         Permission.Host
       "
       @value="onProgressSliderValue"

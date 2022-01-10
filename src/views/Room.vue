@@ -75,7 +75,7 @@ const permissionToggle = (member: PublicMember, permission: Permission) => {
 
   if (granted) {
     resync.revokePermission(member.id, permission)
-    } else {
+  } else {
     resync.grantPermission(member.id, permission)
   }
 }
@@ -181,12 +181,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="mr-2"
             autofocus
           />
-          <button class="resync-button" :class="{ invalid: playButtonDisabled }">
-            {{ playButtonText }}
-          </button>
-          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">
-            queue
-          </button>
+          <button
+            class="resync-button"
+            :class="{ invalid: playButtonDisabled }"
+          >{{ playButtonText }}</button>
+          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">queue</button>
         </form>
 
         <PlayerWrapper
@@ -225,11 +224,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
       <div id="memberlist" class="top-list left-0">
         <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.name"
-            class="top-text"
-          >
+          <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
             <div
               class="permissions"
               v-if="(member.permission & Permission.Host) === Permission.Host"
@@ -257,7 +252,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
                 id="queue"
                 name="Queue Control"
                 :disabled="(resync.ownPermission.value & Permission.Host) !== Permission.Host"
-              /> -->
+              />-->
               <SvgIcon
                 name="play_arrow"
                 @click="permissionToggle(member, Permission.PlaybackControl)"
@@ -269,10 +264,10 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
               />
               <SvgIcon
                 name="playlist"
-                @click="permissionToggle(member, Permission.QueueControl)"
+                @click="permissionToggle(member, Permission.ContentControl)"
                 :class="{
                   enabled:
-                    (member.permission & Permission.QueueControl) === Permission.QueueControl,
+                    (member.permission & Permission.ContentControl) === Permission.ContentControl,
                 }"
               />
             </div>
@@ -289,31 +284,21 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
               v-for="notification in recentNotifications"
               :key="notification.key"
               class="top-text text-right z-2 justify-end"
-            >
-              {{ renderNotification[notification.event](notification) }}
-            </div>
+            >{{ renderNotification[notification.event](notification) }}</div>
           </transition-group>
         </div>
       </div>
 
       <div id="chat" class="bottom-list min-w-75 right-0">
-        <div
-          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
-        >
-          <div
-            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
-          ></div>
-          <div
-            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
-          ></div>
+        <div class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end">
+          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
+          <div class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"></div>
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
               v-for="message in recentMessages"
               :key="message.key"
               class="top-text text-right opacity-25 z-2 justify-end"
-            >
-              {{ message.name + ": " + message.msg }}
-            </div>
+            >{{ message.name + ": " + message.msg }}</div>
           </transition-group>
           <input
             @keypress.enter="sendMessage"
