@@ -21,21 +21,26 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    disabled: {
+      type: Boolean,
+      required: true,
+    },
   },
   setup(props) {
-    const { videos, title } = toRefs(props)
+    const { videos, title, disabled } = toRefs(props)
 
     return {
       videos,
       timestamp,
       title,
+      disabled,
     }
   },
 })
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-3 px-4 pb-0 video-list">
+  <div class="flex flex-col h-full p-3 px-4 pb-0 video-list" :class="{ disabled }">
     <header class="flex mb-4 justify-between items-center">
       <h1 class="text-3xl">{{ title }}</h1>
       <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
@@ -81,12 +86,16 @@ export default defineComponent({
     border-radius: 0.125em;
   }
 
+  &.disabled > ul > li {
+    @apply cursor-default;
+  }
+
   > ul > li {
-    @apply flex items-center h-17 cursor-pointer mb-4 pr-2;
+    @apply cursor-pointer flex h-17 mb-4 pr-2 items-center;
     position: relative;
 
     > .thumb {
-      @apply mr-3 flex-shrink-0;
+      @apply flex-shrink-0 mr-3;
       position: relative;
       display: table;
 
@@ -98,7 +107,7 @@ export default defineComponent({
       }
 
       > span {
-        @apply absolute text-xs bottom-1 right-0 px-1 rounded;
+        @apply rounded text-xs px-1 right-0 bottom-1 absolute;
         background: rgba(0, 0, 0, 0.5);
         margin-right: 0.3em;
       }

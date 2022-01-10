@@ -2,10 +2,11 @@ import type { Socket } from "socket.io-client"
 import type { RoomState } from "$/room"
 import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
 
-import { Ref, ref, watch } from "vue"
+import { Ref, ref, watch, computed } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
+import { Permission, checkPermission } from "../backend/permission"
 
 const log = debug("resync.ts")
 
@@ -19,21 +20,35 @@ export default class Resync {
   currentTime = (): number => NaN
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
+  hostSecret = ""
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
 
+  ownPermission = computed(() => {
+    const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
+    if (!ownMember) throw "i just can't find myself"
+
+    return ownMember.permission
+  })
+
+  hasPermission = (permission: Permission) => {
+    return checkPermission(this.ownPermission.value, permission)
+  }
+
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
     this.roomID = roomID
     this.roomEmit = (event, arg, ...args) => {
-      log.extend("roomEmit")(event, { roomID, ...arg }, ...args)
-      socket.emit(event, { roomID, ...arg }, ...args)
+      const secret = this.hostSecret
+      log.extend("roomEmit")(event, { roomID, secret, ...arg }, ...args)
+      socket.emit(event, { roomID, secret, ...arg }, ...args)
     }
 
     this.state = ref({
+      looping: false,
       paused: this.paused.value,
       source: undefined,
       lastSeekedTo: 0,
@@ -89,6 +104,8 @@ export default class Resync {
     return new Promise(res => this.socket.emit("search", query, res))
   }
 
+  loop = () => this.roomEmit("loop", { newState: !this.state.value.looping })
+
   joinRoom = async (name: string): Promise<void> => {
     const join = () => {
       return new Promise<void>(res => {
@@ -134,6 +151,10 @@ export default class Resync {
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
   message = (msg: string): void => this.roomEmit("message", { msg })
+  grantPermission = (id: string, permission: Permission): void =>
+    this.roomEmit("givePermission", { permission, id })
+  revokePermission = (id: string, permission: Permission): void =>
+    this.roomEmit("removePermission", { permission, id })
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })
@@ -146,4 +167,5 @@ export default class Resync {
   onNotify = this.eventHandler("notifiy")
   onState = this.eventHandler("state")
   onMessage = this.eventHandler("message")
+  onSecret = this.eventHandler("secret")
 }

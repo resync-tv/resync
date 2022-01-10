@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { EventNotification, Message } from "$/room"
+import type { EventNotification, Message, PublicMember } from "$/room"
 import type { ResyncSocketFrontend } from "$/socket"
 
-import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
+import { computed, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
 import { renderNotification } from "@/notify"
+import { checkPermission, Permission } from "../../backend/permission"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
@@ -14,6 +15,7 @@ import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 import { getTimestamp } from "@/timestamp"
+import SvgIcon from "../components/SvgIcon.vue"
 
 const log = debug("room")
 
@@ -43,9 +45,10 @@ if (!socket) throw new Error("socket injection failed")
 const resync = new Resync(socket, roomID)
 provide("resync", resync)
 
-if (log.enabled)
+if (log.enabled) {
   // @ts-expect-error for manual testing
   window.resync = resync
+}
 
 sentry.configureScope(scope => {
   scope.setTag("roomID", roomID)
@@ -64,6 +67,20 @@ if (name)
     mountPlayer.value = true
     ls("resync-last-room", roomID)
   })
+
+const offSecret = resync.onSecret((secret: string) => {
+  resync.hostSecret = secret
+})
+
+const permissionToggle = (member: PublicMember, permission: Permission) => {
+  const granted = checkPermission(member.permission, permission)
+
+  if (granted) {
+    resync.revokePermission(member.id, permission)
+  } else {
+    resync.grantPermission(member.id, permission)
+  }
+}
 
 const recentNotifications = ref<EventNotification[]>([])
 const offNotifiy = resync.onNotify(notification => {
@@ -86,45 +103,52 @@ const sendMessage = () => {
   messageInput.value = ""
 }
 
-const urlForm = ref<HTMLFormElement | null>(null)
 const playButtonText = computed(() => {
   if (!sourceInput.value.length && resync.state.value.source) return "stop"
   if (sourceIsURL.value || !sourceInput.value.length) return "play"
 
   return "search"
 })
-const playButtonDisabled = computed(() => {
-  return !resync.state.value.source && !sourceInput.value.length
+const queueDisabled = computed(() => {
+  const hasControl = resync.hasPermission(Permission.ContentControl)
+  const isHost = resync.hasPermission(Permission.Host)
+  const isAllowed = isHost || hasControl
+
+  return !isAllowed || !sourceIsURL.value
+})
+
+const playDisabled = computed(() => {
+  const hasControl = resync.hasPermission(Permission.ContentControl)
+  const isHost = resync.hasPermission(Permission.Host)
+  const isAllowed = isHost || hasControl
+
+  const somethingPlaying = resync.state.value.source
+  const somethingInInput = sourceInput.value.length
+  const noContent = !somethingPlaying && !somethingInInput
+
+  return !isAllowed || noContent
 })
 
 const searchResults = ref<MediaSourceAny[]>([])
 
-onMounted(() => {
-  if (!urlForm.value) throw Error("urlForm ref not available")
+const inputSubmit = async () => {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur()
+  }
 
-  urlForm.value.onsubmit = async e => {
-    e.preventDefault()
-
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur()
-    }
-
-    if (sourceIsURL.value || !sourceInput.value.length) {
+  if (sourceIsURL.value || !sourceInput.value.length) {
       const startFrom = getTimestamp(sourceInput.value)
       resync.playContent(sourceInput.value, startFrom)
-    } else searchResults.value = await resync.search(sourceInput.value)
-  }
-})
+  } else searchResults.value = await resync.search(sourceInput.value)
+}
 
 onBeforeUnmount(() => {
   offMessage()
   offNotifiy()
   resetScope()
+  offSecret()
   document.title = "resync"
   resync.destroy()
-
-  if (!urlForm.value) throw Error("urlForm ref not available")
-  urlForm.value.onsubmit = null
 })
 
 const queue = (e: MouseEvent) => {
@@ -160,7 +184,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           class="flex bottom-full w-md justify-center"
           :class="{ 'mb-3 absolute': contentShowing }"
           style="max-width: 75vw"
-          ref="urlForm"
+          @submit.prevent="inputSubmit"
         >
           <ResyncInput
             v-model="sourceInput"
@@ -169,11 +193,12 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="mr-2"
             autofocus
           />
-          <button
-            class="resync-button"
-            :class="{ invalid: playButtonDisabled }"
-          >{{ playButtonText }}</button>
-          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">queue</button>
+          <button class="resync-button" :class="{ invalid: playDisabled }">
+            {{ playButtonText }}
+          </button>
+          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">
+            queue
+          </button>
         </form>
 
         <PlayerWrapper
@@ -181,6 +206,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           v-show="resync.state.value.source"
           type="video"
           :searchResults="searchResults"
+          :queueDisabled="queueDisabled"
           @clearSearch="searchResults = []"
         />
 
@@ -191,6 +217,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             @play="searchPlay"
             @contextMenu="searchQueue"
             :videos="searchResults"
+            :disabled="queueDisabled"
             title="search"
             placeholder="no results found"
             style="max-height: 70vh"
@@ -203,6 +230,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             @contextMenu="resync.removeQueued"
             @close="resync.clearQueue"
             :videos="resync.state.value.queue"
+            :disabled="queueDisabled"
             title="queue"
             placeholder="queue is empty"
             class="min-w-2xl"
@@ -214,35 +242,69 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
         <transition-group name="text-height">
           <div
             v-for="member in resync.state.value.members"
-            :key="member.id"
+            :key="member.name"
             class="top-text"
-          >{{ member.name }}</div>
+          >
+            <div
+              class="permissions"
+              v-if="checkPermission(member.permission, Permission.Host)"
+            >
+              <SvgIcon class="host" name="star" />
+            </div>
+            <div class="permissions" v-else>
+              <SvgIcon
+                name="play_arrow"
+                @click="permissionToggle(member, Permission.PlaybackControl)"
+                :class="{
+                  enabled: checkPermission(member.permission, Permission.PlaybackControl),
+                }"
+              />
+              <SvgIcon
+                name="playlist"
+                @click="permissionToggle(member, Permission.ContentControl)"
+                :class="{
+                  enabled: checkPermission(member.permission, Permission.ContentControl),
+                }"
+              />
+            </div>
+            <div class="opacity-50">{{ member.name }}</div>
+          </div>
         </transition-group>
       </div>
 
-      <div id="notifications" class="top-list right-0">
+      <div id="notifications" class="top-list opacity-50 right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
           <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
               :key="notification.key"
-              class="top-text text-right z-2"
-            >{{ renderNotification[notification.event](notification) }}</div>
+              class="top-text text-right z-2 justify-end"
+            >
+              {{ renderNotification[notification.event](notification) }}
+            </div>
           </transition-group>
         </div>
       </div>
 
       <div id="chat" class="bottom-list min-w-75 right-0">
-        <div class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end">
-          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
-          <div class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"></div>
+        <div
+          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+        >
+          <div
+            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
+          ></div>
+          <div
+            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
+          ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
               v-for="message in recentMessages"
               :key="message.key"
-              class="top-text text-right opacity-25 z-2"
-            >{{ message.name + ": " + message.msg }}</div>
+              class="top-text text-right opacity-25 z-2 justify-end"
+            >
+              {{ message.name + ": " + message.msg }}
+            </div>
           </transition-group>
           <input
             @keypress.enter="sendMessage"
@@ -291,7 +353,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 }
 
 .top-list {
-  @apply opacity-25 pt-2 top-0 absolute;
+  @apply pt-2 top-0 absolute;
 }
 
 .bottom-list {
@@ -300,6 +362,32 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 
 .top-text {
   @apply h-5 mx-2 text-sm overflow-hidden;
+  display: flex;
+  align-items: center;
+  // justify-content: end;
+
+  .permissions {
+    background: rgba(128, 128, 128, 0.25);
+    border-radius: 10px;
+    margin-right: 5px;
+    display: flex;
+    padding: 0 2.5px;
+  }
+
+  svg {
+    height: 16px;
+    width: 16px;
+    opacity: 0.25;
+
+    &.enabled {
+      opacity: 1;
+    }
+
+    &.host {
+      width: 32px;
+      opacity: 1;
+    }
+  }
 }
 
 .resync-button:not(:last-of-type) {

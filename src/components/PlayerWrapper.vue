@@ -35,9 +35,13 @@ export default defineComponent({
       type: Array as PropType<MediaSourceAny[]>,
       required: true,
     },
+    queueDisabled : {
+      type: Boolean,
+      required: true,
+    }
   },
   setup(props, { emit }) {
-    const { searchResults } = toRefs(props)
+    const { searchResults, queueDisabled } = toRefs(props)
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
@@ -125,6 +129,18 @@ export default defineComponent({
 
     provide("requireUserInteraction", requireUserInteraction)
 
+    let mouseMovedTimeout : NodeJS.Timeout
+    let mouseMoved = ref(false)
+    const onMouseMoved = () => {
+      if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
+      mouseMoved.value = true
+      mouseMovedTimeout = setTimeout(() => { mouseMoved.value = false }, 2*1e3)
+    }
+
+    const onMouseLeave = () => {
+      mouseMoved.value = false
+    }
+
     const copyURL = async (url: string) => {
       const clip = window.navigator.clipboard
       if (!clip) window.alert("please use a modern browser like chrome for this feature.")
@@ -198,6 +214,10 @@ export default defineComponent({
       searchQueue,
       closeSearch,
       closeOverlays,
+      queueDisabled,
+      onMouseMoved,
+      onMouseLeave,
+      mouseMoved,
     }
   },
 })
@@ -206,10 +226,12 @@ export default defineComponent({
 <template>
   <div
     class="rounded flex overflow-hidden relative light:shadow"
-    :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled }"
+    :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled, mouseMoved, active: resync.paused.value }"
     :style="sizeStyle"
     id="player-wrapper"
     ref="playerWrapper"
+    @mousemove="onMouseMoved"
+    @mouseleave="onMouseLeave"
   >
     <VideoPlayer @metadata="onMetadata" @fullscreen="toggleFullscreen" :style="sizeStyle" />
 
@@ -233,6 +255,7 @@ export default defineComponent({
           @close="showQueue = false"
           @play="queuePlay"
           @contextMenu="resync.removeQueued"
+          :disabled="queueDisabled"
           :videos="resync.state.value.queue"
           title="queue"
           placeholder="queue is empty"
@@ -246,6 +269,7 @@ export default defineComponent({
           @close="closeSearch"
           @play="searchPlay"
           @contextMenu="searchQueue"
+          :disabled="queueDisabled"
           :videos="searchResults"
           title="search"
           placeholder="no results found"
@@ -406,11 +430,19 @@ export default defineComponent({
   opacity: 0;
 }
 
-#player-wrapper:hover > .hover-overlay,
+#player-wrapper.mouseMoved > .hover-overlay,
 .hover-overlay.active {
   opacity: 1;
 }
 
+#player-wrapper {
+  cursor: none;
+}
+
+#player-wrapper.mouseMoved,
+#player-wrapper.active {
+  @apply cursor-default;
+}
 #player-wrapper.overlay > .hover-overlay,
 .hover-overlay.hide {
   opacity: 0 !important;
