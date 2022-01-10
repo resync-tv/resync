@@ -228,10 +228,10 @@ class Room {
     }
 
     if (sourceID === currentSourceID) {
-      this.log("same video")
+      this.log(`same video, starting from ${this.source?.startFrom}`)
 
-      this.lastSeekedTo = 0
-      this.seekTo({ client, seconds: 0 })
+      this.lastSeekedTo = this.source?.startFrom ?? 0
+      this.seekTo({ client, seconds: this.source?.startFrom ?? 0, secret })
       this.resume(client, secret)
       return
     }

@@ -110,7 +110,7 @@ export default defineComponent({
           logRemote(`onRequestTime`)
           callback(resync.currentTime())
         }),
-        resync.onSource(() => {
+        resync.onSource(source => {
           if (!video.value) throw new Error("video ref is null")
           autoplay.value = false
 
@@ -129,6 +129,11 @@ export default defineComponent({
         }),
         watch(src, () => {
           log(src.value)
+
+          nextTick().then(() => {
+            const startFrom = resync.state.value.source?.startFrom
+            if (video.value && startFrom) video.value.currentTime = startFrom
+          })
 
           if (src.value) offShortcuts = shortcuts(resync)
           else offShortcutsRef()

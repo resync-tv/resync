@@ -14,6 +14,7 @@ import VideoList from "@/components/VideoList.vue"
 import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
+import { getTimestamp } from "@/timestamp"
 import SvgIcon from "../components/SvgIcon.vue"
 
 const log = debug("room")
@@ -135,8 +136,11 @@ const inputSubmit = async () => {
     document.activeElement.blur()
   }
 
+  if (!sourceInput.value.length) resync.playContent("")
+
   if (sourceIsURL.value || !sourceInput.value.length) {
-    resync.playContent(sourceInput.value)
+    const startFrom = getTimestamp(sourceInput.value)
+    resync.playContent(sourceInput.value, startFrom)
   } else searchResults.value = await resync.search(sourceInput.value)
 }
 
@@ -149,11 +153,11 @@ onBeforeUnmount(() => {
   resync.destroy()
 })
 
-const queue = (e: MouseEvent) => {
-  e.preventDefault()
-  e.stopPropagation()
-  log(`queue ${sourceInput.value}`)
-  resync.queue(sourceInput.value)
+const queue = () => {
+  const startFrom = getTimestamp(sourceInput.value)
+
+  log(`queue ${sourceInput.value}, starting from ${startFrom}`)
+  resync.queue(sourceInput.value, startFrom)
 }
 
 const contentShowing = computed(() => {
@@ -191,7 +195,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           <button class="resync-button" :class="{ invalid: playDisabled }">
             {{ playButtonText }}
           </button>
-          <button @click="queue" class="resync-button" :class="{ invalid: queueDisabled }">
+          <button
+            @click.prevent.stop="queue"
+            class="resync-button"
+            :class="{ invalid: queueDisabled }"
+          >
             queue
           </button>
         </form>
