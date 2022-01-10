@@ -7,6 +7,7 @@ import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
 import { Permission } from "$/permissionTypes"
+import { Permission, checkPermission } from "$/permissionTypes"
 
 const log = debug("resync.ts")
 
@@ -33,6 +34,10 @@ export default class Resync {
 
     return ownMember.permission
   })
+
+  hasPermission = (permission: Permission) => {
+    return checkPermission(this.ownPermission.value, permission)
+  }
 
   constructor(socket: Socket, roomID: string) {
     this.socket = socket
