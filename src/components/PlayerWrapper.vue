@@ -14,6 +14,7 @@ import VideoList from "@/components/VideoList.vue"
 import Resync from "@/resync"
 
 import { debug } from "@/util"
+import Settings from "./Settings.vue"
 const log = debug("playerwrapper")
 
 export default defineComponent({
@@ -25,7 +26,8 @@ export default defineComponent({
     LoadingSpinner,
     SvgIcon,
     VideoList,
-  },
+    Settings
+},
   props: {
     type: {
       type: String as PropType<MediaType>,
@@ -162,6 +164,8 @@ export default defineComponent({
       window.open(url, "_blank")
     }
 
+    const showSettings = ref(false)
+
     const showQueue = ref(false)
     const queuePlay = (i: number) => {
       resync.playQueued(i)
@@ -192,6 +196,7 @@ export default defineComponent({
     const closeOverlays = () => {
       showQueue.value = false
       showSearch.value = false
+      showSettings.value = false
       emit("clearSearch")
     }
 
@@ -206,6 +211,7 @@ export default defineComponent({
       copyCurrentURL,
       openInNew,
       showQueue,
+      showSettings,
       queuePlay,
       showSpinner,
       showSearch,
@@ -246,7 +252,7 @@ export default defineComponent({
     <div
       id="overlay-closer"
       class="h-full w-full absolute"
-      v-if="showQueue || showSearch"
+      v-if="showQueue || showSearch || showSettings "
       @click="closeOverlays"
     ></div>
 
@@ -260,6 +266,18 @@ export default defineComponent({
           :videos="resync.state.value.queue"
           title="queue"
           placeholder="queue is empty"
+        />
+      </div>
+    </Transition>
+
+    <Transition name="video-list-right">
+      <div v-show="showSettings" class="overlay-queue">
+        <Settings
+          @close="showSettings = false"
+          @contextMenu="resync.removeQueued"
+          @updateColors=""
+          title="settings"
+          placeholder="no settings available"
         />
       </div>
     </Transition>
@@ -280,11 +298,12 @@ export default defineComponent({
 
     <div
       class="z-5 overlay-gradient hover-overlay lower"
-      :class="{ active: resync.paused.value, hide: showQueue || showSearch }"
+      :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings}"
     >
       <PlayerControls
         @fullscreen="toggleFullscreen"
         @queue="showQueue = !showQueue"
+        @settings="showSettings = !showSettings"
         :fullscreenEnabled="fullscreenEnabled"
         class="pointer-events-auto"
       />
@@ -292,7 +311,7 @@ export default defineComponent({
 
     <div
       class="overlay-gradient hover-overlay upper"
-      :class="{ active: resync.paused.value, hide: showQueue || showSearch }"
+      :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings }"
       v-if="resync.state.value.source?.title"
     >
       <div class="flex h-15 w-full px-5 items-center justify-between relative">

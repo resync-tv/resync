@@ -7,6 +7,7 @@ import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
 import { Permission, checkPermission } from "../backend/permission"
+import { Segment, Category } from "sponsorblock-api"
 
 const log = debug("resync.ts")
 
@@ -18,14 +19,21 @@ export default class Resync {
   private roomID: string
   private handlers: SocketOff[] = []
   currentTime = (): number => NaN
+  updateProgress = (): void => undefined
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
   hostSecret = ""
+  blocked = (): { start: number, end: number, category: string, color: string}[] | undefined => undefined
+  segmentColors = JSON.parse(ls("segment-colors") ?? '')
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
+
+  isCategoryBlocked = computed(() => {
+    return 
+  })
 
   ownPermission = computed(() => {
     const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
@@ -48,6 +56,7 @@ export default class Resync {
     }
 
     this.state = ref({
+      blockedCategories: [],
       looping: false,
       paused: this.paused.value,
       source: undefined,
@@ -140,6 +149,7 @@ export default class Resync {
     this.roomEmit("playContent", { source, startFrom })
   queue = (source: string, startFrom?: number): void =>
     this.roomEmit("queue", { source, startFrom })
+  editBlocked = (newBlocked: Array<Category>): void => this.roomEmit("editBlocked", { newBlocked })
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")
   removeQueued = (index: number): void => this.roomEmit("removeQueued", { index })

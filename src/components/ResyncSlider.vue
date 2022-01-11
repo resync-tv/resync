@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { minMax } from "@/util"
 import { PropType, ref, toRefs, watch } from "vue"
-
 const emit = defineEmits(["value", "slide"])
 const props = defineProps({
   progress: {
@@ -10,6 +9,10 @@ const props = defineProps({
   },
   buffered: {
     type: Array as PropType<number[][]>,
+    default: [],
+  },
+  blocked: {
+    type: Array as PropType<{ start: number, end: number, category: string, color: string}[]>,
     default: [],
   },
   updateSlack: {
@@ -33,12 +36,10 @@ const props = defineProps({
     default: 0,
   },
 })
-
-const { progress, buffered, updateSlack, immediate } = toRefs(props)
+const { progress, buffered, blocked, updateSlack, immediate } = toRefs(props)
 const override = ref<number | null>(null)
 const active = ref(false)
 let skipValueUpdates = 0
-
 watch(progress, () => {
   if (skipValueUpdates > 1) skipValueUpdates--
   else if (skipValueUpdates === 1) {
@@ -46,7 +47,6 @@ watch(progress, () => {
     override.value = null
   }
 })
-
 const mouseDown = (event: MouseEvent) => {
   if (props.disabled) return
   const target = event.target as HTMLElement
@@ -54,38 +54,31 @@ const mouseDown = (event: MouseEvent) => {
   let { offsetX } = event
   override.value = event.offsetX / target.offsetWidth
   active.value = true
-
   window.onmousemove = (evt: MouseEvent) => {
     offsetX += evt.movementX / window.devicePixelRatio
     override.value = minMax(offsetX / offsetWidth)
     emit("slide", override.value)
-
     if (immediate.value) emit("value", override.value)
   }
-
   window.onmouseup = () => {
     emit("value", override.value)
-
     if (updateSlack.value > 0) skipValueUpdates = updateSlack.value
     else override.value = null
-
     window.onmousemove = null
     window.onmouseup = null
     active.value = false
   }
 }
-
 const onwheel = (event: WheelEvent) => {
   if (!props.wheelSteps) return
   event.preventDefault()
   event.stopPropagation()
-
   const { deltaY } = event
-
   if (deltaY < 0) emit("value", progress.value + props.wheelSteps)
   else emit("value", progress.value - props.wheelSteps)
 }
 </script>
+
 
 <template>
   <div class="resync-slider" :class="{ active }" @wheel="onwheel">
@@ -107,6 +100,19 @@ const onwheel = (event: WheelEvent) => {
           }"
           class="segment"
         ></div>
+        </div>
+        <div class="blocked">
+          <div
+            v-for="seg in blocked.filter(seg => (!isNaN(seg['start']) && !isNaN(seg['start'])))"
+            :key="seg['start']"
+            :style="{
+              // @ts-expect-error
+              '--start': `${seg['start'] * 100}%`,
+              '--end': `${seg['end'] * 100}%`,
+              '--color': `${seg['color']}`,
+            }"
+            class="segment">
+        </div>
       </div>
       <div class="progress"></div>
       <div class="handle"></div>
@@ -127,6 +133,7 @@ const onwheel = (event: WheelEvent) => {
   cursor: pointer;
   display: flex;
   align-items: center;
+  z-index:0;
 
   > div:not(.background) {
     position: absolute;
@@ -156,8 +163,26 @@ const onwheel = (event: WheelEvent) => {
       height: var(--height);
       transition: height var(--hover-transition);
       background: rgba(255, 255, 255, 0.4);
+      z-index:1;
     }
+
   }
+
+    > .blocked {
+      width: 100%;
+      > .segment {
+      --start: 0%;
+      --end: 0%;
+
+      position: absolute;
+      left: var(--start);
+      width: calc(var(--end) - var(--start));
+      height: var(--height);
+      transition: height var(--hover-transition);
+      background: var(--color);
+      z-index:2;
+      }
+    }
 
   > .progress {
     background: var(--color);
@@ -176,6 +201,7 @@ const onwheel = (event: WheelEvent) => {
     border-radius: 50%;
     background: var(--color);
     left: calc(var(--progress) * 100%);
+    z-index: 3;
   }
 
   &:hover:not(.small):not(.disabled),

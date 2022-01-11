@@ -1,10 +1,13 @@
 import _debug from "debug"
 
+import { Category } from "sponsorblock-api"
+
 interface LocalStored {
   "resync-displayname": string
   "resync-volume": number
   "resync-muted": boolean
   "resync-last-room": string
+  "segment-colors": string
 }
 
 const urlReg =

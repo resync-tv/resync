@@ -3,6 +3,7 @@ import type { MediaSourceAny } from "./mediaSource"
 import { Socket as BackendSocket } from "socket.io"
 
 import { Permission } from "../backend/permission"
+import { Category } from "sponsorblock-api"
 
 export interface Member {
   name: string
@@ -17,6 +18,7 @@ export interface PublicMember extends Omit<Member, "client"> {
 }
 
 export interface RoomState<S = MediaSourceAny> {
+  blockedCategories: Array<Category>
   looping: boolean
   paused: boolean
   source: S | undefined
@@ -27,6 +29,7 @@ export interface RoomState<S = MediaSourceAny> {
 }
 
 export type NotifyEvents =
+  | "sponsorblock"
   | "looping"
   | "join"
   | "leave"
