@@ -272,13 +272,6 @@ export default defineComponent({
 
     <Transition name="video-list-right">
       <div v-show="showSettings" class="overlay-queue">
-        <Settings
-          @close="showSettings = false"
-          @contextMenu="resync.removeQueued"
-          @updateColors=""
-          title="settings"
-          placeholder="no settings available"
-        />
       </div>
     </Transition>
 
