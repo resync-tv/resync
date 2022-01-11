@@ -277,9 +277,10 @@ class Room {
     if (client) this.notify("playContent", client, { source, startFrom })
   }
 
-  editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
+  async editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
     this.blockedCategories = newBlocked
-    this.updateSegmentTimeouts(0)
+    const avg = await this.requestTime()
+    this.updateSegmentTimeouts(avg)
     this.updateState()
   }
 
@@ -413,12 +414,16 @@ class Room {
       else this.log(`Seeking to ${seconds}`)
   }
 
-  async requestTime(client: Socket) {
+  async requestTime(client?: Socket) {
     const requestTimeLog = this.log.extend("requestTime")
     requestTimeLog("requested time")
 
     const sockets = await this.broadcast.allSockets()
-    const otherClients = [...sockets].filter(s => s !== client.id)
+    if (client) {
+      var otherClients = [...sockets].filter(s => s !== client.id)
+    } else {
+      var otherClients = [...sockets]
+    }
 
     const getTime = (sock: Socket): Promise<number> =>
       new Promise(res => sock.emit("requestTime", res))
