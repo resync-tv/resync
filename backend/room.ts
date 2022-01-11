@@ -21,10 +21,6 @@ import debug from "debug"
 import { clear } from "console"
 const log = debug("resync:room")
 
-const sponsorBlock = new SponsorBlock("resync-sponsorblock")
-const allCategories : Category[] = ['sponsor' , 'intro' , 'outro' ,
-'interaction' , 'selfpromo' , 'music_offtopic' , 'preview'] //todo: move this somewhere
-
 const genSecret = () => randomBytes(256).toString("hex")
 const sponsorBlock = new SponsorBlock("resync-sponsorblock")
 
@@ -283,6 +279,7 @@ class Room {
 
   editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
     this.blockedCategories = newBlocked
+    this.updateSegmentTimeouts(0)
     this.updateState()
   }
 
@@ -397,8 +394,6 @@ class Room {
 
   updateLooping(newState: boolean, client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
-    seconds = this.updateSegmentTimeouts(seconds)
-
     this.looping = newState
 
     this.updateState()
