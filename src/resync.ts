@@ -24,7 +24,11 @@ export default class Resync {
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
   hostSecret = ""
   blocked = (): { start: number, end: number, category: string, color: string}[] | undefined => undefined
-  segmentColors = JSON.parse(ls("segment-colors") ?? '')
+  segmentColors = () => {
+    const jSegmentColors = ls('segment-colors')
+    if (jSegmentColors) return JSON.parse(jSegmentColors)
+    else return {}
+  }
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
