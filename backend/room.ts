@@ -21,6 +21,10 @@ import debug from "debug"
 import { clear } from "console"
 const log = debug("resync:room")
 
+const sponsorBlock = new SponsorBlock("resync-sponsorblock")
+const allCategories : Category[] = ['sponsor' , 'intro' , 'outro' ,
+'interaction' , 'selfpromo' , 'music_offtopic' , 'preview'] //todo: move this somewhere
+
 const genSecret = () => randomBytes(256).toString("hex")
 const sponsorBlock = new SponsorBlock("resync-sponsorblock")
 
@@ -60,6 +64,9 @@ class Room {
 
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
+
+    this.blockedCategories = allCategories
+    this.segmentTimeouts = []
     this.looping = false
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
@@ -378,6 +385,7 @@ class Room {
 
   resume(client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
+    this.updateSegmentTimeouts(this.lastSeekedTo)
 
     this.updateSegmentTimeouts(this.lastSeekedTo)
     this.paused = false
@@ -389,6 +397,7 @@ class Room {
 
   updateLooping(newState: boolean, client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
+    seconds = this.updateSegmentTimeouts(seconds)
 
     this.looping = newState
 

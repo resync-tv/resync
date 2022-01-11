@@ -50,7 +50,6 @@ export default defineComponent({
             start: segment.startTime/resync.duration(), 
             end: segment.endTime/resync.duration(), 
             category: segment.category,
-            // @ts-expect-error
             color: resync.segmentColors[segment.category] ?? "#ff0000"
           }
         })
