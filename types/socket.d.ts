@@ -3,6 +3,7 @@ import type { Socket } from "socket.io-client"
 
 import type { EventNotification, RoomState } from "./room"
 import type { MediaSourceAny } from "./mediaSource"
+import { Category } from "sponsorblock-api"
 
 type Callback<A = void> = (x: A) => void
 
@@ -32,6 +33,7 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
+  editBlocked: FrontendEmitterBase< { newBlocked: Array<Category> }>
   loop: FrontendEmitterBase<{ newState: boolean }>
   givePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
   removePermission: FrontendEmitterBase<{ id: string; permission: Permission }>

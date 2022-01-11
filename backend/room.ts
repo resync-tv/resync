@@ -9,6 +9,7 @@ import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
 
+import { allCategories } from "./sponsorblock"
 import { checkPermission, Permission } from "./permission"
 import { randomBytes } from "crypto"
 
@@ -22,8 +23,6 @@ const log = debug("resync:room")
 
 const genSecret = () => randomBytes(256).toString("hex")
 const sponsorBlock = new SponsorBlock("resync-sponsorblock")
-const allCategories : Category[] = ['sponsor' , 'intro' , 'outro' ,
-'interaction' , 'selfpromo' , 'music_offtopic' , 'preview'] //todo: move this somewhere
 
 const rooms: Record<string, Room> = {}
 const getNewRandom = () => {
@@ -84,6 +83,8 @@ class Room {
       const hasPermission = checkPermission(member.permission, requiredPermission)
       if (!hasPermission) this.log(`${member.name} doesn't have ${requiredPermission}`)
       return hasPermission
+    } else {
+      this.log('Permission error!')
     }
   }
 
@@ -148,6 +149,7 @@ class Room {
   get state(): Promise<RoomState> {
     return (async () => {
       return {
+        blockedCategories: this.blockedCategories,
         looping: this.looping,
         paused: this.paused,
         source: this.source,
@@ -245,16 +247,22 @@ class Room {
     } catch(e) {
       //no segments for video
     }
+    startFrom = this.source?.startFrom ?? 0
+    const oldStartFrom = startFrom
     startFrom = this.updateSegmentTimeouts(startFrom)
+    if (startFrom !== oldStartFrom) {
+      if (client) this.notify("sponsorblock", client, { seconds: startFrom })
+    }
 
     if (sourceID === currentSourceID) {
       this.log(`same video, starting from ${this.source?.startFrom}`)
 
       this.lastSeekedTo = this.source?.startFrom ?? 0
-      this.seekTo({ client, seconds: this.source?.startFrom ?? 0, secret })
       this.resume(client, secret)
       return
     }
+    
+    this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
     this.membersLoading = this.members.length
     this.membersPlaying = this.members.length
@@ -266,9 +274,15 @@ class Room {
     if (client) this.notify("playContent", client, { source, startFrom })
   }
 
+  editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
+    this.blockedCategories = newBlocked
+    this.updateState()
+  }
+
   skipSegment(segment: Segment) {
     if (!this.paused && this.blockedCategories.includes(segment.category)) {
-      this.seekTo({ seconds: segment.endTime })
+      this.seekTo({ seconds: segment.endTime, secret: this.hostSecret })
+      this.notify("sponsorblock", this.members[0].client, { seconds: segment.endTime })
     }
   }
 
@@ -277,7 +291,7 @@ class Room {
     if(this.source?.segments) {
       for (const segment of this.source.segments) {
         if (this.blockedCategories.includes(segment.category) 
-          && segment.endTime > oldTime && oldTime > segment.startTime) oldTime = segment.endTime
+          && segment.endTime > oldTime && oldTime >= segment.startTime) oldTime = segment.endTime
       }
       for (const segment of this.source.segments) {
         if (segment.startTime > oldTime) {
@@ -460,6 +474,10 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
+    client.on("editBlocked", ({ newBlocked, roomID, secret }) => {
+      getRoom(roomID).editBlocked(newBlocked, client, secret)
+    })
+
     client.on("message", ({ msg, roomID, secret }) => {
       getRoom(roomID).message(msg, client)
     })

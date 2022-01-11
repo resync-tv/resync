@@ -12,7 +12,7 @@ const props = defineProps({
     default: [],
   },
   blocked: {
-    type: Array as PropType<number[][]>,
+    type: Array as PropType<{ start: number, end: number, category: string, color: string}[]>,
     default: [],
   },
   updateSlack: {
@@ -100,16 +100,19 @@ const onwheel = (event: WheelEvent) => {
           }"
           class="segment"
         ></div>
-        <div
-          v-for="seg in blocked"
-          :key="seg[0]"
-          :style="{
-            // @ts-expect-error
-            '--start': `${seg[0] * 100}%`,
-            '--end': `${seg[1] * 100}%`,
-          }"
-          class="segment blocked"
-        ></div>
+        </div>
+        <div class="blocked">
+          <div
+            v-for="seg in blocked.filter(seg => (!isNaN(seg['start']) && !isNaN(seg['start'])))"
+            :key="seg['start']"
+            :style="{
+              // @ts-expect-error
+              '--start': `${seg['start'] * 100}%`,
+              '--end': `${seg['end'] * 100}%`,
+              '--color': `${seg['color']}`,
+            }"
+            class="segment">
+        </div>
       </div>
       <div class="progress"></div>
       <div class="handle"></div>
@@ -163,11 +166,23 @@ const onwheel = (event: WheelEvent) => {
       z-index:1;
     }
 
-    > .blocked {
-      background: rgba(255, 0, 0, 1);
-      z-index:2;
-    }
   }
+
+    > .blocked {
+      width: 100%;
+      > .segment {
+      --start: 0%;
+      --end: 0%;
+
+      position: absolute;
+      left: var(--start);
+      width: calc(var(--end) - var(--start));
+      height: var(--height);
+      transition: height var(--hover-transition);
+      background: var(--color);
+      z-index:2;
+      }
+    }
 
   > .progress {
     background: var(--color);
@@ -186,6 +201,7 @@ const onwheel = (event: WheelEvent) => {
     border-radius: 50%;
     background: var(--color);
     left: calc(var(--progress) * 100%);
+    z-index: 3;
   }
 
   &:hover:not(.small):not(.disabled),

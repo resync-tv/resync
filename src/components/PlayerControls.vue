@@ -7,7 +7,7 @@ import { bufferedArray, debug, minMax, timestamp } from "@/util"
 import { Permission } from "../../backend/permission"
 import { emit } from "process"
 const log = debug("playercontrols")
-defineEmits(["fullscreen", "queue"])
+defineEmits(["fullscreen", "queue", "settings"])
 const props = defineProps({
   fullscreenEnabled: {
     type: Boolean,
@@ -23,7 +23,7 @@ const progress = computed(() => {
   return minMax(currentTime.value / duration.value)
 })
 const buffered = ref<number[][]>([])
-const blocked = ref<number[][]>([])
+const blocked = ref<{ start: number, end: number, category: string, color: string}[]>([])
 let interval: NodeJS.Timeout
 const updateProgress = (once = false, current?: number) => {
   clearInterval(interval)
@@ -41,6 +41,7 @@ const updateProgress = (once = false, current?: number) => {
   }
 }
 updateProgress()
+resync.updateProgress = updateProgress
 onMounted(() => updateProgress())
 const playWatcher = watch(resync.paused, () => updateProgress())
 offHandlers.push(playWatcher)
@@ -135,6 +136,12 @@ const volumeScroll = (event: WheelEvent) => {
       </div>
 
       <div class="flex">
+        <SvgIcon
+          name="settings"
+          title="show/hide settings"
+          @click="$emit('settings')"
+          class="player-icon"
+        />
         <SvgIcon
           name="playlist"
           title="show/hide queue"

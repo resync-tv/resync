@@ -6,6 +6,7 @@ type RenderNotification = {
 }
 
 export const renderNotification: RenderNotification = {
+  sponsorblock: n => `Sponsorblock skipped segment to ${timestamp(n.additional.seconds)}`,
   looping: n => `${n.name} ${n.additional.newState ? "enabled" : "disabled"} looping`,
   join: n => `${n.name} joined the room`,
   leave: n => `${n.name} left the room`,

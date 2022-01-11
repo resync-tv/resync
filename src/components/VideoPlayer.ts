@@ -45,7 +45,15 @@ export default defineComponent({
       resync.buffered = () => video.value?.buffered ?? bufferedStub
       resync.blocked = () => {
         const segments = computed(() => resync.state.value.source?.segments).value
-        return segments?.map(segment => [segment.startTime/resync.duration(), segment.endTime/resync.duration()])
+        return segments?.map(segment => {
+          return {
+            start: segment.startTime/resync.duration(), 
+            end: segment.endTime/resync.duration(), 
+            category: segment.category,
+            // @ts-expect-error
+            color: resync.segmentColors[segment.category] ?? "#ff0000"
+          }
+        })
       }
 
       video.value.volume = resync.muted.value ? 0 : resync.volume.value
