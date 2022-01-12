@@ -40,6 +40,10 @@ export default defineComponent({
 
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
+      video.value.playbackRate = resync.playbackSpeed.value
+      resync.setPlaybackSpeed = () => {
+        if (video.value) video.value.playbackRate = resync.playbackSpeed.value
+      }
       resync.currentTime = () => video.value?.currentTime ?? NaN
       resync.duration = () => video.value?.duration ?? NaN
       resync.buffered = () => video.value?.buffered ?? bufferedStub

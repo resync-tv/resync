@@ -39,6 +39,7 @@ interface PlaybackErrorArg {
 }
 
 class Room {
+  private playbackSpeed: number
   private looping: boolean
   private hostSecret: string
   private defaultPermission: Permission
@@ -61,8 +62,7 @@ class Room {
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
 
-    this.blockedCategories = allCategories
-    this.segmentTimeouts = []
+    this.playbackSpeed = 1.0
     this.looping = false
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
@@ -152,6 +152,7 @@ class Room {
   get state(): Promise<RoomState> {
     return (async () => {
       return {
+        playbackSpeed: this.playbackSpeed,
         blockedCategories: this.blockedCategories,
         looping: this.looping,
         paused: this.paused,
@@ -301,7 +302,7 @@ class Room {
       for (const segment of this.source.segments) {
         if (segment.startTime > oldTime) {
           this.segmentTimeouts.push(
-            setTimeout(() => this.skipSegment(segment), 1e3*(segment.startTime - oldTime))
+            setTimeout(() => this.skipSegment(segment), 1e3*(segment.startTime - oldTime)/this.playbackSpeed)
           )
         }
       }
@@ -365,6 +366,16 @@ class Room {
 
       this.playContent(undefined, "", 0, this.hostSecret)
     }
+  }
+
+  async changePlaybackSpeed(newSpeed: number, client?: Socket, secret?: string) {
+    if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
+    const avg = await this.requestTime()
+
+    this.playbackSpeed = newSpeed
+
+    this.updateSegmentTimeouts(avg)
+    this.updateState()
   }
 
   pause(seconds?: number, client?: Socket, secret?: string) {
@@ -483,6 +494,10 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
+    client.on("changePlaybackSpeed", ({ newSpeed, roomID, secret}) => {
+      getRoom(roomID).changePlaybackSpeed(newSpeed, client, secret)
+    })
+
     client.on("editBlocked", ({ newBlocked, roomID, secret }) => {
       getRoom(roomID).editBlocked(newBlocked, client, secret)
     })

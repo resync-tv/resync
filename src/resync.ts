@@ -18,6 +18,7 @@ export default class Resync {
   private roomEmit: RoomEmit
   private roomID: string
   private handlers: SocketOff[] = []
+  setPlaybackSpeed = (): void => undefined
   currentTime = (): number => NaN
   updateProgress = (): void => undefined
   duration = (): number => NaN
@@ -29,15 +30,14 @@ export default class Resync {
     if (jSegmentColors) return JSON.parse(jSegmentColors)
     else return {}
   }
+  playbackSpeed = computed(() => {
+    return this.state.value.playbackSpeed
+  })
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
-
-  isCategoryBlocked = computed(() => {
-    return 
-  })
 
   ownPermission = computed(() => {
     const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
@@ -60,6 +60,7 @@ export default class Resync {
     }
 
     this.state = ref({
+      playbackSpeed: 1.0,
       blockedCategories: [],
       looping: false,
       paused: this.paused.value,
@@ -80,6 +81,7 @@ export default class Resync {
       this.onState(state => {
         log("new state", state)
         this.state.value = state
+        this.setPlaybackSpeed()
       }),
       this.onSource((source?: MediaSourceAny) => {
         this.updateMediasession(source)
@@ -153,6 +155,7 @@ export default class Resync {
     this.roomEmit("playContent", { source, startFrom })
   queue = (source: string, startFrom?: number): void =>
     this.roomEmit("queue", { source, startFrom })
+  changePlaybackSpeed = (newSpeed: number): void => this.roomEmit("changePlaybackSpeed", { newSpeed })
   editBlocked = (newBlocked: Array<Category>): void => this.roomEmit("editBlocked", { newBlocked })
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")

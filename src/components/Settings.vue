@@ -29,6 +29,12 @@ export default defineComponent({
 
     const savedColors = ref({})
 
+    const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+
+    const changeSpeed = (speed: number) => {
+      if (resync) resync.changePlaybackSpeed(speed);
+    }
+
     const jSavedColors = ls('segment-colors')
     if (jSavedColors) savedColors.value = JSON.parse(jSavedColors)
     else {
@@ -75,6 +81,8 @@ export default defineComponent({
       savedColors,
       resync,
       blockedToggle,
+      speeds,
+      changeSpeed
     }
   },
 })
@@ -102,12 +110,46 @@ export default defineComponent({
           @input="(e) => colorChange(e, category, false)">
         </li>
     </ul>
+    <div class="wrapper" id="wrapper">
+      <div v-for="speed in speeds"
+      class="choice"
+      :class="{ active: resync?.state.value.playbackSpeed === speed,
+       first: speed === speeds[0],
+       last: speed === speeds[speeds.length - 1]}"
+      @click="changeSpeed(speed)"
+      >
+        {{ speed.toString() + "x"}}
+      </div>
+    </div>
   </div>
 </template>
 
 
 <style scoped lang="scss">
+.wrapper {
+  display: inline-block;
+  overflow: hidden;
+}
+.choice {
+  text-align: center;
+  width: 50px;
+  color: var(--clr-light);
+  float: left;
+  background-color: var(--clr-dark);
+  transition: all 0.5s;
+}
 
+.first {
+  border-radius: 5px 0 0 5px;
+}
+.last {
+  border-radius: 0 5px 5px 0;
+}
+.active {
+  width: 70px;
+  color: var(--clr-dark);
+  background-color: var(--clr-light);;
+}
 .spacer {
   padding-right: 5px;
 }

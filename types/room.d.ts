@@ -18,6 +18,7 @@ export interface PublicMember extends Omit<Member, "client"> {
 }
 
 export interface RoomState<S = MediaSourceAny> {
+  playbackSpeed: number
   blockedCategories: Array<Category>
   looping: boolean
   paused: boolean
