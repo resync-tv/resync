@@ -8,5 +8,8 @@
   "windicss.sortOnSave": true,
   "windicss.enableCodeFolding": false,
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "vetur.validation.style": false
+  "eslint.validate": [
+    "typescript",
+    "vue"
+  ]
 }

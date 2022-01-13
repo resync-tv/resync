@@ -19,7 +19,11 @@
     "front:dev": "vite --port 8080",
     "front:build": "vite build",
     "front:serve": "vite preview",
-    "commit": "cz -S"
+    "commit": "cz -S",
+    "format": "prettier -w **/*.{vue,ts}",
+    "lint": "eslint --fix **/*.{vue,ts}",
+    "types": "vue-tsc --noEmit",
+    "quality": "npm run format & npm run lint & npm run types"
   },
   "files": [
     "lib/**/*"
@@ -51,9 +55,10 @@
     "@vue/compiler-sfc": "^3.1.4",
     "@vuedx/typescript-plugin-vue": "^0.7.4",
     "dotenv": "^10.0.0",
-    "eslint": "^8.4.1",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-vue": "^8.3.0",
     "got": "^11.8.2",
     "nodemon": "^2.0.9",
     "prettier": "^2.3.2",
@@ -65,6 +70,8 @@
     "vite": "^2.7.2",
     "vite-plugin-pwa": "^0.8.1",
     "vite-plugin-svg-icons": "^1.0.1",
-    "vite-plugin-windicss": "^1.1.1"
+    "vite-plugin-windicss": "^1.1.1",
+    "vue-eslint-parser": "^8.0.1",
+    "vue-tsc": "^0.30.2"
   }
 }

@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "voorjaar.windicss-intellisense",
+    "johnsoncodehk.volar",
+    "visualstudioexptteam.vscodeintellicode",
+    "knisterpeter.vscode-commitizen",
+    "johnsoncodehk.vscode-typescript-vue-plugin",
+    "christian-kohler.npm-intellisense",
+    "eamodio.gitlens",
+    "dbaeumer.vscode-eslint",
+    "streetsidesoftware.code-spell-checker",
+    "aaron-bond.better-comments"
+  ]
+}
