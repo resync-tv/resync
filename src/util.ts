@@ -1,13 +1,12 @@
 import _debug from "debug"
-
-import { Category } from "sponsorblock-api"
+import type { SegmentColorSettings } from "./sponsorblock"
 
 interface LocalStored {
   "resync-displayname": string
   "resync-volume": number
   "resync-muted": boolean
   "resync-last-room": string
-  "segment-colors": string
+  "segment-colors": SegmentColorSettings
 }
 
 const urlReg =

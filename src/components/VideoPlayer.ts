@@ -27,7 +27,6 @@ export default defineComponent({
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
 
-
     const src = computed(() => resync.state.value.source?.video?.[0]?.url)
     const video = ref<null | HTMLVideoElement>(null)
     const muted = ref(false)
@@ -51,10 +50,10 @@ export default defineComponent({
         const segments = computed(() => resync.state.value.source?.segments).value
         return segments?.map(segment => {
           return {
-            start: segment.startTime/resync.duration(), 
-            end: segment.endTime/resync.duration(), 
+            start: segment.startTime / resync.duration(),
+            end: segment.endTime / resync.duration(),
             category: segment.category,
-            color: resync.segmentColors[segment.category] ?? "#ff0000"
+            color: resync.segmentColors[segment.category] ?? "#ff0000",
           }
         })
       }

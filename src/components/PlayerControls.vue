@@ -5,7 +5,6 @@ import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
 import { Permission } from "../../backend/permission"
-import { emit } from "process"
 const log = debug("playercontrols")
 defineEmits(["fullscreen", "queue", "settings"])
 const props = defineProps({
@@ -23,7 +22,7 @@ const progress = computed(() => {
   return minMax(currentTime.value / duration.value)
 })
 const buffered = ref<number[][]>([])
-const blocked = ref<{ start: number, end: number, category: string, color: string}[]>([])
+const blocked = ref<{ start: number; end: number; category: string; color: string }[]>([])
 let interval: NodeJS.Timeout
 const updateProgress = (once = false, current?: number) => {
   clearInterval(interval)
@@ -178,7 +177,7 @@ const volumeScroll = (event: WheelEvent) => {
       :blocked="blocked"
       @value="onProgressSliderValue"
       @slide="onProgressSliding"
-      :updateSlack="3"
+      :update-slack="3"
     />
   </div>
 </template>

@@ -48,7 +48,6 @@ export default defineComponent({
   </nav>
 </template>
 
-
 <style lang="scss" scoped>
 .nav {
   @apply bg-light flex h-nav shadow-sm w-full z-10 fixed justify-between;

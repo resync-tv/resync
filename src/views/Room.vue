@@ -208,8 +208,8 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           v-if="mountPlayer"
           v-show="resync.state.value.source"
           type="video"
-          :searchResults="searchResults"
-          :queueDisabled="queueDisabled"
+          :search-results="searchResults"
+          :queue-disabled="queueDisabled"
           @clearSearch="searchResults = []"
         />
 

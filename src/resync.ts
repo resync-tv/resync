@@ -7,7 +7,8 @@ import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
 import { Permission, checkPermission } from "../backend/permission"
-import { Segment, Category } from "sponsorblock-api"
+import { Category } from "sponsorblock-api"
+import { SegmentColorSettings } from "./sponsorblock"
 
 const log = debug("resync.ts")
 
@@ -24,12 +25,10 @@ export default class Resync {
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
   hostSecret = ""
-  blocked = (): { start: number, end: number, category: string, color: string}[] | undefined => undefined
-  segmentColors = () => {
-    const jSegmentColors = ls('segment-colors')
-    if (jSegmentColors) return JSON.parse(jSegmentColors)
-    else return {}
-  }
+  blocked = ():
+    | { start: number; end: number; category: string; color: string }[]
+    | undefined => undefined
+  segmentColors = ls("segment-colors") ?? ({} as SegmentColorSettings)
   playbackSpeed = computed(() => {
     return this.state.value.playbackSpeed
   })
@@ -155,8 +154,10 @@ export default class Resync {
     this.roomEmit("playContent", { source, startFrom })
   queue = (source: string, startFrom?: number): void =>
     this.roomEmit("queue", { source, startFrom })
-  changePlaybackSpeed = (newSpeed: number): void => this.roomEmit("changePlaybackSpeed", { newSpeed })
-  editBlocked = (newBlocked: Array<Category>): void => this.roomEmit("editBlocked", { newBlocked })
+  changePlaybackSpeed = (newSpeed: number): void =>
+    this.roomEmit("changePlaybackSpeed", { newSpeed })
+  editBlocked = (newBlocked: Array<Category>): void =>
+    this.roomEmit("editBlocked", { newBlocked })
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")
   removeQueued = (index: number): void => this.roomEmit("removeQueued", { index })

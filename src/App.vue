@@ -10,7 +10,7 @@ const log = debug("app")
 
 export default defineComponent({
   components: { NavBar },
-  name: "resync",
+  name: "Resync",
   setup() {
     const route = useRoute()
 
@@ -19,7 +19,8 @@ export default defineComponent({
 
     let socket: Socket
     if (development) socket = io(`http://${location.hostname}:3020`)
-    else if (isStaging()) socket = io("https://hetzner.vaaski.dev", { path: "/resync-staging" })
+    else if (isStaging())
+      socket = io("https://hetzner.vaaski.dev", { path: "/resync-staging" })
     else socket = io("https://hetzner.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
@@ -112,8 +113,8 @@ main {
   @apply py-2 px-4 w-3xl;
   @apply rounded outline-none transition-all;
   @apply bg-light text-dark;
-  @apply light:(shadow focus:shadow-md) ;
-  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100) ;
+  @apply light:(shadow focus:shadow-md);
+  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100);
 }
 
 .dark .resync-input {
@@ -135,7 +136,7 @@ main {
 .resync-button {
   @apply py-2 px-4;
   @apply rounded outline-none transition-all;
-  @apply dark:(text-light text-opacity-50) ;
+  @apply dark:(text-light text-opacity-50);
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
   @apply hover:light:shadow-md;

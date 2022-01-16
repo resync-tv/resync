@@ -14,7 +14,7 @@ import VideoList from "@/components/VideoList.vue"
 import Resync from "@/resync"
 
 import { debug } from "@/util"
-import Settings from "./Settings.vue"
+import PlayerSettings from "./PlayerSettings.vue"
 const log = debug("playerwrapper")
 
 export default defineComponent({
@@ -26,8 +26,8 @@ export default defineComponent({
     LoadingSpinner,
     SvgIcon,
     VideoList,
-    Settings
-},
+    PlayerSettings,
+  },
   props: {
     type: {
       type: String as PropType<MediaType>,
@@ -37,10 +37,10 @@ export default defineComponent({
       type: Array as PropType<MediaSourceAny[]>,
       required: true,
     },
-    queueDisabled : {
+    queueDisabled: {
       type: Boolean,
       required: true,
-    }
+    },
   },
   setup(props, { emit }) {
     const { searchResults, queueDisabled } = toRefs(props)
@@ -131,12 +131,14 @@ export default defineComponent({
 
     provide("requireUserInteraction", requireUserInteraction)
 
-    let mouseMovedTimeout : NodeJS.Timeout
+    let mouseMovedTimeout: NodeJS.Timeout
     let mouseMoved = ref(false)
     const onMouseMoved = () => {
       if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
       mouseMoved.value = true
-      mouseMovedTimeout = setTimeout(() => { mouseMoved.value = false }, 2*1e3)
+      mouseMovedTimeout = setTimeout(() => {
+        mouseMoved.value = false
+      }, 2 * 1e3)
     }
 
     const onMouseLeave = () => {
@@ -232,7 +234,12 @@ export default defineComponent({
 <template>
   <div
     class="rounded flex overflow-hidden relative light:shadow"
-    :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled, mouseMoved, active: resync.paused.value }"
+    :class="{
+      overlay: showInteractionOverlay,
+      rounded: !fullscreenEnabled,
+      mouseMoved,
+      active: resync.paused.value,
+    }"
     :style="sizeStyle"
     id="player-wrapper"
     ref="playerWrapper"
@@ -252,7 +259,7 @@ export default defineComponent({
     <div
       id="overlay-closer"
       class="h-full w-full absolute"
-      v-if="showQueue || showSearch || showSettings "
+      v-if="showQueue || showSearch || showSettings"
       @click="closeOverlays"
     ></div>
 
@@ -272,7 +279,7 @@ export default defineComponent({
 
     <Transition name="video-list-right">
       <div v-show="showSettings" class="overlay-queue">
-        <Settings
+        <PlayerSettings
           @close="showSettings = false"
           @contextMenu="resync.removeQueued"
           @updateColors=""
@@ -298,13 +305,13 @@ export default defineComponent({
 
     <div
       class="z-5 overlay-gradient hover-overlay lower"
-      :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings}"
+      :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings }"
     >
       <PlayerControls
         @fullscreen="toggleFullscreen"
         @queue="showQueue = !showQueue"
         @settings="showSettings = !showSettings"
-        :fullscreenEnabled="fullscreenEnabled"
+        :fullscreen-enabled="fullscreenEnabled"
         class="pointer-events-auto"
       />
     </div>

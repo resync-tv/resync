@@ -33,8 +33,8 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
-  changePlaybackSpeed: FrontendEmitterBase< { newSpeed: number }>
-  editBlocked: FrontendEmitterBase< { newBlocked: Array<Category> }>
+  changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
+  editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>
   loop: FrontendEmitterBase<{ newState: boolean }>
   givePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
   removePermission: FrontendEmitterBase<{ id: string; permission: Permission }>

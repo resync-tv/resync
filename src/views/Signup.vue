@@ -47,7 +47,6 @@ export default defineComponent({
 })
 </script>
 
-
 <template>
   <main class="flex-col signup centerflex">
     <h1 class="mb-6 text-3xl">choose a display name</h1>

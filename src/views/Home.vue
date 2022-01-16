@@ -34,7 +34,6 @@ const lastRoom = ls("resync-last-room")
 const slogan = ref("watch videos with your friends.")
 
 if (isStaging()) slogan.value = "shit might be wonky."
-
 </script>
 
 <template>

@@ -4,7 +4,7 @@ import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
 import type { BackendEmits, ResyncSocketBackend } from "$/socket"
 import type { Category, Segment } from "sponsorblock-api"
 
-import { SponsorBlock } from 'sponsorblock-api';
+import { SponsorBlock } from "sponsorblock-api"
 import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
@@ -87,7 +87,7 @@ class Room {
       if (!hasPermission) this.log(`${member.name} doesn't have ${requiredPermission}`)
       return hasPermission
     } else {
-      this.log('Permission error!')
+      this.log("Permission error!")
     }
   }
 
@@ -244,13 +244,12 @@ class Room {
       sourceID = this.source.originalSource.youtubeID ?? this.source.originalSource.url
     }
 
-
-    if(this.source && !this.source.segments) 
-    try {
-      this.source.segments = await sponsorBlock.getSegments(sourceID, allCategories)
-    } catch(e) {
-      //no segments for video
-    }
+    if (this.source && !this.source.segments)
+      try {
+        this.source.segments = await sponsorBlock.getSegments(sourceID, allCategories)
+      } catch (e) {
+        //no segments for video
+      }
     startFrom = this.source?.startFrom ?? 0
     const oldStartFrom = startFrom
     startFrom = this.updateSegmentTimeouts(startFrom)
@@ -265,7 +264,7 @@ class Room {
       this.resume(client, secret)
       return
     }
-    
+
     this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
     this.membersLoading = this.members.length
@@ -280,8 +279,9 @@ class Room {
 
   async editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
     this.blockedCategories = newBlocked
-    const avg = await this.requestTime()
-    this.updateSegmentTimeouts(avg)
+    let avg = await this.requestTime()
+    if ( avg !== (avg = this.updateSegmentTimeouts(avg))) 
+      this.seekTo({seconds: avg, secret: this.hostSecret})
     this.updateState()
   }
 
@@ -292,30 +292,37 @@ class Room {
     }
   }
 
-  updateSegmentTimeouts(oldTime: number) : number {
+  updateSegmentTimeouts(oldTime: number): number {
     for (const segmentTimeout of this.segmentTimeouts) clearTimeout(segmentTimeout)
-    if(this.source?.segments) {
+    if (this.source?.segments) {
       for (const segment of this.source.segments) {
-        if (this.blockedCategories.includes(segment.category) 
-          && segment.endTime > oldTime && oldTime >= segment.startTime) oldTime = segment.endTime
+        if (
+          this.blockedCategories.includes(segment.category) &&
+          segment.endTime > oldTime &&
+          oldTime >= segment.startTime
+        )
+          oldTime = segment.endTime
       }
       for (const segment of this.source.segments) {
         if (segment.startTime > oldTime) {
           this.segmentTimeouts.push(
-            setTimeout(() => this.skipSegment(segment), 1e3*(segment.startTime - oldTime)/this.playbackSpeed)
+            setTimeout(
+              () => this.skipSegment(segment),
+              (1e3 * (segment.startTime - oldTime)) / this.playbackSpeed
+            )
           )
         }
       }
-    } 
+    }
     return oldTime
   }
 
-  clearSegmentTimeouts() : void {
+  clearSegmentTimeouts(): void {
     for (const segmentTimeout of this.segmentTimeouts) clearTimeout(segmentTimeout)
   }
 
   addQueue(client: Socket, source: string, startFrom: number, secret?: string) {
-    if(!this.hasPermission(Permission.ContentControl, client.id, secret)) return
+    if (!this.hasPermission(Permission.ContentControl, client.id, secret)) return
     this.queue.push(resolveContent(source, startFrom))
 
     this.updateState()
@@ -382,7 +389,7 @@ class Room {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
 
     this.clearSegmentTimeouts()
-    
+
     this.paused = true
     this.broadcast.emit("pause")
 
@@ -422,18 +429,20 @@ class Room {
 
     this.updateState()
     if (client) this.notify("seekTo", client, { seconds })
-      else this.log(`Seeking to ${seconds}`)
+    else this.log(`Seeking to ${seconds}`)
   }
 
   async requestTime(client?: Socket) {
     const requestTimeLog = this.log.extend("requestTime")
     requestTimeLog("requested time")
 
+    let otherClients: string[]
+
     const sockets = await this.broadcast.allSockets()
     if (client) {
-      var otherClients = [...sockets].filter(s => s !== client.id)
+      otherClients = [...sockets].filter(s => s !== client.id)
     } else {
-      var otherClients = [...sockets]
+      otherClients = [...sockets]
     }
 
     const getTime = (sock: Socket): Promise<number> =>
@@ -494,7 +503,7 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
-    client.on("changePlaybackSpeed", ({ newSpeed, roomID, secret}) => {
+    client.on("changePlaybackSpeed", ({ newSpeed, roomID, secret }) => {
       getRoom(roomID).changePlaybackSpeed(newSpeed, client, secret)
     })
 

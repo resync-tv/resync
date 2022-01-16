@@ -9,11 +9,11 @@ const props = defineProps({
   },
   buffered: {
     type: Array as PropType<number[][]>,
-    default: [],
+    default: () => [],
   },
   blocked: {
-    type: Array as PropType<{ start: number, end: number, category: string, color: string}[]>,
-    default: [],
+    type: Array as PropType<{ start: number; end: number; category: string; color: string }[]>,
+    default: () => {},
   },
   updateSlack: {
     type: Number,
@@ -79,7 +79,6 @@ const onwheel = (event: WheelEvent) => {
 }
 </script>
 
-
 <template>
   <div class="resync-slider" :class="{ active }" @wheel="onwheel">
     <div
@@ -100,19 +99,19 @@ const onwheel = (event: WheelEvent) => {
           }"
           class="segment"
         ></div>
-        </div>
-        <div class="blocked">
-          <div
-            v-for="seg in blocked.filter(seg => (!isNaN(seg['start']) && !isNaN(seg['start'])))"
-            :key="seg['start']"
-            :style="{
-              // @ts-expect-error
-              '--start': `${seg['start'] * 100}%`,
-              '--end': `${seg['end'] * 100}%`,
-              '--color': `${seg['color']}`,
-            }"
-            class="segment">
-        </div>
+      </div>
+      <div class="blocked">
+        <div
+          v-for="seg in blocked.filter(seg => !isNaN(seg['start']) && !isNaN(seg['start']))"
+          :key="seg['start']"
+          :style="{
+            // @ts-expect-error
+            '--start': `${seg['start'] * 100}%`,
+            '--end': `${seg['end'] * 100}%`,
+            '--color': `${seg['color']}`,
+          }"
+          class="segment"
+        ></div>
       </div>
       <div class="progress"></div>
       <div class="handle"></div>
@@ -133,7 +132,7 @@ const onwheel = (event: WheelEvent) => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  z-index:0;
+  z-index: 0;
 
   > div:not(.background) {
     position: absolute;
@@ -163,14 +162,13 @@ const onwheel = (event: WheelEvent) => {
       height: var(--height);
       transition: height var(--hover-transition);
       background: rgba(255, 255, 255, 0.4);
-      z-index:1;
+      z-index: 1;
     }
-
   }
 
-    > .blocked {
-      width: 100%;
-      > .segment {
+  > .blocked {
+    width: 100%;
+    > .segment {
       --start: 0%;
       --end: 0%;
 
@@ -180,9 +178,9 @@ const onwheel = (event: WheelEvent) => {
       height: var(--height);
       transition: height var(--hover-transition);
       background: var(--color);
-      z-index:2;
-      }
+      z-index: 2;
     }
+  }
 
   > .progress {
     background: var(--color);

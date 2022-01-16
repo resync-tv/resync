@@ -1,13 +1,12 @@
 <script lang="ts">
-import type { MediaSourceAny } from "$/mediaSource"
-import { timestamp } from "@/util"
-import { allCategories } from "./../../backend/sponsorblock"
+import { allCategories } from "../../backend/sponsorblock"
 
-import { computed, defineComponent, PropType, toRefs, inject, ref } from "vue"
+import { defineComponent, toRefs, inject, ref } from "vue"
 import SvgIcon from "./SvgIcon.vue"
-import { ls } from "./../util"
+import { ls } from "../util"
 import { Category } from "sponsorblock-api"
 import Resync from "@/resync"
+import { SegmentColorSettings } from "../sponsorblock"
 
 export default defineComponent({
   components: { SvgIcon },
@@ -27,37 +26,39 @@ export default defineComponent({
 
     const { title } = toRefs(props)
 
-    const savedColors = ref({})
+    const savedColors = ref({} as SegmentColorSettings)
 
     const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 
-    const changeSpeed = (speed: number) => {
-      if (resync) resync.changePlaybackSpeed(speed);
+    const getColor = (category: Category) => {
+      return savedColors.value[category]
     }
 
-    const jSavedColors = ls('segment-colors')
-    if (jSavedColors) savedColors.value = JSON.parse(jSavedColors)
+    const changeSpeed = (speed: number) => {
+      if (resync) resync.changePlaybackSpeed(speed)
+    }
+
+    const jSavedColors = ls("segment-colors")
+    if (jSavedColors) savedColors.value = jSavedColors
     else {
-      allCategories.forEach((category) => {
-      const overwrite = {}
-        // @ts-expect-error
+      allCategories.forEach(category => {
+        const overwrite = {} as SegmentColorSettings
         overwrite[category] = "#ff0000"
         savedColors.value = Object.assign({}, savedColors.value, overwrite)
       })
     }
 
-    const colorChange = (event: Event, category: Category, save: Boolean) => {
-      const el = event.target;
-      // @ts-expect-error
-      const color = el?.value;
-      const overwrite = {}
-      // @ts-expect-error
+    const colorChange = (event: Event, category: Category, save: boolean) => {
+      const el = event.target
+      // @ts-expect-error no idea why this fails. typescript just seems to not have this property
+      const color = el?.value
+      const overwrite = {} as SegmentColorSettings
       overwrite[category] = color
       savedColors.value = Object.assign({}, savedColors.value, overwrite)
       if (resync) resync.segmentColors = savedColors.value
       resync?.updateProgress()
       if (save) {
-        ls('segment-colors', JSON.stringify(savedColors.value))
+        ls("segment-colors", savedColors.value)
       }
     }
 
@@ -65,7 +66,7 @@ export default defineComponent({
       if (resync) {
         const blockedCategories = resync.state.value.blockedCategories
         if (blockedCategories.includes(category)) {
-          blockedCategories.splice(blockedCategories.indexOf(category), 1);
+          blockedCategories.splice(blockedCategories.indexOf(category), 1)
         } else {
           blockedCategories.push(category)
         }
@@ -78,11 +79,11 @@ export default defineComponent({
       allCategories,
       ls,
       colorChange,
-      savedColors,
+      getColor,
       resync,
       blockedToggle,
       speeds,
-      changeSpeed
+      changeSpeed,
     }
   },
 })
@@ -95,35 +96,48 @@ export default defineComponent({
       <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
     </header>
     <ul class="overflow-y-auto overflow-x-hidden pointer-events-auto">
-        <li v-for="category in allCategories" :key="category" :style="{'color': savedColors[category] }">{{ category }}
-          <div class="spacer"></div>
-          <label class="switch">
-            <input type="checkbox" 
+      <li
+        v-for="category in allCategories"
+        :key="category"
+        :style="{ color: getColor(category) }"
+      >
+        {{ category }}
+        <div class="spacer"></div>
+        <label class="switch">
+          <input
+            type="checkbox"
             :checked="resync?.state.value.blockedCategories.includes(category)"
             @change="blockedToggle(category)"
-            >
-            <span class="slider round"></span>
-          </label>
-          <input type="color" id="colorpicker" class="colorpicker" 
-          :value="savedColors[category]" 
-          @change="(e) => colorChange(e, category, true)"
-          @input="(e) => colorChange(e, category, false)">
-        </li>
+          />
+          <span class="slider round"></span>
+        </label>
+        <input
+          type="color"
+          id="colorpicker"
+          class="colorpicker"
+          :value="getColor(category)"
+          @change="e => colorChange(e, category, true)"
+          @input="e => colorChange(e, category, false)"
+        />
+      </li>
     </ul>
     <div class="wrapper" id="wrapper">
-      <div v-for="speed in speeds"
-      class="choice"
-      :class="{ active: resync?.state.value.playbackSpeed === speed,
-       first: speed === speeds[0],
-       last: speed === speeds[speeds.length - 1]}"
-      @click="changeSpeed(speed)"
+      <div
+        v-for="speed in speeds"
+        class="choice"
+        :class="{
+          active: resync?.state.value.playbackSpeed === speed,
+          first: speed === speeds[0],
+          last: speed === speeds[speeds.length - 1],
+        }"
+        :key="speed"
+        @click="changeSpeed(speed)"
       >
-        {{ speed.toString() + "x"}}
+        {{ speed.toString() + "x" }}
       </div>
     </div>
   </div>
 </template>
-
 
 <style scoped lang="scss">
 .wrapper {
@@ -131,6 +145,7 @@ export default defineComponent({
   overflow: hidden;
 }
 .choice {
+  // todo: make the background of this transparent
   text-align: center;
   width: 50px;
   color: var(--clr-light);
@@ -148,7 +163,7 @@ export default defineComponent({
 .active {
   width: 70px;
   color: var(--clr-dark);
-  background-color: var(--clr-light);;
+  background-color: var(--clr-light);
 }
 .spacer {
   padding-right: 5px;
@@ -184,8 +199,8 @@ ul {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
 .slider:before {
@@ -196,16 +211,16 @@ ul {
   left: 2px;
   bottom: 2px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+  box-shadow: 0 0 1px #2196f3;
 }
 
 input:checked + .slider:before {
@@ -244,6 +259,6 @@ input:checked + .slider:before {
   > ul > li {
     @apply cursor-pointer flex h-5 mb-4 pr-2 items-center;
     position: relative;
-    }
+  }
 }
 </style>
