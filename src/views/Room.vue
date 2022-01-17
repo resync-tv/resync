@@ -180,7 +180,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
     <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
       <div class="flex z-5 relative justify-center">
         <form
-          class="flex bottom-full w-md justify-center"
+          class="flex bottom-full w-lg justify-center play-form"
           :class="{ 'mb-3 absolute': contentShowing }"
           style="max-width: 75vw"
           @submit.prevent="inputSubmit"
@@ -323,6 +323,12 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 </template>
 
 <style scoped lang="scss">
+.play-form {
+  display: block;
+  &>input {
+    max-width: fit-content;
+  }
+}
 .fade-out-gradient-top {
   background: linear-gradient(to top, var(--clr-light), transparent);
 }
