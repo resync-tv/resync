@@ -85,6 +85,7 @@ const volumeScroll = (event: WheelEvent) => {
   const { deltaY } = event
   if (deltaY < 0) resync.volume.value = minMax(resync.volume.value + 0.05)
   else resync.volume.value = minMax(resync.volume.value - 0.05)
+  resync.muted.value = false
 }
 </script>
 
