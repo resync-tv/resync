@@ -175,20 +175,43 @@ export default defineComponent({
   width: 50px;
   color: var(--clr-light);
   float: left;
-  background-color: var(--clr-dark);
+  background-color: transparent;
+  cursor: pointer;
   transition: all 0.5s;
 }
-
-.first {
-  border-radius: 5px 0 0 5px;
-}
-.last {
-  border-radius: 0 5px 5px 0;
+.choice::before {
+  content: "";
+  display: block;
+  background-color: var(--clr-dark);
+  width: 50px;
+  height: 24px;
+  color: var(--clr-light);
+  position: absolute;
+  z-index: -1;
+  transition: all 0.5s;
+  opacity: .7;
+  filter: blur(.5px);
 }
 .active {
   width: 70px;
   color: var(--clr-dark);
-  background-color: var(--clr-light);
+  &::before {
+    width: 70px;
+    background-color: var(--clr-light);
+  }
+}
+
+.first {
+  border-radius: 5px 0 0 5px;
+  &::before {
+    border-radius: 5px 0 0 5px;
+  }
+}
+.last {
+  border-radius: 0 5px 5px 0;
+  &::before {
+    border-radius: 0 5px 5px 0;
+  }
 }
 .spacer {
   padding-right: 5px;
