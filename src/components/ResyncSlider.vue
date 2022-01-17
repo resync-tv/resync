@@ -9,11 +9,11 @@ const props = defineProps({
   },
   buffered: {
     type: Array as PropType<number[][]>,
-    default: () => [],
+    default: [],
   },
   blocked: {
     type: Array as PropType<{ start: number; end: number; category: string; color: string }[]>,
-    default: () => {},
+    default: [],
   },
   updateSlack: {
     type: Number,
