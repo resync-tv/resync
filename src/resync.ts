@@ -8,7 +8,7 @@ import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
 import { Permission, checkPermission } from "../backend/permission"
 import { Category } from "sponsorblock-api"
-import { SegmentColorSettings } from "./sponsorblock"
+import { defaultSegmentColors } from "./sponsorblock"
 
 const log = debug("resync.ts")
 
@@ -28,7 +28,7 @@ export default class Resync {
   blocked = ():
     | { start: number; end: number; category: string; color: string }[]
     | undefined => undefined
-  segmentColors = ls("segment-colors") ?? ({} as SegmentColorSettings)
+  segmentColors = ls("segment-colors") ?? defaultSegmentColors
   playbackSpeed = computed(() => {
     return this.state.value.playbackSpeed
   })
