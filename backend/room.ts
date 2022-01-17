@@ -280,8 +280,8 @@ class Room {
   async editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
     this.blockedCategories = newBlocked
     let avg = await this.requestTime()
-    if ( avg !== (avg = this.updateSegmentTimeouts(avg))) 
-      this.seekTo({seconds: avg, secret: this.hostSecret})
+    if (avg !== (avg = this.updateSegmentTimeouts(avg)))
+      this.seekTo({ seconds: avg, secret: this.hostSecret })
     this.updateState()
   }
 

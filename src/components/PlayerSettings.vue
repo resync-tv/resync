@@ -2,11 +2,12 @@
 import { allCategories } from "../../backend/sponsorblock"
 
 import { defineComponent, toRefs, inject, ref } from "vue"
+import type { Ref } from "vue"
 import SvgIcon from "./SvgIcon.vue"
 import { ls } from "../util"
 import { Category } from "sponsorblock-api"
 import Resync from "@/resync"
-import { SegmentColorSettings } from "../sponsorblock"
+import { SegmentColorSettings, defaultSegmentColors } from "../sponsorblock"
 
 export default defineComponent({
   components: { SvgIcon },
@@ -26,6 +27,18 @@ export default defineComponent({
 
     const { title } = toRefs(props)
 
+    let categoryRefs : Array<{element: any, category: Category, }> = []
+    const setCategoryRef = (el: any, category: Category) => {
+      if (el) {
+        categoryRefs.push({ element: el, category })
+      }
+    }
+    const categoryClick = (category: Category) => {
+      console.log(categoryRefs)
+      categoryRefs.find(el => el.category === category)?.element.click()
+    }
+
+
     const savedColors = ref({} as SegmentColorSettings)
 
     const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
@@ -40,13 +53,7 @@ export default defineComponent({
 
     const jSavedColors = ls("segment-colors")
     if (jSavedColors) savedColors.value = jSavedColors
-    else {
-      allCategories.forEach(category => {
-        const overwrite = {} as SegmentColorSettings
-        overwrite[category] = "#ff0000"
-        savedColors.value = Object.assign({}, savedColors.value, overwrite)
-      })
-    }
+    else savedColors.value = defaultSegmentColors
 
     const colorChange = (event: Event, category: Category, save: boolean) => {
       const el = event.target
@@ -84,6 +91,8 @@ export default defineComponent({
       blockedToggle,
       speeds,
       changeSpeed,
+      setCategoryRef,
+      categoryClick,
     }
   },
 })
@@ -100,8 +109,13 @@ export default defineComponent({
         v-for="category in allCategories"
         :key="category"
         :style="{ color: getColor(category) }"
+        @click="categoryClick(category)"
       >
-        {{ category }}
+        <span>{{ category }}</span>
+        <SvgIcon
+          name="edit"
+          class="edit-icon"
+        />
         <div class="spacer"></div>
         <label class="switch">
           <input
@@ -115,6 +129,7 @@ export default defineComponent({
           type="color"
           id="colorpicker"
           class="colorpicker"
+          :ref="(el: any) => setCategoryRef(el, category)"
           :value="getColor(category)"
           @change="e => colorChange(e, category, true)"
           @input="e => colorChange(e, category, false)"
@@ -140,6 +155,16 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+
+.edit-icon {
+  width: 17px;
+  height: 17px;
+  top: 2px;
+}
+.colorpicker {
+  position: absolute;
+  visibility: hidden;
+}
 .wrapper {
   display: inline-block;
   overflow: hidden;

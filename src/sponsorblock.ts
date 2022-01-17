@@ -11,3 +11,13 @@ export const allCategories: Array<Category> = [
 ]
 
 export type SegmentColorSettings = Partial<Record<Category, string>>
+
+export const defaultSegmentColors: SegmentColorSettings = {
+  interaction: "#00ffcc",
+  intro: "#0011ff",
+  music_offtopic: "#fbff00",
+  outro: "#2b00ff",
+  preview: "#04ff00",
+  selfpromo: "#ff00bb",
+  sponsor: "#ff0000"
+}
