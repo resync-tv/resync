@@ -326,7 +326,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 .play-form {
   display: block;
   &>input {
-    max-width: fit-content;
+    max-width: 300px;
   }
 }
 .fade-out-gradient-top {
