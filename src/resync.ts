@@ -33,6 +33,7 @@ export default class Resync {
     return this.state.value.playbackSpeed
   })
 
+  fullscreenEnabled: Ref<Boolean> | undefined
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
