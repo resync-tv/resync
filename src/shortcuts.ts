@@ -29,8 +29,8 @@ export default (resync: Resync): (() => void) => {
   ]
 
   document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && resync.fullscreenEnabled) 
-    resync.fullscreenEnabled.value = !resync.fullscreenEnabled.value;
+    if (!document.fullscreenElement && resync.fullscreenEnabled && resync.fullscreenEnabled.value) 
+    resync.fullscreenEnabled.value = false;
   }, false)
 
   window.onkeydown = (event: KeyboardEvent) => {
