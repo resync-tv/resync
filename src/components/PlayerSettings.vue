@@ -109,12 +109,12 @@ export default defineComponent({
         v-for="category in allCategories"
         :key="category"
         :style="{ color: getColor(category) }"
-        @click="categoryClick(category)"
       >
-        <span>{{ category }}</span>
+        <span @click="categoryClick(category)">{{ category }}</span>
         <SvgIcon
           name="edit"
           class="edit-icon"
+          @click="categoryClick(category)"
         />
         <div class="spacer"></div>
         <label class="switch">
