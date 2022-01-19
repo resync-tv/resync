@@ -1,6 +1,6 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { MediaSourceAny } from "$/mediaSource"
-import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
+import type { NotifyEvents, RoomState, Member, EventNotification, PublicMember } from "$/room"
 import type { BackendEmits, ResyncSocketBackend } from "$/socket"
 import type { Category, Segment } from "sponsorblock-api"
 
@@ -50,6 +50,7 @@ class Room {
   private log: debug.Debugger
   readonly broadcast: BroadcastOperator<BackendEmits>
 
+  private sharedPointers: Array<{member: PublicMember, pos: [number, number]}>
   public members: Array<Member> = []
 
   paused = true
@@ -62,11 +63,18 @@ class Room {
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
 
+    setInterval(() => {
+      if (this.members) {
+        this.broadcast.emit("pointerUpdate", this.sharedPointers)
+      }
+    }, 50)
+
     this.playbackSpeed = 1.0
     this.looping = false
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
 
+    this.sharedPointers = []
     this.blockedCategories = allCategories
     this.segmentTimeouts = []
     this.roomID = roomID
@@ -176,6 +184,18 @@ class Room {
     this.broadcast.emit("state", await this.state)
   }
 
+  pointerUpdate(pos: [number, number], client: Socket) {
+    const pointer = this.sharedPointers.find(({ member }) => member.id === client.id)
+    const member = this.getMember(client.id)
+    if (member) {
+      if (!pointer) 
+        this.sharedPointers.push(
+          { member: { name: member.name, id: client.id, permission: member.permission}, pos})
+      else 
+        pointer.pos = pos
+    }
+  }
+
   join(client: Socket, name: string) {
     let permission: Permission
 
@@ -201,6 +221,8 @@ class Room {
 
     const member = this.getMember(client.id)
     const memberWasHost = member && checkPermission(member.permission, Permission.Host)
+    const pointer = this.sharedPointers.find(pointer => pointer.member.id === client.id)
+    if (pointer) this.sharedPointers.splice(this.sharedPointers.indexOf(pointer), 1)
 
     if (memberWasHost) {
       const [newHost] = this.members.filter(m => m.client.id !== client.id)
@@ -503,6 +525,10 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
+    client.on("pointerUpdate" , ({ pos, roomID}) => {
+      getRoom(roomID).pointerUpdate(pos, client)
+    })
+
     client.on("changePlaybackSpeed", ({ newSpeed, roomID, secret }) => {
       getRoom(roomID).changePlaybackSpeed(newSpeed, client, secret)
     })

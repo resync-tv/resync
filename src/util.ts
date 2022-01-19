@@ -88,12 +88,12 @@ export const isStaging = () => location.hostname === "staging.resync.tv"
 export const unfocus = (): void => (window.document.activeElement as HTMLElement)?.blur?.()
 
 // TODO: consider removing
-export const touchEventOffset = (event: any, target?: any) => {
+export const touchEventOffset = (event: any, target?: any) : [number, number] => {
   target = target || event.currentTarget
 
   const cx = event.clientX || 0
   const cy = event.clientY || 0
   const rect = target.getBoundingClientRect()
 
-  return [cx - rect.left, cy - rect.top]
+  return [(cx - rect.left)/(rect.right - rect.left), (cy - rect.top)/(rect.bottom - rect.top)]
 }

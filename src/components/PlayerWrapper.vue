@@ -13,7 +13,7 @@ import VideoList from "@/components/VideoList.vue"
 
 import Resync from "@/resync"
 
-import { debug } from "@/util"
+import { debug, touchEventOffset } from "@/util"
 import PlayerSettings from "./PlayerSettings.vue"
 const log = debug("playerwrapper")
 
@@ -134,7 +134,8 @@ export default defineComponent({
 
     let mouseMovedTimeout: NodeJS.Timeout
     let mouseMoved = ref(false)
-    const onMouseMoved = () => {
+    const onMouseMoved = (event: Event) => {
+      if (resync.mousePos) resync.mousePos.value = touchEventOffset(event)
       if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
       mouseMoved.value = true
       mouseMovedTimeout = setTimeout(() => {
@@ -248,6 +249,14 @@ export default defineComponent({
     @mouseleave="onMouseLeave"
     @dblclick="toggleFullscreen"
   >
+    <div
+    v-for="pointer in resync.sharedPointers.value.filter(pointer => pointer.member.id !== resync.ownId.value)"
+    class="pointer"
+    :style="{ top: pointer.pos[1]*100 + '%', left: pointer.pos[0]*100 + '%' }"
+    >
+    <SvgIcon name="mouse"/>
+    </div>
+
     <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
 
     <!-- <div v-if="!resync.state.value.source" class="flex-col h-full w-full centerflex">
@@ -367,6 +376,15 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
+.pointer {
+  position: absolute;
+  transition: all 50ms;
+  &> svg {
+    position: relative;
+    left: -50%;
+    top: -50%;
+  }
+}
 .overlay {
   &-queue {
     @apply right-0;

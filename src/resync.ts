@@ -1,5 +1,5 @@
 import type { Socket } from "socket.io-client"
-import type { RoomState } from "$/room"
+import type { RoomState, PublicMember } from "$/room"
 import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch, computed } from "vue"
@@ -38,6 +38,9 @@ export default class Resync {
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
+  mousePos : Ref<[number, number]> = ref([0, 0] as [number, number])
+  pointerUpdateInterval: NodeJS.Timeout
+  sharedPointers : Ref<Array<{member: PublicMember, pos: [number, number]}>> = ref([])
 
   ownPermission = computed(() => {
     const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
@@ -45,6 +48,8 @@ export default class Resync {
 
     return ownMember.permission
   })
+
+  ownId = computed(() => this.socket.id)
 
   hasPermission = (permission: Permission) => {
     return checkPermission(this.ownPermission.value, permission)
@@ -70,6 +75,12 @@ export default class Resync {
       membersLoading: 0,
       queue: [],
     })
+
+    this.pointerUpdateInterval = setInterval(() => {
+      this.roomEmit("pointerUpdate", { pos: this.mousePos.value })
+    }, 50)
+    
+    this.handlers.push(() => clearInterval(this.pointerUpdateInterval))
 
     this.handlers.push(
       watch(this.volume, volume => {
@@ -143,6 +154,13 @@ export default class Resync {
       this.socket.on("connect", connect)
     }
 
+    const pointerUpdate = (sharedPointers: Array<{member: PublicMember, pos: [number, number]}>) => {
+      this.sharedPointers.value = sharedPointers
+    }
+
+    this.socket.on("pointerUpdate", pointerUpdate)
+    this.handlers.push(() => this.socket.off("pointerUpdate", pointerUpdate))
+
     this.socket.on("disconnect", disconnect)
 
     this.handlers.push(() => this.socket.off("disconnect", disconnect))
@@ -186,4 +204,5 @@ export default class Resync {
   onState = this.eventHandler("state")
   onMessage = this.eventHandler("message")
   onSecret = this.eventHandler("secret")
+  onPointerUpdate = this.eventHandler("pointerUpdate")
 }
