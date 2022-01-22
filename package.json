@@ -30,7 +30,7 @@
     "@sentry/node": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
     "debug": "^4.3.1",
-    "nanoid": "^3.1.23",
+    "nanoid": "^3.1.32",
     "nanoid-dictionary": "^4.3.0",
     "socket.io": "^4.1.2",
     "socket.io-client": "^4.1.2",
