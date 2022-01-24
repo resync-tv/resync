@@ -51,6 +51,7 @@ class Room {
   readonly broadcast: BroadcastOperator<BackendEmits>
 
   private sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>
+  private sharedPointersChanged: Boolean
   public members: Array<Member> = []
 
   paused = true
@@ -64,8 +65,9 @@ class Room {
     log(`constructing room ${roomID}`)
 
     setInterval(() => {
-      if (this.members) {
+      if (this.members && this.sharedPointersChanged) {
         this.broadcast.emit("pointerUpdate", this.sharedPointers)
+        this.sharedPointersChanged = false
       }
     }, 50)
 
@@ -75,6 +77,7 @@ class Room {
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
 
     this.sharedPointers = []
+    this.sharedPointersChanged = false
     this.blockedCategories = allCategories
     this.segmentTimeouts = []
     this.roomID = roomID
@@ -196,6 +199,7 @@ class Room {
         pointer.pos = pos
         pointer.active = active
       }
+      this.sharedPointersChanged = true
     }
   }
 
