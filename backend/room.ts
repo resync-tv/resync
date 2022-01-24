@@ -50,7 +50,7 @@ class Room {
   private log: debug.Debugger
   readonly broadcast: BroadcastOperator<BackendEmits>
 
-  private sharedPointers: Array<{member: PublicMember, pos: [number, number]}>
+  private sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>
   public members: Array<Member> = []
 
   paused = true
@@ -184,15 +184,18 @@ class Room {
     this.broadcast.emit("state", await this.state)
   }
 
-  pointerUpdate(pos: [number, number], client: Socket) {
+  pointerUpdate(pos: [number, number], active: Boolean, client: Socket) {
     const pointer = this.sharedPointers.find(({ member }) => member.id === client.id)
     const member = this.getMember(client.id)
     if (member) {
-      if (!pointer) 
+      if (!pointer) {
         this.sharedPointers.push(
-          { member: { name: member.name, id: client.id, permission: member.permission}, pos})
-      else 
+          { member: { name: member.name, id: client.id, permission: member.permission}, pos, active})
+        }
+      else {
         pointer.pos = pos
+        pointer.active = active
+      }
     }
   }
 
@@ -525,8 +528,8 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
-    client.on("pointerUpdate" , ({ pos, roomID}) => {
-      getRoom(roomID).pointerUpdate(pos, client)
+    client.on("pointerUpdate" , ({ pos, active, roomID}) => {
+      getRoom(roomID).pointerUpdate(pos, active, client)
     })
 
     client.on("changePlaybackSpeed", ({ newSpeed, roomID, secret }) => {

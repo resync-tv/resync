@@ -10,7 +10,7 @@ type Callback<A = void> = (x: A) => void
 type BackendEmitterBase<A = void> = (x: A) => void
 
 export interface BackendEmits {
-  pointerUpdate: BackendEmitterBase<Array<{member: PublicMember, pos: [number, number]}>>
+  pointerUpdate: BackendEmitterBase<Array<{member: PublicMember, pos: [number, number], active: Boolean}>>
   secret: BackendEmitterBase<string>
   notifiy: BackendEmitterBase<EventNotification>
   message: BackendEmitterBase<Message>
@@ -34,7 +34,7 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
-  pointerUpdate: FrontendEmitterBase<{ pos: [number, number] }>
+  pointerUpdate: FrontendEmitterBase<{ pos: [number, number], active: Boolean }>
   changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
   editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>
   loop: FrontendEmitterBase<{ newState: boolean }>

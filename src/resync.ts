@@ -39,8 +39,10 @@ export default class Resync {
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
   mousePos : Ref<[number, number]> = ref([0, 0] as [number, number])
+  lastMousePos : [Number, Number] = [0, 0]
+  mouseActive: Ref<Boolean> = ref(true)
   pointerUpdateInterval: NodeJS.Timeout
-  sharedPointers : Ref<Array<{member: PublicMember, pos: [number, number]}>> = ref([])
+  sharedPointers : Ref<Array<{member: PublicMember, pos: [number, number], active: Boolean}>> = ref([])
 
   ownPermission = computed(() => {
     const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
@@ -53,6 +55,13 @@ export default class Resync {
 
   hasPermission = (permission: Permission) => {
     return checkPermission(this.ownPermission.value, permission)
+  }
+
+  pointerUpdate = (): void => {
+    if (this.mousePos.value !== this.lastMousePos) {
+      this.roomEmit("pointerUpdate", { pos: this.mousePos.value, active: this.mouseActive.value })
+      this.lastMousePos = this.mousePos.value
+    }
   }
 
   constructor(socket: Socket, roomID: string) {
@@ -76,10 +85,7 @@ export default class Resync {
       queue: [],
     })
 
-    this.pointerUpdateInterval = setInterval(() => {
-      this.roomEmit("pointerUpdate", { pos: this.mousePos.value })
-    }, 50)
-    
+    this.pointerUpdateInterval = setInterval(this.pointerUpdate, 50)
     this.handlers.push(() => clearInterval(this.pointerUpdateInterval))
 
     this.handlers.push(
@@ -154,7 +160,7 @@ export default class Resync {
       this.socket.on("connect", connect)
     }
 
-    const pointerUpdate = (sharedPointers: Array<{member: PublicMember, pos: [number, number]}>) => {
+    const pointerUpdate = (sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>) => {
       this.sharedPointers.value = sharedPointers
     }
 

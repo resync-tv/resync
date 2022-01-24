@@ -145,6 +145,16 @@ export default defineComponent({
 
     const onMouseLeave = () => {
       mouseMoved.value = false
+      resync.mouseActive.value = false
+      clearInterval(resync.pointerUpdateInterval)
+      resync.pointerUpdate()
+    }
+
+    const onMouseEnter = () => {
+      resync.mouseActive.value = true
+      resync.pointerUpdate()
+      clearInterval(resync.pointerUpdateInterval)
+      resync.pointerUpdateInterval = setInterval(resync.pointerUpdate, 50)
     }
 
     const copyURL = async (url: string) => {
@@ -227,6 +237,7 @@ export default defineComponent({
       queueDisabled,
       onMouseMoved,
       onMouseLeave,
+      onMouseEnter,
       mouseMoved,
     }
   },
@@ -247,10 +258,11 @@ export default defineComponent({
     ref="playerWrapper"
     @mousemove="onMouseMoved"
     @mouseleave="onMouseLeave"
+    @mouseenter="onMouseEnter"
     @dblclick="toggleFullscreen"
   >
     <div
-    v-for="pointer in resync.sharedPointers.value.filter(pointer => pointer.member.id !== resync.ownId.value)"
+    v-for="pointer in resync.sharedPointers.value.filter(pointer => pointer.member.id !== resync.ownId.value && pointer.active)"
     class="pointer"
     :style="{ top: pointer.pos[1]*100 + '%', left: pointer.pos[0]*100 + '%' }"
     >
@@ -378,7 +390,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .pointer {
   position: absolute;
-  transition: all 50ms;
+  transition: all 100ms;
   &> svg {
     position: relative;
     left: -50%;
