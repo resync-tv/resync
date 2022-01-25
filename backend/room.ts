@@ -50,8 +50,10 @@ class Room {
   private log: debug.Debugger
   readonly broadcast: BroadcastOperator<BackendEmits>
 
+  private sharedPointerEnabled: boolean
   private sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>
   private sharedPointersChanged: Boolean
+
   public members: Array<Member> = []
 
   paused = true
@@ -76,6 +78,7 @@ class Room {
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
 
+    this.sharedPointerEnabled = true
     this.sharedPointers = []
     this.sharedPointersChanged = false
     this.blockedCategories = allCategories
@@ -176,6 +179,7 @@ class Room {
         })),
         membersLoading: this.membersLoading,
         queue: await Promise.all(this.queue),
+        sharedPointerEnabled: this.sharedPointerEnabled,
       }
     })()
   }
@@ -185,6 +189,12 @@ class Room {
 
   async updateState() {
     this.broadcast.emit("state", await this.state)
+  }
+
+  toggleSharedPointer(client: Socket, secret?: string) {
+    if (!this.hasPermission(Permission.Host, client.id, secret)) return
+    this.sharedPointerEnabled = !this.sharedPointerEnabled
+    this.updateState()
   }
 
   pointerUpdate(pos: [number, number], active: Boolean, client: Socket) {
@@ -532,6 +542,9 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
+    client.on("toggleSharedPointer", ({roomID, secret}) => {
+      getRoom(roomID).toggleSharedPointer(client, secret)
+    })
     client.on("pointerUpdate" , ({ pos, active, roomID}) => {
       getRoom(roomID).pointerUpdate(pos, active, client)
     })

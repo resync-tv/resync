@@ -263,6 +263,7 @@ export default defineComponent({
   >
     <div
     v-for="pointer in resync.sharedPointers.value.filter(pointer => pointer.member.id !== resync.ownId.value && pointer.active)"
+    v-if="resync.state.value.sharedPointerEnabled"
     class="pointer"
     :style="{ top: pointer.pos[1]*100 + '%', left: pointer.pos[0]*100 + '%' }"
     >

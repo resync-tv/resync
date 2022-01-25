@@ -27,6 +27,7 @@ export interface RoomState<S = MediaSourceAny> {
   members: Array<PublicMember>
   membersLoading: number
   queue: MediaSourceAny[]
+  sharedPointerEnabled: boolean
 }
 
 export type NotifyEvents =

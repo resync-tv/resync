@@ -34,6 +34,7 @@ type FrontendEmitterBase<A = RoomEmitBase, C = void> = (x: RoomEmitBase & A, c: 
 type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: C) => void
 
 export interface FrontendEmits {
+  toggleSharedPointer: FrontendEmitterBase<>
   pointerUpdate: FrontendEmitterBase<{ pos: [number, number], active: Boolean }>
   changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
   editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>

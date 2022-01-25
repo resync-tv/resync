@@ -8,6 +8,7 @@ import { ls } from "../util"
 import { Category } from "sponsorblock-api"
 import Resync from "@/resync"
 import { SegmentColorSettings, defaultSegmentColors } from "../sponsorblock"
+import { Permission } from "../../backend/permission"
 
 export default defineComponent({
   components: { SvgIcon },
@@ -81,6 +82,12 @@ export default defineComponent({
       }
     }
 
+    const toggleSharedPointer = () => {
+      if (resync) {
+        resync.toggleSharedPointer()
+      }
+    }
+
     return {
       title,
       allCategories,
@@ -93,6 +100,7 @@ export default defineComponent({
       changeSpeed,
       setCategoryRef,
       categoryClick,
+      toggleSharedPointer,
     }
   },
 })
@@ -151,11 +159,30 @@ export default defineComponent({
         {{ speed.toString() + "x" }}
       </div>
     </div>
+    <div class="pointer-div" v-if="resync?.hasPermission(1)">
+      <div>shared pointer</div>
+      <label class="switch">
+        <input
+          type="checkbox"
+          :checked="resync?.state.value.sharedPointerEnabled"
+          @change="toggleSharedPointer"
+        />
+        <span class="slider round"></span>
+      </label>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-
+.pointer-div {
+  margin: 3px;
+  display: inherit;
+  &> .switch {
+    margin-left: 5px;
+    margin-right: auto;
+    top: 5px;
+  }
+}
 .edit-icon {
   width: 17px;
   height: 17px;
@@ -170,7 +197,6 @@ export default defineComponent({
   overflow: hidden;
 }
 .choice {
-  // todo: make the background of this transparent
   text-align: center;
   width: 50px;
   color: var(--clr-light);
@@ -220,9 +246,10 @@ export default defineComponent({
 ul {
   display: inline-block !important;
   width: min-content;
-  padding-top: 8px;
+  padding: 4px;
 }
 .switch {
+  float: left;
   position: relative;
   width: 43px;
   height: 17px;
@@ -305,7 +332,7 @@ input:checked + .slider:before {
   }
 
   > ul > li {
-    @apply cursor-pointer flex h-5 mb-4 pr-2 items-center;
+    @apply cursor-pointer flex h-5 mb-3 pr-2 items-center;
     position: relative;
   }
 }

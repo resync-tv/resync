@@ -83,6 +83,7 @@ export default class Resync {
       members: [],
       membersLoading: 0,
       queue: [],
+      sharedPointerEnabled: true,
     })
 
     this.pointerUpdateInterval = setInterval(this.pointerUpdate, 50)
@@ -183,6 +184,7 @@ export default class Resync {
     this.roomEmit("changePlaybackSpeed", { newSpeed })
   editBlocked = (newBlocked: Array<Category>): void =>
     this.roomEmit("editBlocked", { newBlocked })
+  toggleSharedPointer = (): void => this.roomEmit("toggleSharedPointer")
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")
   removeQueued = (index: number): void => this.roomEmit("removeQueued", { index })
