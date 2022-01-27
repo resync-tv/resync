@@ -1,0 +1,32 @@
+name: quality
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: use node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: format with prettier
+        run: npm run format
+
+      - name: lint with eslint
+        run: npm run lint
+
+      - name: typecheck with vue-tsc
+        run: npm run types
