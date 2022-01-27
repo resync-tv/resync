@@ -52,8 +52,8 @@ export default defineComponent({
     <h1 class="mb-6 text-3xl">choose a display name</h1>
     <form ref="form" class="flex max-w-screen -sm:flex-col">
       <ResyncInput
-        autofocus
         v-model="name"
+        autofocus
         placeholder="username"
         class="w-xs sm:mr-2"
         maxlength="16"

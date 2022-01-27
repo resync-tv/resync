@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { BlockedSegment } from "$/sponsorblock"
+
 import { minMax } from "@/util"
-import { PropType, ref, toRefs, watch } from "vue"
+import { PropType, ref, toRefs, watch, defineEmits, defineProps } from "vue"
+
 const emit = defineEmits(["value", "slide"])
 const props = defineProps({
   progress: {
@@ -9,11 +12,11 @@ const props = defineProps({
   },
   buffered: {
     type: Array as PropType<number[][]>,
-    default: [],
+    default: () => [],
   },
   blocked: {
-    type: Array as PropType<{ start: number; end: number; category: string; color: string }[]>,
-    default: [],
+    type: Array as PropType<BlockedSegment[]>,
+    default: () => [],
   },
   updateSlack: {
     type: Number,
@@ -84,8 +87,8 @@ const onwheel = (event: WheelEvent) => {
     <div
       class="slider"
       :style="`--progress: ${override ?? progress};`"
-      @mousedown="mouseDown"
       :class="{ active, small, disabled }"
+      @mousedown="mouseDown"
     >
       <div class="background"></div>
       <div class="buffer">

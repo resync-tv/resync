@@ -1,7 +1,7 @@
 import type { Server } from "socket.io"
 import type { Socket } from "socket.io-client"
 
-import type { EventNotification, RoomState } from "./room"
+import type { EventNotification, RoomState, PublicMember } from "./room"
 import type { MediaSourceAny } from "./mediaSource"
 import { Category } from "sponsorblock-api"
 
@@ -9,8 +9,14 @@ type Callback<A = void> = (x: A) => void
 
 type BackendEmitterBase<A = void> = (x: A) => void
 
+interface PointerUpdate {
+  member: PublicMember
+  pos: [number, number]
+  active: boolean
+}
+
 export interface BackendEmits {
-  pointerUpdate: BackendEmitterBase<Array<{member: PublicMember, pos: [number, number], active: Boolean}>>
+  pointerUpdate: BackendEmitterBase<PointerUpdate[]>
   secret: BackendEmitterBase<string>
   notifiy: BackendEmitterBase<EventNotification>
   message: BackendEmitterBase<Message>
@@ -35,7 +41,7 @@ type FrontendEmitterTime<A = RoomEmitTime, C = void> = (x: RoomEmitTime & A, c: 
 
 export interface FrontendEmits {
   toggleSharedPointer: FrontendEmitterBase<>
-  pointerUpdate: FrontendEmitterBase<{ pos: [number, number], active: Boolean }>
+  pointerUpdate: FrontendEmitterBase<{ pos: [number, number]; active: boolean }>
   changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
   editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>
   loop: FrontendEmitterBase<{ newState: boolean }>

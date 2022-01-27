@@ -1,8 +1,18 @@
-<script lang="ts">
+<script setup lang="ts">
 import type { MediaSourceAny, MediaType } from "$/mediaSource"
 import type { VideoMetadata } from "$/room"
 
-import { computed, defineComponent, inject, PropType, provide, ref, toRefs, watch } from "vue"
+import {
+  computed,
+  inject,
+  PropType,
+  provide,
+  ref,
+  toRefs,
+  watch,
+  defineProps,
+  defineEmits,
+} from "vue"
 import { debounce } from "ts-debounce"
 
 import VideoPlayer from "@/components/VideoPlayer"
@@ -17,235 +27,202 @@ import { debug, touchEventOffset } from "@/util"
 import PlayerSettings from "./PlayerSettings.vue"
 const log = debug("playerwrapper")
 
-export default defineComponent({
-  name: "PlayerWrapper",
-  emits: ["clearSearch"],
-  components: {
-    VideoPlayer,
-    PlayerControls,
-    LoadingSpinner,
-    SvgIcon,
-    VideoList,
-    PlayerSettings,
+const emit = defineEmits(["clearSearch"])
+const props = defineProps({
+  type: {
+    type: String as PropType<MediaType>,
+    required: true,
   },
-  props: {
-    type: {
-      type: String as PropType<MediaType>,
-      required: true,
-    },
-    searchResults: {
-      type: Array as PropType<MediaSourceAny[]>,
-      required: true,
-    },
-    queueDisabled: {
-      type: Boolean,
-      required: true,
-    },
+  searchResults: {
+    type: Array as PropType<MediaSourceAny[]>,
+    required: true,
   },
-  setup(props, { emit }) {
-    const { searchResults, queueDisabled } = toRefs(props)
-    const resync = inject<Resync>("resync")
-    if (!resync) throw new Error("resync injection failed")
-
-    const videoW = ref(16)
-    const videoH = ref(9)
-    const onMetadata = (metadata: VideoMetadata) => {
-      videoW.value = metadata.videoWidth
-      videoH.value = metadata.videoHeight
-    }
-
-    const screenW = ref(window.document.body.scrollWidth)
-    const screenH = ref(window.document.body.scrollHeight)
-    const refreshScreenSize = () => {
-      screenW.value = window.document.body.scrollWidth
-      screenH.value = window.document.body.scrollHeight
-    }
-    const refreshScreenSizeDebounced = debounce(() => {
-      log("debounced resize")
-      refreshScreenSize()
-    }, 500)
-
-    window.onresize = () => {
-      refreshScreenSize()
-      refreshScreenSizeDebounced()
-    }
-
-    const sizeMultiplier = computed(() => {
-      let m = 1
-      const maxW = 0.95
-      const maxH = 0.7
-
-      const minW = 0.5
-      const minH = 0.5
-
-      if (screenW.value * minW > videoW.value * m) m = (screenW.value / videoW.value) * minW
-      if (screenH.value * minH > videoH.value * m) m = (screenH.value / videoH.value) * minH
-
-      if (screenW.value * maxW < videoW.value * m) m = (screenW.value / videoW.value) * maxW
-      if (screenH.value * maxH < videoH.value * m) m = (screenH.value / videoH.value) * maxH
-
-      return m
-    })
-
-    const playerWrapper = ref<HTMLElement | null>(null)
-    const fullscreenEnabled = ref(false)
-    resync.fullscreenEnabled = fullscreenEnabled
-    const toggleFullscreen = async () => {
-      if (fullscreenEnabled.value) {
-        try {
-          await document.exitFullscreen()
-        } catch {
-          log.extend("error")("exiting fullscreen didn't work")
-        }
-
-        fullscreenEnabled.value = Boolean(document.fullscreenElement)
-        return
-      }
-
-      try {
-        if (!playerWrapper.value) throw Error("player-wrapper ref not found")
-        await playerWrapper.value.requestFullscreen()
-        fullscreenEnabled.value = Boolean(document.fullscreenElement)
-      } catch {
-        log.extend("error")("fullscreen didn't work")
-      }
-    }
-
-    const sizeStyle = computed(() => {
-      if (fullscreenEnabled.value) return "width:100%;height:100%"
-      return (
-        `width:${videoW.value * sizeMultiplier.value}px;` +
-        `height:${videoH.value * sizeMultiplier.value}px`
-      )
-    })
-
-    const showInteractionOverlay = ref(false)
-    const requireUserInteraction = (): Promise<void> => {
-      return new Promise(res => {
-        showInteractionOverlay.value = true
-        const stopWatching = watch(showInteractionOverlay, () => {
-          stopWatching()
-          res()
-        })
-      })
-    }
-
-    provide("requireUserInteraction", requireUserInteraction)
-
-    let mouseMovedTimeout: NodeJS.Timeout
-    let mouseMoved = ref(false)
-    const onMouseMoved = (event: Event) => {
-      if (resync.mousePos) resync.mousePos.value = touchEventOffset(event)
-      if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
-      mouseMoved.value = true
-      mouseMovedTimeout = setTimeout(() => {
-        mouseMoved.value = false
-      }, 2 * 1e3)
-    }
-
-    const onMouseLeave = () => {
-      mouseMoved.value = false
-      resync.mouseActive.value = false
-      clearInterval(resync.pointerUpdateInterval)
-      resync.pointerUpdate()
-    }
-
-    const onMouseEnter = () => {
-      resync.mouseActive.value = true
-      resync.pointerUpdate()
-      clearInterval(resync.pointerUpdateInterval)
-      resync.pointerUpdateInterval = setInterval(resync.pointerUpdate, 50)
-    }
-
-    const copyURL = async (url: string) => {
-      const clip = window.navigator.clipboard
-      if (!clip) window.alert("please use a modern browser like chrome for this feature.")
-
-      if (url) await clip.writeText(url)
-    }
-    const copyCurrentURL = (timestamp?: boolean) => {
-      const source = resync.state.value.source?.originalSource
-      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
-      if (!url) return
-      if (source?.youtubeID && timestamp) url += `?t=${Math.floor(resync.currentTime())}`
-
-      copyURL(url)
-    }
-
-    const openInNew = () => {
-      const source = resync.state.value.source?.originalSource
-      let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
-      window.open(url, "_blank")
-    }
-
-    const showSettings = ref(false)
-
-    const showQueue = ref(false)
-    const queuePlay = (i: number) => {
-      resync.playQueued(i)
-      showQueue.value = false
-    }
-
-    const showSpinner = computed(() => {
-      return (
-        resync.state.value.membersLoading && resync.state.value.source && resync.paused.value
-      )
-    })
-
-    const showSearch = ref(false)
-    const searchPlay = (i: number) => {
-      resync.playContent(searchResults.value[i].originalSource.url)
-      showSearch.value = false
-      emit("clearSearch")
-    }
-    const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalSource.url)
-    watch(searchResults, () => {
-      showSearch.value = Boolean(searchResults.value.length)
-    })
-    const closeSearch = () => {
-      showSearch.value = false
-      emit("clearSearch")
-    }
-
-    const closeOverlays = () => {
-      showQueue.value = false
-      showSearch.value = false
-      showSettings.value = false
-      emit("clearSearch")
-    }
-
-    return {
-      onMetadata,
-      sizeStyle,
-      showInteractionOverlay,
-      resync,
-      toggleFullscreen,
-      playerWrapper,
-      fullscreenEnabled,
-      copyCurrentURL,
-      openInNew,
-      showQueue,
-      showSettings,
-      queuePlay,
-      showSpinner,
-      showSearch,
-      searchResults,
-      searchPlay,
-      searchQueue,
-      closeSearch,
-      closeOverlays,
-      queueDisabled,
-      onMouseMoved,
-      onMouseLeave,
-      onMouseEnter,
-      mouseMoved,
-    }
+  queueDisabled: {
+    type: Boolean,
+    required: true,
   },
+})
+
+const { searchResults, queueDisabled } = toRefs(props)
+const resync = inject<Resync>("resync")
+if (!resync) throw new Error("resync injection failed")
+
+const videoW = ref(16)
+const videoH = ref(9)
+const onMetadata = (metadata: VideoMetadata) => {
+  videoW.value = metadata.videoWidth
+  videoH.value = metadata.videoHeight
+}
+
+const screenW = ref(window.document.body.scrollWidth)
+const screenH = ref(window.document.body.scrollHeight)
+const refreshScreenSize = () => {
+  screenW.value = window.document.body.scrollWidth
+  screenH.value = window.document.body.scrollHeight
+}
+const refreshScreenSizeDebounced = debounce(() => {
+  log("debounced resize")
+  refreshScreenSize()
+}, 500)
+
+window.onresize = () => {
+  refreshScreenSize()
+  refreshScreenSizeDebounced()
+}
+
+const sizeMultiplier = computed(() => {
+  let m = 1
+  const maxW = 0.95
+  const maxH = 0.7
+
+  const minW = 0.5
+  const minH = 0.5
+
+  if (screenW.value * minW > videoW.value * m) m = (screenW.value / videoW.value) * minW
+  if (screenH.value * minH > videoH.value * m) m = (screenH.value / videoH.value) * minH
+
+  if (screenW.value * maxW < videoW.value * m) m = (screenW.value / videoW.value) * maxW
+  if (screenH.value * maxH < videoH.value * m) m = (screenH.value / videoH.value) * maxH
+
+  return m
+})
+
+const playerWrapper = ref<HTMLElement | null>(null)
+const fullscreenEnabled = ref(false)
+resync.fullscreenEnabled = fullscreenEnabled
+const toggleFullscreen = async () => {
+  if (fullscreenEnabled.value) {
+    try {
+      await document.exitFullscreen()
+    } catch {
+      log.extend("error")("exiting fullscreen didn't work")
+    }
+
+    fullscreenEnabled.value = Boolean(document.fullscreenElement)
+    return
+  }
+
+  try {
+    if (!playerWrapper.value) throw Error("player-wrapper ref not found")
+    await playerWrapper.value.requestFullscreen()
+    fullscreenEnabled.value = Boolean(document.fullscreenElement)
+  } catch {
+    log.extend("error")("fullscreen didn't work")
+  }
+}
+
+const sizeStyle = computed(() => {
+  if (fullscreenEnabled.value) return "width:100%;height:100%"
+  return (
+    `width:${videoW.value * sizeMultiplier.value}px;` +
+    `height:${videoH.value * sizeMultiplier.value}px`
+  )
+})
+
+const showInteractionOverlay = ref(false)
+const requireUserInteraction = (): Promise<void> => {
+  return new Promise(res => {
+    showInteractionOverlay.value = true
+    const stopWatching = watch(showInteractionOverlay, () => {
+      stopWatching()
+      res()
+    })
+  })
+}
+
+provide("requireUserInteraction", requireUserInteraction)
+
+let mouseMovedTimeout: ReturnType<typeof setTimeout>
+let mouseMoved = ref(false)
+const onMouseMoved = (event: Event) => {
+  if (resync.mousePos) resync.mousePos.value = touchEventOffset(event)
+  if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
+  mouseMoved.value = true
+  mouseMovedTimeout = setTimeout(() => {
+    mouseMoved.value = false
+  }, 2 * 1e3)
+}
+
+const onMouseLeave = () => {
+  mouseMoved.value = false
+  resync.mouseActive.value = false
+  clearInterval(resync.pointerUpdateInterval)
+  resync.pointerUpdate()
+}
+
+const onMouseEnter = () => {
+  resync.mouseActive.value = true
+  resync.pointerUpdate()
+  clearInterval(resync.pointerUpdateInterval)
+  resync.pointerUpdateInterval = setInterval(resync.pointerUpdate, 50)
+}
+
+const copyURL = async (url: string) => {
+  const clip = window.navigator.clipboard
+  if (!clip) window.alert("please use a modern browser like chrome for this feature.")
+
+  if (url) await clip.writeText(url)
+}
+const copyCurrentURL = (timestamp?: boolean) => {
+  const source = resync.state.value.source?.originalSource
+  let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
+  if (!url) return
+  if (source?.youtubeID && timestamp) url += `?t=${Math.floor(resync.currentTime())}`
+
+  copyURL(url)
+}
+
+const openInNew = () => {
+  const source = resync.state.value.source?.originalSource
+  let url = source?.youtubeID ? `http://youtu.be/${source.youtubeID}` : source?.url
+  window.open(url, "_blank")
+}
+
+const showSettings = ref(false)
+
+const showQueue = ref(false)
+const queuePlay = (i: number) => {
+  resync.playQueued(i)
+  showQueue.value = false
+}
+
+const showSpinner = computed(() => {
+  return resync.state.value.membersLoading && resync.state.value.source && resync.paused.value
+})
+
+const showSearch = ref(false)
+const searchPlay = (i: number) => {
+  resync.playContent(searchResults.value[i].originalSource.url)
+  showSearch.value = false
+  emit("clearSearch")
+}
+const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalSource.url)
+watch(searchResults, () => {
+  showSearch.value = Boolean(searchResults.value.length)
+})
+const closeSearch = () => {
+  showSearch.value = false
+  emit("clearSearch")
+}
+
+const closeOverlays = () => {
+  showQueue.value = false
+  showSearch.value = false
+  showSettings.value = false
+  emit("clearSearch")
+}
+
+const filteredPointers = computed(() => {
+  return resync.sharedPointers.value.filter(pointer => {
+    return pointer.member.id !== resync.ownId.value && pointer.active
+  })
 })
 </script>
 
 <template>
   <div
+    id="player-wrapper"
+    ref="playerWrapper"
     class="rounded flex overflow-hidden relative light:shadow"
     :class="{
       overlay: showInteractionOverlay,
@@ -254,23 +231,23 @@ export default defineComponent({
       active: resync.paused.value,
     }"
     :style="sizeStyle"
-    id="player-wrapper"
-    ref="playerWrapper"
     @mousemove="onMouseMoved"
     @mouseleave="onMouseLeave"
     @mouseenter="onMouseEnter"
     @dblclick="toggleFullscreen"
   >
-    <div
-    v-for="pointer in resync.sharedPointers.value.filter(pointer => pointer.member.id !== resync.ownId.value && pointer.active)"
-    v-if="resync.state.value.sharedPointerEnabled"
-    class="pointer"
-    :style="{ top: pointer.pos[1]*100 + '%', left: pointer.pos[0]*100 + '%' }"
-    >
-    <SvgIcon name="mouse"/>
-    </div>
+    <template v-if="resync.state.value.sharedPointerEnabled">
+      <div
+        v-for="pointer in filteredPointers"
+        :key="pointer.member.id"
+        class="pointer"
+        :style="{ top: pointer.pos[1] * 100 + '%', left: pointer.pos[0] * 100 + '%' }"
+      >
+        <SvgIcon name="mouse" />
+      </div>
+    </template>
 
-    <VideoPlayer @metadata="onMetadata" :style="sizeStyle" />
+    <VideoPlayer :style="sizeStyle" @metadata="onMetadata" />
 
     <!-- <div v-if="!resync.state.value.source" class="flex-col h-full w-full centerflex">
       <h1 class="text-error text-3xl">nothing's playing.</h1>
@@ -280,22 +257,22 @@ export default defineComponent({
     </div> -->
 
     <div
+      v-if="showQueue || showSearch || showSettings"
       id="overlay-closer"
       class="h-full w-full absolute"
-      v-if="showQueue || showSearch || showSettings"
       @click="closeOverlays"
     ></div>
 
     <Transition name="video-list-right">
       <div v-show="showQueue" class="overlay-queue">
         <VideoList
-          @close="showQueue = false"
-          @play="queuePlay"
-          @contextMenu="resync.removeQueued"
           :disabled="queueDisabled"
           :videos="resync.state.value.queue"
           title="queue"
           placeholder="queue is empty"
+          @close="showQueue = false"
+          @play="queuePlay"
+          @context-menu="resync.removeQueued"
         />
       </div>
     </Transition>
@@ -303,11 +280,10 @@ export default defineComponent({
     <Transition name="video-list-right">
       <div v-show="showSettings" class="overlay-queue">
         <PlayerSettings
-          @close="showSettings = false"
-          @contextMenu="resync.removeQueued"
-          @updateColors=""
           title="settings"
           placeholder="no settings available"
+          @close="showSettings = false"
+          @context-menu="resync.removeQueued"
         />
       </div>
     </Transition>
@@ -315,13 +291,13 @@ export default defineComponent({
     <Transition name="video-list-left">
       <div v-show="showSearch" class="overlay-search">
         <VideoList
-          @close="closeSearch"
-          @play="searchPlay"
-          @contextMenu="searchQueue"
           :disabled="queueDisabled"
           :videos="searchResults"
           title="search"
           placeholder="no results found"
+          @close="closeSearch"
+          @play="searchPlay"
+          @context-menu="searchQueue"
         />
       </div>
     </Transition>
@@ -331,18 +307,18 @@ export default defineComponent({
       :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings }"
     >
       <PlayerControls
+        :fullscreen-enabled="fullscreenEnabled"
+        class="pointer-events-auto"
         @fullscreen="toggleFullscreen"
         @queue="showQueue = !showQueue"
         @settings="showSettings = !showSettings"
-        :fullscreen-enabled="fullscreenEnabled"
-        class="pointer-events-auto"
       />
     </div>
 
     <div
+      v-if="resync.state.value.source?.title"
       class="overlay-gradient hover-overlay upper"
       :class="{ active: resync.paused.value, hide: showQueue || showSearch || showSettings }"
-      v-if="resync.state.value.source?.title"
     >
       <div class="flex h-15 w-full px-5 items-center justify-between relative">
         <p class="text-lg tracking-wide ellipsis">
@@ -350,29 +326,29 @@ export default defineComponent({
         </p>
         <div class="flex pointer-events-auto">
           <SvgIcon
-            @click="copyCurrentURL()"
             title="copy source url"
             name="content_paste"
             class="source-icon"
+            @click="copyCurrentURL()"
           />
           <SvgIcon
-            @click="copyCurrentURL(true)"
             v-if="resync.state.value.source.originalSource.youtubeID"
             title="copy source url with timestamp"
             name="content_paste_time"
             class="source-icon"
+            @click="copyCurrentURL(true)"
           />
           <SvgIcon
-            @click="openInNew"
             title="open in new tab"
             name="open_in_new"
             class="source-icon"
+            @click="openInNew"
           />
         </div>
       </div>
     </div>
 
-    <div class="interaction-overlay" v-if="showInteractionOverlay">
+    <div v-if="showInteractionOverlay" class="interaction-overlay">
       <h1 class="text-error text-3xl">Playing with sound failed.</h1>
       <p class="mt-5 text-light text-center">
         This probably happened because you haven't interacted with the page yet.
@@ -392,7 +368,7 @@ export default defineComponent({
 .pointer {
   position: absolute;
   transition: all 100ms;
-  &> svg {
+  & > svg {
     position: relative;
     left: -50%;
     top: -50%;

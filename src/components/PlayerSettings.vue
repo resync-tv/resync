@@ -1,116 +1,93 @@
-<script lang="ts">
+<script setup lang="ts">
 import { allCategories } from "../../backend/sponsorblock"
 
-import { defineComponent, toRefs, inject, ref } from "vue"
-import type { Ref } from "vue"
+import { defineProps, defineEmits, toRefs, inject, ref } from "vue"
 import SvgIcon from "./SvgIcon.vue"
 import { ls } from "../util"
 import { Category } from "sponsorblock-api"
 import Resync from "@/resync"
 import { SegmentColorSettings, defaultSegmentColors } from "../sponsorblock"
-import { Permission } from "../../backend/permission"
 
-export default defineComponent({
-  components: { SvgIcon },
-  emits: ["close", "contextMenu", "updateColors"],
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    placeholder: {
-      type: String,
-      required: true,
-    },
+const emit = defineEmits(["close", "contextMenu", "updateColors"])
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
   },
-  setup(props) {
-    const resync = inject<Resync>("resync")
-
-    const { title } = toRefs(props)
-
-    let categoryRefs : Array<{element: any, category: Category, }> = []
-    const setCategoryRef = (el: any, category: Category) => {
-      if (el) {
-        categoryRefs.push({ element: el, category })
-      }
-    }
-    const categoryClick = (category: Category) => {
-      console.log(categoryRefs)
-      categoryRefs.find(el => el.category === category)?.element.click()
-    }
-
-
-    const savedColors = ref({} as SegmentColorSettings)
-
-    const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
-
-    const getColor = (category: Category) => {
-      return savedColors.value[category]
-    }
-
-    const changeSpeed = (speed: number) => {
-      if (resync) resync.changePlaybackSpeed(speed)
-    }
-
-    const jSavedColors = ls("segment-colors")
-    if (jSavedColors) savedColors.value = jSavedColors
-    else savedColors.value = defaultSegmentColors
-
-    const colorChange = (event: Event, category: Category, save: boolean) => {
-      const el = event.target
-      // @ts-expect-error no idea why this fails. typescript just seems to not have this property
-      const color = el?.value
-      const overwrite = {} as SegmentColorSettings
-      overwrite[category] = color
-      savedColors.value = Object.assign({}, savedColors.value, overwrite)
-      if (resync) resync.segmentColors = savedColors.value
-      resync?.updateProgress()
-      if (save) {
-        ls("segment-colors", savedColors.value)
-      }
-    }
-
-    const blockedToggle = (category: Category) => {
-      if (resync) {
-        const blockedCategories = resync.state.value.blockedCategories
-        if (blockedCategories.includes(category)) {
-          blockedCategories.splice(blockedCategories.indexOf(category), 1)
-        } else {
-          blockedCategories.push(category)
-        }
-        resync.editBlocked(blockedCategories)
-      }
-    }
-
-    const toggleSharedPointer = () => {
-      if (resync) {
-        resync.toggleSharedPointer()
-      }
-    }
-
-    return {
-      title,
-      allCategories,
-      ls,
-      colorChange,
-      getColor,
-      resync,
-      blockedToggle,
-      speeds,
-      changeSpeed,
-      setCategoryRef,
-      categoryClick,
-      toggleSharedPointer,
-    }
+  placeholder: {
+    type: String,
+    required: true,
   },
 })
+const resync = inject<Resync>("resync")
+
+const { title } = toRefs(props)
+
+let categoryRefs: Array<{ element: any; category: Category }> = []
+const setCategoryRef = (el: any, category: Category) => {
+  if (el) {
+    categoryRefs.push({ element: el, category })
+  }
+}
+const categoryClick = (category: Category) => {
+  console.log(categoryRefs)
+  categoryRefs.find(el => el.category === category)?.element.click()
+}
+
+const savedColors = ref({} as SegmentColorSettings)
+
+const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+
+const getColor = (category: Category) => {
+  return savedColors.value[category]
+}
+
+const changeSpeed = (speed: number) => {
+  if (resync) resync.changePlaybackSpeed(speed)
+}
+
+const jSavedColors = ls("segment-colors")
+if (jSavedColors) savedColors.value = jSavedColors
+else savedColors.value = defaultSegmentColors
+
+const colorChange = (event: Event, category: Category, save: boolean) => {
+  const el = event.target
+  // @ts-expect-error no idea why this fails. typescript just seems to not have this property
+  const color = el?.value
+  const overwrite = {} as SegmentColorSettings
+  overwrite[category] = color
+  savedColors.value = Object.assign({}, savedColors.value, overwrite)
+  if (resync) resync.segmentColors = savedColors.value
+  resync?.updateProgress()
+  if (save) {
+    ls("segment-colors", savedColors.value)
+  }
+}
+
+const blockedToggle = (category: Category) => {
+  if (resync) {
+    const blockedCategories = resync.state.value.blockedCategories
+    if (blockedCategories.includes(category)) {
+      blockedCategories.splice(blockedCategories.indexOf(category), 1)
+    } else {
+      blockedCategories.push(category)
+    }
+    resync.editBlocked(blockedCategories)
+  }
+}
+
+const toggleSharedPointer = () => {
+  if (resync) {
+    resync.toggleSharedPointer()
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full p-3 px-4 pb-0 settings-list">
     <header class="flex mb-4 justify-between items-center">
       <h1 class="text-3xl">{{ title }}</h1>
-      <SvgIcon @click="$emit('close')" class="cursor-pointer" name="close" />
+      <SvgIcon class="cursor-pointer" name="close" @click="emit('close')" />
     </header>
     <ul class="overflow-y-auto overflow-x-hidden pointer-events-auto">
       <li
@@ -119,11 +96,7 @@ export default defineComponent({
         :style="{ color: getColor(category) }"
       >
         <span @click="categoryClick(category)">{{ category }}</span>
-        <SvgIcon
-          name="edit"
-          class="edit-icon"
-          @click="categoryClick(category)"
-        />
+        <SvgIcon name="edit" class="edit-icon" @click="categoryClick(category)" />
         <div class="spacer"></div>
         <label class="switch">
           <input
@@ -134,32 +107,32 @@ export default defineComponent({
           <span class="slider round"></span>
         </label>
         <input
-          type="color"
           id="colorpicker"
-          class="colorpicker"
           :ref="(el: any) => setCategoryRef(el, category)"
+          type="color"
+          class="colorpicker"
           :value="getColor(category)"
           @change="e => colorChange(e, category, true)"
           @input="e => colorChange(e, category, false)"
         />
       </li>
     </ul>
-    <div class="wrapper" id="wrapper">
+    <div id="wrapper" class="wrapper">
       <div
         v-for="speed in speeds"
+        :key="speed"
         class="choice"
         :class="{
           active: resync?.state.value.playbackSpeed === speed,
           first: speed === speeds[0],
           last: speed === speeds[speeds.length - 1],
         }"
-        :key="speed"
         @click="changeSpeed(speed)"
       >
         {{ speed.toString() + "x" }}
       </div>
     </div>
-    <div class="pointer-div" v-if="resync?.hasPermission(1)">
+    <div v-if="resync?.hasPermission(1)" class="pointer-div">
       <div>shared pointer</div>
       <label class="switch">
         <input
@@ -177,7 +150,7 @@ export default defineComponent({
 .pointer-div {
   margin: 3px;
   display: inherit;
-  &> .switch {
+  & > .switch {
     margin-left: 5px;
     margin-right: auto;
     top: 5px;
@@ -215,8 +188,8 @@ export default defineComponent({
   position: absolute;
   z-index: -1;
   transition: all 0.5s;
-  opacity: .7;
-  filter: blur(.5px);
+  opacity: 0.7;
+  filter: blur(0.5px);
 }
 .active {
   width: 70px;

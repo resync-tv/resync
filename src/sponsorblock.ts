@@ -19,5 +19,5 @@ export const defaultSegmentColors: SegmentColorSettings = {
   outro: "#2b00ff",
   preview: "#04ff00",
   selfpromo: "#ff00bb",
-  sponsor: "#ff0000"
+  sponsor: "#ff0000",
 }

@@ -1,31 +1,47 @@
 <script setup lang="ts">
 import Resync, { SocketOff } from "@/resync"
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  defineProps,
+  defineEmits,
+} from "vue"
 import ResyncSlider from "@/components/ResyncSlider.vue"
 import SvgIcon from "@/components/SvgIcon.vue"
 import { bufferedArray, debug, minMax, timestamp } from "@/util"
 import { Permission } from "../../backend/permission"
+
 const log = debug("playercontrols")
-defineEmits(["fullscreen", "queue", "settings"])
+
+const emit = defineEmits(["fullscreen", "queue", "settings"])
 const props = defineProps({
   fullscreenEnabled: {
     type: Boolean,
     default: false,
   },
 })
+
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
+
 const offHandlers: SocketOff[] = []
 const currentTime = ref(0)
 const duration = ref(0)
 const progress = computed(() => {
   return minMax(currentTime.value / duration.value)
 })
+
 const buffered = ref<number[][]>([])
 const blocked = ref<{ start: number; end: number; category: string; color: string }[]>([])
-let interval: NodeJS.Timeout
+
+let progressInterval: ReturnType<typeof setInterval>
+
 const updateProgress = (once = false, current?: number) => {
-  clearInterval(interval)
+  clearInterval(progressInterval)
   currentTime.value = current ?? resync.currentTime()
   duration.value = resync.duration()
   buffered.value = bufferedArray(resync.buffered(), resync.duration())
@@ -34,21 +50,24 @@ const updateProgress = (once = false, current?: number) => {
     requestAnimationFrame(() => updateProgress())
   } else {
     log("stopped updating progress")
-    interval = setInterval(() => {
+    progressInterval = setInterval(() => {
       buffered.value = bufferedArray(resync.buffered(), resync.duration())
     }, 250)
   }
 }
+
 updateProgress()
 resync.updateProgress = updateProgress
 onMounted(() => updateProgress())
 const playWatcher = watch(resync.paused, () => updateProgress())
+
 offHandlers.push(playWatcher)
 const offSeekTo = resync.onSeekTo(to => {
   updateProgress(true, to)
 })
 offHandlers.push(offSeekTo)
 onBeforeUnmount(() => offHandlers.forEach(off => off()))
+
 const playStateIcon = computed(() => (resync.paused.value ? "play_arrow" : "pause"))
 const volumeStateIcon = computed(() => {
   if (resync.muted.value) return "volume_off"
@@ -56,9 +75,11 @@ const volumeStateIcon = computed(() => {
   if (resync.volume.value < 0.5) return "volume_down"
   else return "volume_up"
 })
+
 const onPlayIconClick = () => {
   resync.paused.value ? resync.resume() : resync.pause(resync.currentTime())
 }
+
 const onVolumeIconClick = () => {
   if (!resync.muted.value && resync.volume.value === 0) {
     resync.volume.value = 0.3
@@ -66,21 +87,26 @@ const onVolumeIconClick = () => {
   }
   resync.muted.value = !resync.muted.value
 }
+
 const onVolumeSlider = (value: number) => {
   resync.muted.value = false
   resync.volume.value = value
 }
+
 const onProgressSliderValue = (value: number) => {
   log("onProgressSliderValue", value)
   resync.seekTo(resync.duration() * value)
 }
+
 const onProgressSliding = (value: number) => {
   currentTime.value = resync.duration() * value
 }
+
 const fullscreenStateIcon = computed(() => {
   if (props.fullscreenEnabled) return "fullscreen_exit"
   return "fullscreen"
 })
+
 const volumeScroll = (event: WheelEvent) => {
   const { deltaY } = event
   if (deltaY < 0) resync.volume.value = minMax(resync.volume.value + 0.05)
@@ -95,39 +121,39 @@ const volumeScroll = (event: WheelEvent) => {
       <div class="flex">
         <SvgIcon
           :name="playStateIcon"
-          @click="onPlayIconClick"
           class="player-icon"
           :class="{
             disabled:
               !resync.hasPermission(Permission.Host) &&
               !resync.hasPermission(Permission.PlaybackControl),
           }"
+          @click="onPlayIconClick"
         />
         <SvgIcon
-          name="skip_next"
           v-if="resync.state.value.queue.length"
-          @click="resync.playQueued(0)"
+          name="skip_next"
           class="player-icon"
+          @click="resync.playQueued(0)"
         />
         <SvgIcon
-          name="cached"
           v-if="resync.state.value.members.length > 1"
-          @click="resync.resync()"
+          name="cached"
           title="resync"
           class="player-icon small"
+          @click="resync.resync()"
         />
 
         <div class="flex items-center volume" @wheel.prevent.stop="volumeScroll">
           <SvgIcon
             :name="volumeStateIcon"
-            @click="onVolumeIconClick"
             class="player-icon small"
+            @click="onVolumeIconClick"
           />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
-            @value="onVolumeSlider"
             small
             immediate
+            @value="onVolumeSlider"
           />
         </div>
         <div class="font-timestamp my-auto mx-1 align-middle">
@@ -139,18 +165,17 @@ const volumeScroll = (event: WheelEvent) => {
         <SvgIcon
           name="settings"
           title="show/hide settings"
-          @click="$emit('settings')"
           class="player-icon"
+          @click="emit('settings')"
         />
         <SvgIcon
           name="playlist"
           title="show/hide queue"
-          @click="$emit('queue')"
           class="player-icon"
+          @click="emit('queue')"
         />
         <SvgIcon
           :name="resync.state.value.looping ? 'repeat_on' : 'repeat'"
-          @click="resync.loop()"
           title="looping"
           class="player-icon"
           :class="{
@@ -158,12 +183,13 @@ const volumeScroll = (event: WheelEvent) => {
               !resync.hasPermission(Permission.Host) &&
               !resync.hasPermission(Permission.PlaybackControl),
           }"
+          @click="resync.loop()"
         />
         <SvgIcon
           :name="fullscreenStateIcon"
           title="fullscreen"
-          @click="$emit('fullscreen')"
           class="player-icon"
+          @click="emit('fullscreen')"
         />
       </div>
     </div>
@@ -176,9 +202,9 @@ const volumeScroll = (event: WheelEvent) => {
         !resync.hasPermission(Permission.PlaybackControl)
       "
       :blocked="blocked"
+      :update-slack="3"
       @value="onProgressSliderValue"
       @slide="onProgressSliding"
-      :update-slack="3"
     />
   </div>
 </template>

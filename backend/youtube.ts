@@ -72,12 +72,12 @@ export const getInfo = async (source: string): Promise<yt_dl.EnsuredMoreVideoDet
   return videoDetails
 }
 
-interface SeperateStreams {
+interface SeparateStreams {
   audio: MediaRawSource[]
   video: MediaRawSource[]
 }
 
-export const getSeperateStreams = async (source: string): Promise<SeperateStreams> => {
+export const getSeparateStreams = async (source: string): Promise<SeparateStreams> => {
   const { formats } = await fetchVideo(source)
 
   const audios = formats.filter(f => f.hasAudio && !f.hasVideo)

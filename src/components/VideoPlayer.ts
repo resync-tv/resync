@@ -40,7 +40,7 @@ export default defineComponent({
     onMounted(async () => {
       if (!video.value) throw new Error("video ref is null")
       video.value.playbackRate = resync.playbackSpeed.value
-      resync.setPlaybackSpeed = () => {
+      resync.updatePlaybackSpeed = () => {
         if (video.value) video.value.playbackRate = resync.playbackSpeed.value
       }
       resync.currentTime = () => video.value?.currentTime ?? NaN
@@ -124,7 +124,7 @@ export default defineComponent({
           logRemote(`onRequestTime`)
           callback(resync.currentTime())
         }),
-        resync.onSource(source => {
+        resync.onSource(() => {
           if (!video.value) throw new Error("video ref is null")
           autoplay.value = false
 

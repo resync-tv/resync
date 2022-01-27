@@ -32,9 +32,6 @@ const updateSW = registerSW({
 
 declare global {
   //? seems to be in typescript itself now
-  // interface Navigator {
-  //   mediaSession?: MediaSession
-  // }
   interface Window {
     MediaMetadata?: typeof MediaMetadata
   }

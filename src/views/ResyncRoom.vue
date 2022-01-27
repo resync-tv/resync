@@ -196,9 +196,9 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             {{ playButtonText }}
           </button>
           <button
-            @click.prevent.stop="queue"
             class="resync-button"
             :class="{ invalid: queueDisabled }"
+            @click.prevent.stop="queue"
           >
             queue
           </button>
@@ -210,33 +210,33 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
           type="video"
           :search-results="searchResults"
           :queue-disabled="queueDisabled"
-          @clearSearch="searchResults = []"
+          @clear-search="searchResults = []"
         />
 
         <template v-if="!resync.state.value.source">
           <VideoList
             v-if="searchResults.length"
-            @close="searchResults = []"
-            @play="searchPlay"
-            @contextMenu="searchQueue"
             :videos="searchResults"
             :disabled="queueDisabled"
             title="search"
             placeholder="no results found"
             style="max-height: 70vh"
             class="min-w-2xl"
+            @close="searchResults = []"
+            @play="searchPlay"
+            @context-menu="searchQueue"
           />
 
           <VideoList
             v-else-if="resync.state.value.queue.length"
-            @play="resync.playQueued"
-            @contextMenu="resync.removeQueued"
-            @close="resync.clearQueue"
             :videos="resync.state.value.queue"
             :disabled="queueDisabled"
             title="queue"
             placeholder="queue is empty"
             class="min-w-2xl"
+            @play="resync.playQueued"
+            @context-menu="resync.removeQueued"
+            @close="resync.clearQueue"
           />
         </template>
       </div>
@@ -249,25 +249,25 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="top-text"
           >
             <div
-              class="permissions"
               v-if="checkPermission(member.permission, Permission.Host)"
+              class="permissions"
             >
               <SvgIcon class="host" name="star" />
             </div>
-            <div class="permissions" v-else>
+            <div v-else class="permissions">
               <SvgIcon
                 name="play_arrow"
-                @click="permissionToggle(member, Permission.PlaybackControl)"
                 :class="{
                   enabled: checkPermission(member.permission, Permission.PlaybackControl),
                 }"
+                @click="permissionToggle(member, Permission.PlaybackControl)"
               />
               <SvgIcon
                 name="playlist"
-                @click="permissionToggle(member, Permission.ContentControl)"
                 :class="{
                   enabled: checkPermission(member.permission, Permission.ContentControl),
                 }"
+                @click="permissionToggle(member, Permission.ContentControl)"
               />
             </div>
             <div class="opacity-50">{{ member.name }}</div>
@@ -310,11 +310,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             </div>
           </transition-group>
           <input
-            @keypress.enter="sendMessage"
             v-model="messageInput"
             placeholder="type message..."
             class="bg-auto outline-none h-5 text-right text-sm px-2 bottom-0 message-input absolute clr-auto"
             type="text"
+            @keypress.enter="sendMessage"
           />
         </div>
       </div>
@@ -325,7 +325,7 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 <style scoped lang="scss">
 .play-form {
   display: block;
-  &>input {
+  & > input {
     max-width: 300px;
   }
 }

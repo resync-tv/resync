@@ -20,8 +20,8 @@
     "front:build": "vite build",
     "front:serve": "vite preview",
     "commit": "cz -S",
-    "format": "prettier -w **/*.{vue,ts}",
-    "lint": "eslint --fix **/*.{vue,ts}",
+    "format": "prettier -w **/*.{vue,ts,js}",
+    "lint": "eslint --fix **/*.{vue,ts,js}",
     "types": "vue-tsc --noEmit",
     "quality": "npm run format & npm run lint & npm run types"
   },

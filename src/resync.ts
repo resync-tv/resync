@@ -1,6 +1,6 @@
 import type { Socket } from "socket.io-client"
 import type { RoomState, PublicMember } from "$/room"
-import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
+import type { BackendEmits, PointerUpdate, ResyncSocketFrontend, RoomEmit } from "$/socket"
 
 import { Ref, ref, watch, computed } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
@@ -9,6 +9,7 @@ import { MediaSourceAny } from "$/mediaSource"
 import { Permission, checkPermission } from "../backend/permission"
 import { Category } from "sponsorblock-api"
 import { defaultSegmentColors } from "./sponsorblock"
+import { BlockedSegment } from "$/sponsorblock"
 
 const log = debug("resync.ts")
 
@@ -19,30 +20,28 @@ export default class Resync {
   private roomEmit: RoomEmit
   private roomID: string
   private handlers: SocketOff[] = []
-  setPlaybackSpeed = (): void => undefined
+  updatePlaybackSpeed = (): void => undefined
   currentTime = (): number => NaN
   updateProgress = (): void => undefined
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
   hostSecret = ""
-  blocked = ():
-    | { start: number; end: number; category: string; color: string }[]
-    | undefined => undefined
+  blocked = (): BlockedSegment[] | void => undefined
   segmentColors = ls("segment-colors") ?? defaultSegmentColors
   playbackSpeed = computed(() => {
     return this.state.value.playbackSpeed
   })
 
-  fullscreenEnabled: Ref<Boolean> | undefined
+  fullscreenEnabled: Ref<boolean> | undefined
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)
   state: Ref<RoomState>
-  mousePos : Ref<[number, number]> = ref([0, 0] as [number, number])
-  lastMousePos : [Number, Number] = [0, 0]
-  mouseActive: Ref<Boolean> = ref(true)
+  mousePos: Ref<[number, number]> = ref([0, 0] as [number, number])
+  lastMousePos: [number, number] = [0, 0]
+  mouseActive: Ref<boolean> = ref(true)
   pointerUpdateInterval: NodeJS.Timeout
-  sharedPointers : Ref<Array<{member: PublicMember, pos: [number, number], active: Boolean}>> = ref([])
+  sharedPointers: Ref<PointerUpdate[]> = ref([])
 
   ownPermission = computed(() => {
     const ownMember = this.state.value.members.find(m => m.id === this.socket.id)
@@ -59,7 +58,10 @@ export default class Resync {
 
   pointerUpdate = (): void => {
     if (this.mousePos.value !== this.lastMousePos) {
-      this.roomEmit("pointerUpdate", { pos: this.mousePos.value, active: this.mouseActive.value })
+      this.roomEmit("pointerUpdate", {
+        pos: this.mousePos.value,
+        active: this.mouseActive.value,
+      })
       this.lastMousePos = this.mousePos.value
     }
   }
@@ -99,7 +101,7 @@ export default class Resync {
       this.onState(state => {
         log("new state", state)
         this.state.value = state
-        this.setPlaybackSpeed()
+        this.updatePlaybackSpeed()
       }),
       this.onSource((source?: MediaSourceAny) => {
         this.updateMediasession(source)
@@ -161,7 +163,9 @@ export default class Resync {
       this.socket.on("connect", connect)
     }
 
-    const pointerUpdate = (sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>) => {
+    const pointerUpdate = (
+      sharedPointers: Array<{ member: PublicMember; pos: [number, number]; active: boolean }>
+    ) => {
       this.sharedPointers.value = sharedPointers
     }
 

@@ -1,7 +1,7 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
 import type { MediaSourceAny } from "$/mediaSource"
-import type { NotifyEvents, RoomState, Member, EventNotification, PublicMember } from "$/room"
-import type { BackendEmits, ResyncSocketBackend } from "$/socket"
+import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
+import type { BackendEmits, PointerUpdate, ResyncSocketBackend } from "$/socket"
 import type { Category, Segment } from "sponsorblock-api"
 
 import { SponsorBlock } from "sponsorblock-api"
@@ -18,7 +18,6 @@ const nanoid = customAlphabet(nolookalikesSafe, 6)
 import { resolveContent } from "./content"
 
 import debug from "debug"
-import { clear } from "console"
 const log = debug("resync:room")
 
 const genSecret = () => randomBytes(256).toString("hex")
@@ -51,8 +50,8 @@ class Room {
   readonly broadcast: BroadcastOperator<BackendEmits>
 
   private sharedPointerEnabled: boolean
-  private sharedPointers: Array<{member: PublicMember, pos: [number, number], active: Boolean}>
-  private sharedPointersChanged: Boolean
+  private sharedPointers: PointerUpdate[]
+  private sharedPointersChanged: boolean
 
   public members: Array<Member> = []
 
@@ -197,15 +196,17 @@ class Room {
     this.updateState()
   }
 
-  pointerUpdate(pos: [number, number], active: Boolean, client: Socket) {
+  pointerUpdate(pos: [number, number], active: boolean, client: Socket) {
     const pointer = this.sharedPointers.find(({ member }) => member.id === client.id)
     const member = this.getMember(client.id)
     if (member) {
       if (!pointer) {
-        this.sharedPointers.push(
-          { member: { name: member.name, id: client.id, permission: member.permission}, pos, active})
-        }
-      else {
+        this.sharedPointers.push({
+          member: { name: member.name, id: client.id, permission: member.permission },
+          pos,
+          active,
+        })
+      } else {
         pointer.pos = pos
         pointer.active = active
       }
@@ -316,7 +317,7 @@ class Room {
     if (client) this.notify("playContent", client, { source, startFrom })
   }
 
-  async editBlocked(newBlocked: Array<Category>, client: Socket, secret?: string) {
+  async editBlocked(newBlocked: Array<Category>) {
     this.blockedCategories = newBlocked
     let avg = await this.requestTime()
     if (avg !== (avg = this.updateSegmentTimeouts(avg)))
@@ -542,10 +543,10 @@ export default (io: ResyncSocketBackend): void => {
   }
 
   io.on("connect", client => {
-    client.on("toggleSharedPointer", ({roomID, secret}) => {
+    client.on("toggleSharedPointer", ({ roomID, secret }) => {
       getRoom(roomID).toggleSharedPointer(client, secret)
     })
-    client.on("pointerUpdate" , ({ pos, active, roomID}) => {
+    client.on("pointerUpdate", ({ pos, active, roomID }) => {
       getRoom(roomID).pointerUpdate(pos, active, client)
     })
 
@@ -553,11 +554,11 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID).changePlaybackSpeed(newSpeed, client, secret)
     })
 
-    client.on("editBlocked", ({ newBlocked, roomID, secret }) => {
-      getRoom(roomID).editBlocked(newBlocked, client, secret)
+    client.on("editBlocked", ({ newBlocked, roomID }) => {
+      getRoom(roomID).editBlocked(newBlocked)
     })
 
-    client.on("message", ({ msg, roomID, secret }) => {
+    client.on("message", ({ msg, roomID }) => {
       getRoom(roomID).message(msg, client)
     })
 
@@ -573,14 +574,14 @@ export default (io: ResyncSocketBackend): void => {
       if (secret) getRoom(roomID).revokePermission(secret, id, permission)
     })
 
-    client.on("joinRoom", async ({ roomID, name, secret }, reply) => {
+    client.on("joinRoom", async ({ roomID, name }, reply) => {
       const room = getRoom(roomID, client)
       room.join(client, name)
 
       reply(await room.state)
     })
 
-    client.on("leaveRoom", ({ roomID, secret }) => {
+    client.on("leaveRoom", ({ roomID }) => {
       getRoom(roomID).leave(client)
     })
 

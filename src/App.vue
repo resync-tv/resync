@@ -10,7 +10,6 @@ const log = debug("app")
 
 export default defineComponent({
   components: { NavBar },
-  name: "Resync",
   setup() {
     const route = useRoute()
 
@@ -57,7 +56,7 @@ export default defineComponent({
 
 <style lang="scss">
 #app a {
-  @apply text-accent-alt;
+  @apply text-accent;
   @apply underline;
 }
 

@@ -9,17 +9,15 @@
     "ecmaVersion": 2020,
     "parser": "@typescript-eslint/parser"
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:vue/vue3-strongly-recommended",
+    "plugin:vue/vue3-recommended",
     "prettier"
   ],
-  "ignorePatterns": "**/*.html",
+  "ignorePatterns": ["**/*.html", "dist/**/*", "lib/**/*"],
   "rules": {
     "@typescript-eslint/ban-ts-comment": [
       "error",
@@ -36,10 +34,7 @@
         }
       }
     ],
-    "@typescript-eslint/indent": [
-      "error",
-      2
-    ],
+    "@typescript-eslint/indent": ["error", 2],
     "@typescript-eslint/no-explicit-any": "off",
     "prettier/prettier": [
       "error",
