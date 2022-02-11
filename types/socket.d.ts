@@ -45,8 +45,8 @@ export interface FrontendEmits {
   changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
   editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>
   loop: FrontendEmitterBase<{ newState: boolean }>
-  givePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
-  removePermission: FrontendEmitterBase<{ id: string; permission: Permission }>
+  givePermission: FrontendEmitterBase<{ id: string; permission: Permission, defaultValue: boolean }>
+  removePermission: FrontendEmitterBase<{ id: string; permission: Permission, defaultValue: boolean }>
   playContent: FrontendEmitterBase<{ source: string; startFrom?: number }>
   playQueued: FrontendEmitterBase<{ index: number }>
   removeQueued: FrontendEmitterBase<{ index: number }>

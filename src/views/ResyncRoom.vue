@@ -72,13 +72,15 @@ const offSecret = resync.onSecret((secret: string) => {
   resync.hostSecret = secret
 })
 
-const permissionToggle = (member: PublicMember, permission: Permission) => {
-  const granted = checkPermission(member.permission, permission)
+const permissionToggle = (member: PublicMember, permission: Permission, defaultValue: boolean = false) => {
+  const granted = defaultValue ? 
+  checkPermission(resync.state.value.defaultPermission, permission)
+   : checkPermission(member.permission, permission)
 
   if (granted) {
-    resync.revokePermission(member.id, permission)
+    resync.revokePermission(member.id, permission, defaultValue)
   } else {
-    resync.grantPermission(member.id, permission)
+    resync.grantPermission(member.id, permission, defaultValue)
   }
 }
 
@@ -273,6 +275,27 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             <div class="opacity-50">{{ member.name }}</div>
           </div>
         </transition-group>
+        <div class="spacer" key=""></div>
+        <div class="top-text">
+          <div class="permissions">
+              <SvgIcon
+                name="play_arrow"
+                :class="{
+                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.PlaybackControl),
+                }"
+                @click="permissionToggle(resync.state.value.members[0], Permission.PlaybackControl, true)"
+              />
+              <SvgIcon
+                name="playlist"
+                :class="{
+                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.ContentControl),
+                }"
+                @click="permissionToggle(resync.state.value.members[0], Permission.ContentControl, true)"
+              />
+          </div>
+          <div class="opacity-50">default</div>
+        </div>
+        
       </div>
 
       <div id="notifications" class="top-list opacity-50 right-0">
@@ -398,7 +421,14 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
     }
   }
 }
-
+.spacer {
+  background-color: var(--clr-light);
+  opacity: 0.5;
+  width: 90%;
+  height: 1px;
+  margin: auto;
+  @apply my-2;
+}
 .resync-button:not(:last-of-type) {
   @apply mr-1;
 }

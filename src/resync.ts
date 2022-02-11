@@ -78,6 +78,7 @@ export default class Resync {
     this.state = ref({
       playbackSpeed: 1.0,
       blockedCategories: [],
+      defaultPermission: Permission.ContentControl ^ Permission.PlaybackControl,
       looping: false,
       paused: this.paused.value,
       source: undefined,
@@ -199,10 +200,10 @@ export default class Resync {
   seekTo = (currentTime: number): void => this.roomEmit("seekTo", { currentTime })
   resync = (): void => this.roomEmit("resync")
   message = (msg: string): void => this.roomEmit("message", { msg })
-  grantPermission = (id: string, permission: Permission): void =>
-    this.roomEmit("givePermission", { permission, id })
-  revokePermission = (id: string, permission: Permission): void =>
-    this.roomEmit("removePermission", { permission, id })
+  grantPermission = (id: string, permission: Permission, defaultValue: boolean): void =>
+    this.roomEmit("givePermission", { permission, id, defaultValue })
+  revokePermission = (id: string, permission: Permission, defaultValue: boolean): void =>
+    this.roomEmit("removePermission", { permission, id, defaultValue })
 
   playbackError = (error: { reason: string; name: string }, currentTime: number): void => {
     this.roomEmit("playbackError", { ...error, currentTime })

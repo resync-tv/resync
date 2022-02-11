@@ -122,25 +122,37 @@ class Room {
     this.log(`[${event}](${name})`, additional || "")
   }
 
-  grantPermission(secret: string, id: string, permission: Permission) {
+  grantPermission(secret: string, id: string, permission: Permission, defaultValue: boolean = false) {
     if (this.hostSecret !== secret) return
 
-    const member = this.getMember(id)
+    if (!defaultValue) {
+      const member = this.getMember(id)
 
-    if (member && !checkPermission(member.permission, permission)) {
-      member.permission ^= permission
+      if (member && !checkPermission(member.permission, permission)) {
+        member.permission ^= permission
+      }
+    } else {
+      if (!checkPermission(this.defaultPermission, permission)) {
+        this.defaultPermission ^= permission
+      }
     }
 
     this.updateState()
   }
 
-  revokePermission(secret: string, id: string, permission: Permission) {
+  revokePermission(secret: string, id: string, permission: Permission, defaultValue: boolean = false) {
     if (this.hostSecret !== secret) return
 
-    const member = this.getMember(id)
+    if (!defaultValue) {
+      const member = this.getMember(id)
 
-    if (member && checkPermission(member.permission, permission)) {
-      member.permission ^= permission
+      if (member && checkPermission(member.permission, permission)) {
+        member.permission ^= permission
+      }
+    } else {
+      if (checkPermission(this.defaultPermission, permission)) {
+        this.defaultPermission ^= permission
+      }
     }
 
     this.updateState()
@@ -176,6 +188,7 @@ class Room {
           permission,
           name,
         })),
+        defaultPermission: this.defaultPermission,
         membersLoading: this.membersLoading,
         queue: await Promise.all(this.queue),
         sharedPointerEnabled: this.sharedPointerEnabled,
@@ -566,12 +579,12 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID, client).updateLooping(newState, client, secret)
     })
 
-    client.on("givePermission", ({ secret, id, permission, roomID }) => {
-      if (secret) getRoom(roomID).grantPermission(secret, id, permission)
+    client.on("givePermission", ({ secret, id, permission, defaultValue, roomID }) => {
+      if (secret) getRoom(roomID).grantPermission(secret, id, permission, defaultValue)
     })
 
-    client.on("removePermission", ({ secret, id, permission, roomID }) => {
-      if (secret) getRoom(roomID).revokePermission(secret, id, permission)
+    client.on("removePermission", ({ secret, id, permission, defaultValue, roomID }) => {
+      if (secret) getRoom(roomID).revokePermission(secret, id, permission, defaultValue)
     })
 
     client.on("joinRoom", async ({ roomID, name }, reply) => {
