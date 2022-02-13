@@ -1,10 +1,9 @@
-
 <script setup lang="ts">
 import { ref, inject, onBeforeUnmount } from "vue"
 import Resync from "@/resync"
 import type { Message } from "$/room"
 
-import { isURL } from "@/util";
+import { isURL } from "@/util"
 
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
@@ -21,53 +20,59 @@ const sendMessage = () => {
 }
 
 const parseMessage = (msg: string) => {
-    const words = msg.split(' ')
-    return words.map(word => {
-        return {
-            word,
-            link: isURL(word)
-        }
-    })
+  const words = msg.split(" ")
+  return words.map(word => {
+    return {
+      word,
+      link: isURL(word),
+    }
+  })
 }
 
-onBeforeUnmount( () => {
+onBeforeUnmount(() => {
   offMessage()
 })
 </script>
 
 <template>
-    <div id="chat" class="bottom-list min-w-75 right-0">
+  <div id="chat" class="bottom-list min-w-75 right-0">
+    <div
+      class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+    >
+      <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
+      <div
+        class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom pointer-events-none"
+      ></div>
+      <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
         <div
-          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+          v-for="message in recentMessages"
+          :key="message.key"
+          class="top-text text-right opacity-25 z-2 justify-end"
         >
-          <div
-            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
-          ></div>
-          <div
-            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom pointer-events-none"
-          ></div>
-          <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
-            <div
-              v-for="message in recentMessages"
-              :key="message.key"
-              class="top-text text-right opacity-25 z-2 justify-end"
+          {{ message.name + ": " }}
+          <template
+            v-for="[index, msgPart] in parseMessage(message.msg).entries()"
+            :key="index"
+          >
+            <a
+              v-if="msgPart.link"
+              style="cursor: pointer"
+              @click.prevent="resync.playContent(msgPart.word)"
+              >{{ msgPart.word + " " }}</a
             >
-              {{ message.name + ": " }} 
-              <template v-for="msgPart in parseMessage(message.msg)">
-                <a @click.prevent="resync.playContent(msgPart.word)" style="cursor: pointer;" v-if="msgPart.link">{{ msgPart.word + ' ' }}</a>
-                <template v-else>{{ msgPart.word + ' '}}</template>
-              </template>
-            </div>
-          </transition-group>
-          <input
-            v-model="messageInput"
-            placeholder="type message..."
-            class="bg-auto outline-none h-5 text-right text-sm px-2 bottom-0 message-input absolute clr-auto"
-            type="text"
-            @keypress.enter="sendMessage"
-          />
+            <template v-else>{{ msgPart.word + " " }}</template>
+          </template>
         </div>
+      </transition-group>
+      <input
+        v-model="messageInput"
+        placeholder="type message..."
+        class="bg-auto outline-none h-5 text-right text-sm px-2 bottom-0 message-input absolute clr-auto"
+        type="text"
+        @keypress.enter="sendMessage"
+      />
     </div>
+  </div>
 </template>
 
 <style scoped lang="scss">

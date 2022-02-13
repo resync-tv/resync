@@ -122,7 +122,7 @@ class Room {
     this.log(`[${event}](${name})`, additional || "")
   }
 
-  grantPermission(secret: string, id: string, permission: Permission, defaultValue: boolean = false) {
+  grantPermission(secret: string, id: string, permission: Permission, defaultValue = false) {
     if (this.hostSecret !== secret) return
 
     if (!defaultValue) {
@@ -140,7 +140,7 @@ class Room {
     this.updateState()
   }
 
-  revokePermission(secret: string, id: string, permission: Permission, defaultValue: boolean = false) {
+  revokePermission(secret: string, id: string, permission: Permission, defaultValue = false) {
     if (this.hostSecret !== secret) return
 
     if (!defaultValue) {

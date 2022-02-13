@@ -236,5 +236,4 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
 .resync-button:not(:last-of-type) {
   @apply mr-1;
 }
-
 </style>

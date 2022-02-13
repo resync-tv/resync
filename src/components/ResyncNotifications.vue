@@ -26,24 +26,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div id="notifications" class="top-list opacity-50 right-0">
-        <div class="h-25 transition-all relative overflow-hidden hover:h-50">
-            <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
-            <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
-            <div
-                v-for="notification in recentNotifications"
-                :key="notification.key"
-                class="top-text text-right z-2 justify-end"
-            >
-                {{ renderNotification[notification.event](notification) }}
-            </div>
-            </transition-group>
+  <div id="notifications" class="top-list opacity-50 right-0">
+    <div class="h-25 transition-all relative overflow-hidden hover:h-50">
+      <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
+      <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
+        <div
+          v-for="notification in recentNotifications"
+          :key="notification.key"
+          class="top-text text-right z-2 justify-end"
+        >
+          {{ renderNotification[notification.event](notification) }}
         </div>
+      </transition-group>
     </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-
 .top-list {
   position: absolute;
   padding-top: 0.5rem;

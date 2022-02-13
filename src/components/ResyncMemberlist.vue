@@ -8,10 +8,14 @@ import SvgIcon from "../components/SvgIcon.vue"
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
 
-const permissionToggle = (member: PublicMember, permission: Permission, defaultValue: boolean = false) => {
-  const granted = defaultValue ? 
-  checkPermission(resync.state.value.defaultPermission, permission)
-   : checkPermission(member.permission, permission)
+const permissionToggle = (
+  member: PublicMember,
+  permission: Permission,
+  defaultValue = false
+) => {
+  const granted = defaultValue
+    ? checkPermission(resync.state.value.defaultPermission, permission)
+    : checkPermission(member.permission, permission)
 
   if (granted) {
     resync.revokePermission(member.id, permission, defaultValue)
@@ -19,63 +23,65 @@ const permissionToggle = (member: PublicMember, permission: Permission, defaultV
     resync.grantPermission(member.id, permission, defaultValue)
   }
 }
-
 </script>
 
 <template>
-    <div id="memberlist" class="top-list left-0">
-        <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.name"
-            class="top-text"
-          >
-            <div
-              v-if="checkPermission(member.permission, Permission.Host)"
-              class="permissions"
-            >
-              <SvgIcon class="host" name="star" />
-            </div>
-            <div v-else class="permissions">
-              <SvgIcon
-                name="play_arrow"
-                :class="{
-                  enabled: checkPermission(member.permission, Permission.PlaybackControl),
-                }"
-                @click="permissionToggle(member, Permission.PlaybackControl)"
-              />
-              <SvgIcon
-                name="playlist"
-                :class="{
-                  enabled: checkPermission(member.permission, Permission.ContentControl),
-                }"
-                @click="permissionToggle(member, Permission.ContentControl)"
-              />
-            </div>
-            <div class="opacity-50">{{ member.name }}</div>
-          </div>
-        </transition-group>
-        <div class="spacer" key=""></div>
-        <div class="top-text">
-          <div class="permissions">
-              <SvgIcon
-                name="play_arrow"
-                :class="{
-                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.PlaybackControl),
-                }"
-                @click="permissionToggle(resync.state.value.members[0], Permission.PlaybackControl, true)"
-              />
-              <SvgIcon
-                name="playlist"
-                :class="{
-                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.ContentControl),
-                }"
-                @click="permissionToggle(resync.state.value.members[0], Permission.ContentControl, true)"
-              />
-          </div>
-          <div class="opacity-50">default</div>
+  <div id="memberlist" class="top-list left-0">
+    <transition-group name="text-height">
+      <div v-for="member in resync.state.value.members" :key="member.name" class="top-text">
+        <div v-if="checkPermission(member.permission, Permission.Host)" class="permissions">
+          <SvgIcon class="host" name="star" />
         </div>
+        <div v-else class="permissions">
+          <SvgIcon
+            name="play_arrow"
+            :class="{
+              enabled: checkPermission(member.permission, Permission.PlaybackControl),
+            }"
+            @click="permissionToggle(member, Permission.PlaybackControl)"
+          />
+          <SvgIcon
+            name="playlist"
+            :class="{
+              enabled: checkPermission(member.permission, Permission.ContentControl),
+            }"
+            @click="permissionToggle(member, Permission.ContentControl)"
+          />
+        </div>
+        <div class="opacity-50">{{ member.name }}</div>
+      </div>
+    </transition-group>
+    <div key="" class="spacer"></div>
+    <div class="top-text">
+      <div class="permissions">
+        <SvgIcon
+          name="play_arrow"
+          :class="{
+            enabled: checkPermission(
+              resync.state.value.defaultPermission,
+              Permission.PlaybackControl
+            ),
+          }"
+          @click="
+            permissionToggle(resync.state.value.members[0], Permission.PlaybackControl, true)
+          "
+        />
+        <SvgIcon
+          name="playlist"
+          :class="{
+            enabled: checkPermission(
+              resync.state.value.defaultPermission,
+              Permission.ContentControl
+            ),
+          }"
+          @click="
+            permissionToggle(resync.state.value.members[0], Permission.ContentControl, true)
+          "
+        />
+      </div>
+      <div class="opacity-50">default</div>
     </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
