@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type { EventNotification, Message, PublicMember } from "$/room"
 import type { ResyncSocketFrontend } from "$/socket"
 
 import { computed, inject, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "@/util"
-import { renderNotification } from "@/notify"
-import { checkPermission, Permission } from "../../backend/permission"
+import { Permission } from "../../backend/permission"
 
 import PlayerWrapper from "@/components/PlayerWrapper.vue"
 import VideoList from "@/components/VideoList.vue"
@@ -15,7 +13,10 @@ import ResyncInput from "@/components/ResyncInput"
 import Resync from "@/resync"
 import { MediaSourceAny } from "$/mediaSource"
 import { getTimestamp } from "@/timestamp"
-import SvgIcon from "../components/SvgIcon.vue"
+
+import ResyncMemberlist from "@/components/ResyncMemberlist.vue"
+import ResyncNotifications from "@/components/ResyncNotifications.vue"
+import ResyncChat from "@/components/ResyncChat.vue"
 
 const log = debug("room")
 
@@ -72,39 +73,6 @@ const offSecret = resync.onSecret((secret: string) => {
   resync.hostSecret = secret
 })
 
-const permissionToggle = (member: PublicMember, permission: Permission, defaultValue: boolean = false) => {
-  const granted = defaultValue ? 
-  checkPermission(resync.state.value.defaultPermission, permission)
-   : checkPermission(member.permission, permission)
-
-  if (granted) {
-    resync.revokePermission(member.id, permission, defaultValue)
-  } else {
-    resync.grantPermission(member.id, permission, defaultValue)
-  }
-}
-
-const recentNotifications = ref<EventNotification[]>([])
-const offNotifiy = resync.onNotify(notification => {
-  const { event, name, additional } = notification
-  log.extend("notify")(`[${event}](${name})`, additional || "")
-
-  if (recentNotifications.value.push(notification) > 10) {
-    recentNotifications.value.shift()
-  }
-})
-
-const recentMessages = ref<Message[]>([])
-const offMessage = resync.onMessage(message => {
-  if (recentMessages.value.push(message) > 10) recentMessages.value.shift()
-})
-const messageInput = ref("")
-const sendMessage = () => {
-  if (!messageInput.value) return
-  resync.message(messageInput.value)
-  messageInput.value = ""
-}
-
 const playButtonText = computed(() => {
   if (!sourceInput.value.length && resync.state.value.source) return "stop"
   if (sourceIsURL.value || !sourceInput.value.length) return "play"
@@ -147,8 +115,6 @@ const inputSubmit = async () => {
 }
 
 onBeforeUnmount(() => {
-  offMessage()
-  offNotifiy()
   resetScope()
   offSecret()
   document.title = "resync"
@@ -243,104 +209,11 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
         </template>
       </div>
 
-      <div id="memberlist" class="top-list left-0">
-        <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.name"
-            class="top-text"
-          >
-            <div
-              v-if="checkPermission(member.permission, Permission.Host)"
-              class="permissions"
-            >
-              <SvgIcon class="host" name="star" />
-            </div>
-            <div v-else class="permissions">
-              <SvgIcon
-                name="play_arrow"
-                :class="{
-                  enabled: checkPermission(member.permission, Permission.PlaybackControl),
-                }"
-                @click="permissionToggle(member, Permission.PlaybackControl)"
-              />
-              <SvgIcon
-                name="playlist"
-                :class="{
-                  enabled: checkPermission(member.permission, Permission.ContentControl),
-                }"
-                @click="permissionToggle(member, Permission.ContentControl)"
-              />
-            </div>
-            <div class="opacity-50">{{ member.name }}</div>
-          </div>
-        </transition-group>
-        <div class="spacer" key=""></div>
-        <div class="top-text">
-          <div class="permissions">
-              <SvgIcon
-                name="play_arrow"
-                :class="{
-                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.PlaybackControl),
-                }"
-                @click="permissionToggle(resync.state.value.members[0], Permission.PlaybackControl, true)"
-              />
-              <SvgIcon
-                name="playlist"
-                :class="{
-                  enabled: checkPermission(resync.state.value.defaultPermission, Permission.ContentControl),
-                }"
-                @click="permissionToggle(resync.state.value.members[0], Permission.ContentControl, true)"
-              />
-          </div>
-          <div class="opacity-50">default</div>
-        </div>
-        
-      </div>
+      <ResyncMemberlist />
 
-      <div id="notifications" class="top-list opacity-50 right-0">
-        <div class="h-25 transition-all relative overflow-hidden hover:h-50">
-          <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
-          <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
-            <div
-              v-for="notification in recentNotifications"
-              :key="notification.key"
-              class="top-text text-right z-2 justify-end"
-            >
-              {{ renderNotification[notification.event](notification) }}
-            </div>
-          </transition-group>
-        </div>
-      </div>
+      <ResyncNotifications />
 
-      <div id="chat" class="bottom-list min-w-75 right-0">
-        <div
-          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
-        >
-          <div
-            class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
-          ></div>
-          <div
-            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
-          ></div>
-          <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
-            <div
-              v-for="message in recentMessages"
-              :key="message.key"
-              class="top-text text-right opacity-25 z-2 justify-end"
-            >
-              {{ message.name + ": " + message.msg }}
-            </div>
-          </transition-group>
-          <input
-            v-model="messageInput"
-            placeholder="type message..."
-            class="bg-auto outline-none h-5 text-right text-sm px-2 bottom-0 message-input absolute clr-auto"
-            type="text"
-            @keypress.enter="sendMessage"
-          />
-        </div>
-      </div>
+      <ResyncChat />
     </div>
   </main>
 </template>
@@ -352,20 +225,6 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
     max-width: 300px;
   }
 }
-.fade-out-gradient-top {
-  background: linear-gradient(to top, var(--clr-light), transparent);
-}
-.dark .fade-out-gradient-top {
-  background: linear-gradient(to top, var(--clr-dark), transparent);
-}
-
-.fade-out-gradient-bottom {
-  background: linear-gradient(to bottom, var(--clr-light), transparent);
-}
-.dark .fade-out-gradient-bottom {
-  background: linear-gradient(to bottom, var(--clr-dark), transparent);
-}
-
 .hover-bottom:hover {
   > .solid-overlay {
     height: 0;
@@ -374,76 +233,8 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
     margin-top: 0;
   }
 }
-
-.message-input::placeholder {
-  opacity: 0.75;
-  transition: 50ms;
-}
-
-.message-input:focus::placeholder {
-  opacity: 0.25;
-}
-
-.top-list {
-  @apply pt-2 top-0 absolute;
-}
-
-.bottom-list {
-  @apply pt-2 bottom-2 absolute;
-}
-
-.top-text {
-  @apply h-5 mx-2 text-sm overflow-hidden;
-  display: flex;
-  align-items: center;
-  // justify-content: end;
-
-  .permissions {
-    background: rgba(128, 128, 128, 0.25);
-    border-radius: 10px;
-    margin-right: 5px;
-    display: flex;
-    padding: 0 2.5px;
-  }
-
-  svg {
-    height: 16px;
-    width: 16px;
-    opacity: 0.25;
-
-    &.enabled {
-      opacity: 1;
-    }
-
-    &.host {
-      width: 32px;
-      opacity: 1;
-    }
-  }
-}
-.spacer {
-  background-color: var(--clr-light);
-  opacity: 0.5;
-  width: 90%;
-  height: 1px;
-  margin: auto;
-  @apply my-2;
-}
 .resync-button:not(:last-of-type) {
   @apply mr-1;
 }
 
-.text-height {
-  &-enter-active,
-  &-leave-active {
-    transition: all 500ms var(--ease-in-out-hard);
-  }
-
-  &-enter-from,
-  &-leave-to {
-    opacity: 0 !important;
-    margin-left: 0px !important;
-    height: 0px !important;
-  }
-}
 </style>
