@@ -9,7 +9,7 @@ import { average } from "./util"
 import { customAlphabet } from "nanoid"
 import { nolookalikesSafe } from "nanoid-dictionary"
 
-import { allCategories } from "./sponsorblock"
+import { allCategories, defaultBlockedCategories } from "./sponsorblock"
 import { checkPermission, Permission } from "./permission"
 import { randomBytes } from "crypto"
 
@@ -43,7 +43,7 @@ class Room {
   private hostSecret: string
   private defaultPermission: Permission
   readonly roomID: string
-  private blockedCategories: Category[]
+  private blockedCategories: Record<Category, boolean>
   private segmentTimeouts: NodeJS.Timeout[]
   private io: ResyncSocketBackend
   private log: debug.Debugger
@@ -80,7 +80,7 @@ class Room {
     this.sharedPointerEnabled = false
     this.sharedPointers = []
     this.sharedPointersChanged = false
-    this.blockedCategories = allCategories
+    this.blockedCategories = defaultBlockedCategories
     this.segmentTimeouts = []
     this.roomID = roomID
     this.io = io
@@ -330,8 +330,8 @@ class Room {
     if (client) this.notify("playContent", client, { source, startFrom })
   }
 
-  async editBlocked(newBlocked: Array<Category>) {
-    this.blockedCategories = newBlocked
+  async editBlocked(category: Category, newValue: boolean) {
+    this.blockedCategories[category] = newValue
     let avg = await this.requestTime()
     if (avg !== (avg = this.updateSegmentTimeouts(avg)))
       this.seekTo({ seconds: avg, secret: this.hostSecret })
@@ -339,7 +339,7 @@ class Room {
   }
 
   skipSegment(segment: Segment) {
-    if (!this.paused && this.blockedCategories.includes(segment.category)) {
+    if (!this.paused && this.blockedCategories[segment.category]) {
       this.seekTo({ seconds: segment.endTime, secret: this.hostSecret })
       this.notify("sponsorblock", this.members[0].client, { seconds: segment.endTime })
     }
@@ -350,7 +350,7 @@ class Room {
     if (this.source?.segments) {
       for (const segment of this.source.segments) {
         if (
-          this.blockedCategories.includes(segment.category) &&
+          this.blockedCategories[segment.category] &&
           segment.endTime > oldTime &&
           oldTime >= segment.startTime
         )
@@ -567,8 +567,8 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID).changePlaybackSpeed(newSpeed, client, secret)
     })
 
-    client.on("editBlocked", ({ newBlocked, roomID }) => {
-      getRoom(roomID).editBlocked(newBlocked)
+    client.on("blockedToggle", ({ category, newValue, roomID }) => {
+      getRoom(roomID).editBlocked(category, newValue)
     })
 
     client.on("message", ({ msg, roomID }) => {

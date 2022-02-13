@@ -2,6 +2,7 @@
 import { allCategories } from "../../backend/sponsorblock"
 
 import { defineProps, defineEmits, toRefs, inject, ref } from "vue"
+import type { Ref } from "vue"
 import SvgIcon from "./SvgIcon.vue"
 import { ls } from "../util"
 import { Category } from "sponsorblock-api"
@@ -19,67 +20,45 @@ const props = defineProps({
     required: true,
   },
 })
+
 const resync = inject<Resync>("resync")
+if (!resync) throw new Error("resync injection failed")
 
 const { title } = toRefs(props)
 
-let categoryRefs: Array<{ element: any; category: Category }> = []
-const setCategoryRef = (el: any, category: Category) => {
-  if (el) {
-    categoryRefs.push({ element: el, category })
-  }
-}
-const categoryClick = (category: Category) => {
-  console.log(categoryRefs)
-  categoryRefs.find(el => el.category === category)?.element.click()
-}
-
-const savedColors = ref({} as SegmentColorSettings)
-
 const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 
-const getColor = (category: Category) => {
-  return savedColors.value[category]
+const changeSpeed = (speed: number) => {
+  resync.changePlaybackSpeed(speed)
 }
 
-const changeSpeed = (speed: number) => {
-  if (resync) resync.changePlaybackSpeed(speed)
+let categoryRefs: Partial<Record<Category, HTMLInputElement>> = {}
+const setCategoryRef = (el: HTMLInputElement, category: Category) => {
+  categoryRefs[category] = el
 }
+
+const categoryClick = (category: Category) => {
+  categoryRefs[category]?.click()
+}
+
+const savedColors: Ref<SegmentColorSettings> = ref({})
 
 const jSavedColors = ls("segment-colors")
 if (jSavedColors) savedColors.value = jSavedColors
 else savedColors.value = defaultSegmentColors
 
 const colorChange = (event: Event, category: Category, save: boolean) => {
-  const el = event.target
-  // @ts-expect-error no idea why this fails. typescript just seems to not have this property
-  const color = el?.value
-  const overwrite = {} as SegmentColorSettings
-  overwrite[category] = color
-  savedColors.value = Object.assign({}, savedColors.value, overwrite)
-  if (resync) resync.segmentColors = savedColors.value
-  resync?.updateProgress()
+  const el = event.target as HTMLInputElement
+  const color = el.value
+  savedColors.value[category] = color
+  resync.segmentColors = savedColors.value
   if (save) {
     ls("segment-colors", savedColors.value)
   }
 }
 
 const blockedToggle = (category: Category) => {
-  if (resync) {
-    const blockedCategories = resync.state.value.blockedCategories
-    if (blockedCategories.includes(category)) {
-      blockedCategories.splice(blockedCategories.indexOf(category), 1)
-    } else {
-      blockedCategories.push(category)
-    }
-    resync.editBlocked(blockedCategories)
-  }
-}
-
-const toggleSharedPointer = () => {
-  if (resync) {
-    resync.toggleSharedPointer()
-  }
+  resync.blockedToggle(category)
 }
 </script>
 
@@ -93,7 +72,7 @@ const toggleSharedPointer = () => {
       <li
         v-for="category in allCategories"
         :key="category"
-        :style="{ color: getColor(category) }"
+        :style="{ color: savedColors[category] }"
       >
         <span @click="categoryClick(category)">{{ category }}</span>
         <SvgIcon name="edit" class="edit-icon" @click="categoryClick(category)" />
@@ -101,7 +80,7 @@ const toggleSharedPointer = () => {
         <label class="switch">
           <input
             type="checkbox"
-            :checked="resync?.state.value.blockedCategories.includes(category)"
+            :checked="resync.state.value.blockedCategories[category]"
             @change="blockedToggle(category)"
           />
           <span class="slider round"></span>
@@ -111,7 +90,7 @@ const toggleSharedPointer = () => {
           :ref="(el: any) => setCategoryRef(el, category)"
           type="color"
           class="colorpicker"
-          :value="getColor(category)"
+          :value="savedColors[category]"
           @change="e => colorChange(e, category, true)"
           @input="e => colorChange(e, category, false)"
         />
@@ -123,9 +102,7 @@ const toggleSharedPointer = () => {
         :key="speed"
         class="choice"
         :class="{
-          active: resync?.state.value.playbackSpeed === speed,
-          first: speed === speeds[0],
-          last: speed === speeds[speeds.length - 1],
+          active: resync.state.value.playbackSpeed === speed,
         }"
         @click="changeSpeed(speed)"
       >
@@ -137,8 +114,8 @@ const toggleSharedPointer = () => {
       <label class="switch">
         <input
           type="checkbox"
-          :checked="resync?.state.value.sharedPointerEnabled"
-          @change="toggleSharedPointer"
+          :checked="resync.state.value.sharedPointerEnabled"
+          @change="resync.toggleSharedPointer"
         />
         <span class="slider round"></span>
       </label>
@@ -177,6 +154,18 @@ const toggleSharedPointer = () => {
   background-color: transparent;
   cursor: pointer;
   transition: all 0.5s;
+  &:first-child {
+    border-radius: 5px 0 0 5px;
+    &::before {
+      border-radius: 5px 0 0 5px;
+    }
+  }
+  &:last-child {
+    border-radius: 0 5px 5px 0;
+    &::before {
+      border-radius: 0 5px 5px 0;
+    }
+  }
 }
 .choice::before {
   content: "";
@@ -199,19 +188,6 @@ const toggleSharedPointer = () => {
     background-color: var(--clr-light);
   }
 }
-
-.first {
-  border-radius: 5px 0 0 5px;
-  &::before {
-    border-radius: 5px 0 0 5px;
-  }
-}
-.last {
-  border-radius: 0 5px 5px 0;
-  &::before {
-    border-radius: 0 5px 5px 0;
-  }
-}
 .spacer {
   padding-right: 5px;
 }
@@ -231,14 +207,12 @@ ul {
   margin-right: 0;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -277,7 +251,6 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-/* Rounded sliders */
 .slider.round {
   border-radius: 34px;
 }

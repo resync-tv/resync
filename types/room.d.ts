@@ -20,7 +20,7 @@ export interface PublicMember extends Omit<Member, "client"> {
 export interface RoomState<S = MediaSourceAny> {
   defaultPermission: Permission
   playbackSpeed: number
-  blockedCategories: Array<Category>
+  blockedCategories: Record<Category, boolean>
   looping: boolean
   paused: boolean
   source: S | undefined

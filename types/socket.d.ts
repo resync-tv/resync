@@ -43,7 +43,7 @@ export interface FrontendEmits {
   toggleSharedPointer: FrontendEmitterBase<>
   pointerUpdate: FrontendEmitterBase<{ pos: [number, number]; active: boolean }>
   changePlaybackSpeed: FrontendEmitterBase<{ newSpeed: number }>
-  editBlocked: FrontendEmitterBase<{ newBlocked: Array<Category> }>
+  blockedToggle: FrontendEmitterBase<{ category: Category; newValue: boolean }>
   loop: FrontendEmitterBase<{ newState: boolean }>
   givePermission: FrontendEmitterBase<{
     id: string

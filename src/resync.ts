@@ -10,6 +10,7 @@ import { Permission, checkPermission } from "../backend/permission"
 import { Category } from "sponsorblock-api"
 import { defaultSegmentColors } from "./sponsorblock"
 import { BlockedSegment } from "$/sponsorblock"
+import { defaultBlockedCategories } from "../backend/sponsorblock"
 
 const log = debug("resync.ts")
 
@@ -77,7 +78,7 @@ export default class Resync {
 
     this.state = ref({
       playbackSpeed: 1.0,
-      blockedCategories: [],
+      blockedCategories: defaultBlockedCategories,
       defaultPermission: Permission.ContentControl ^ Permission.PlaybackControl,
       looping: false,
       paused: this.paused.value,
@@ -187,8 +188,11 @@ export default class Resync {
     this.roomEmit("queue", { source, startFrom })
   changePlaybackSpeed = (newSpeed: number): void =>
     this.roomEmit("changePlaybackSpeed", { newSpeed })
-  editBlocked = (newBlocked: Array<Category>): void =>
-    this.roomEmit("editBlocked", { newBlocked })
+  blockedToggle = (category: Category): void =>
+    this.roomEmit("blockedToggle", {
+      category,
+      newValue: !this.state.value.blockedCategories[category],
+    })
   toggleSharedPointer = (): void => this.roomEmit("toggleSharedPointer")
   playQueued = (index: number): void => this.roomEmit("playQueued", { index })
   clearQueue = (): void => this.roomEmit("clearQueue")
