@@ -4,6 +4,8 @@ import { ref, inject, onBeforeUnmount } from "vue"
 import Resync from "@/resync"
 import type { Message } from "$/room"
 
+import { isURL } from "@/util";
+
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
 
@@ -16,6 +18,16 @@ const sendMessage = () => {
   if (!messageInput.value) return
   resync.message(messageInput.value)
   messageInput.value = ""
+}
+
+const parseMessage = (msg: string) => {
+    const words = msg.split(' ')
+    return words.map(word => {
+        return {
+            word,
+            link: isURL(word)
+        }
+    })
 }
 
 onBeforeUnmount( () => {
@@ -32,7 +44,7 @@ onBeforeUnmount( () => {
             class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"
           ></div>
           <div
-            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
+            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom pointer-events-none"
           ></div>
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
@@ -40,7 +52,11 @@ onBeforeUnmount( () => {
               :key="message.key"
               class="top-text text-right opacity-25 z-2 justify-end"
             >
-              {{ message.name + ": " + message.msg }}
+              {{ message.name + ": " }} 
+              <template v-for="msgPart in parseMessage(message.msg)">
+                <a @click.prevent="resync.playContent(msgPart.word)" style="cursor: pointer;" v-if="msgPart.link">{{ msgPart.word + ' ' }}</a>
+                <template v-else>{{ msgPart.word + ' '}}</template>
+              </template>
             </div>
           </transition-group>
           <input
@@ -110,5 +126,17 @@ onBeforeUnmount( () => {
 .message-input:focus::placeholder {
   opacity: 0.25;
 }
+.fade-out-gradient-top {
+  background: linear-gradient(to top, var(--clr-light), transparent);
+}
+.dark .fade-out-gradient-top {
+  background: linear-gradient(to top, var(--clr-dark), transparent);
+}
 
+.fade-out-gradient-bottom {
+  background: linear-gradient(to bottom, var(--clr-light), transparent);
+}
+.dark .fade-out-gradient-bottom {
+  background: linear-gradient(to bottom, var(--clr-dark), transparent);
+}
 </style>
