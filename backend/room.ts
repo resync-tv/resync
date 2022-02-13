@@ -77,7 +77,7 @@ class Room {
     this.hostSecret = secret ?? ""
     this.defaultPermission = 0 // Permission.ContentControl | Permission.PlaybackControl
 
-    this.sharedPointerEnabled = true
+    this.sharedPointerEnabled = false
     this.sharedPointers = []
     this.sharedPointersChanged = false
     this.blockedCategories = allCategories

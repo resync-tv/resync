@@ -86,7 +86,7 @@ export default class Resync {
       members: [],
       membersLoading: 0,
       queue: [],
-      sharedPointerEnabled: true,
+      sharedPointerEnabled: false,
     })
 
     this.pointerUpdateInterval = setInterval(this.pointerUpdate, 50)
