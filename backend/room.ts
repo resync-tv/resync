@@ -255,6 +255,8 @@ class Room {
   leave(client: Socket) {
     this.notify("leave", client)
 
+    this.membersPlaying--
+
     this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
     if (this.membersLoading.length === 0 && this.loading) {
       this.resume(undefined, this.hostSecret)
@@ -311,16 +313,20 @@ class Room {
 
     if (this.source && !this.source.segments)
       try {
-        this.source.segments = await sponsorBlock.getSegments(sourceID, allCategories)
+        sponsorBlock.getSegments(sourceID, allCategories).then((segments) => {
+          if (this.source && this.source?.originalSource.youtubeID === sourceID) {
+            this.source.segments = segments
+            this.updateSegmentTimeouts(startFrom)
+            this.updateState()
+          }
+        }).catch(e => {
+          log(e, '[sponsorblock error]')
+        })
       } catch (e) {
-        //no segments for video
+        log(e, '[sponsorblock error]')
       }
-    startFrom = this.source?.startFrom ?? 0
-    const oldStartFrom = startFrom
-    startFrom = this.updateSegmentTimeouts(startFrom)
-    if (startFrom !== oldStartFrom) {
-      if (client) this.notify("sponsorblock", client, { seconds: startFrom })
-    }
+
+    this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
     if (sourceID === currentSourceID) {
       this.log(`same video, starting from ${this.source?.startFrom}`)
@@ -330,7 +336,6 @@ class Room {
       return
     }
 
-    this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
     this.membersLoading = this.members
     this.membersPlaying = this.members.length
@@ -346,7 +351,7 @@ class Room {
   async editBlocked(category: Category, newValue: boolean) {
     this.blockedCategories[category] = newValue
     let avg = await this.requestTime()
-    if (avg !== (avg = this.updateSegmentTimeouts(avg)))
+    if (avg !== (avg = this.updateSegmentTimeouts(avg)))//vaaski please find this gem
       this.seekTo({ seconds: avg, secret: this.hostSecret })
     this.updateState()
   }
@@ -366,8 +371,10 @@ class Room {
           this.blockedCategories[segment.category] &&
           segment.endTime > oldTime &&
           oldTime >= segment.startTime
-        )
+        ) {
           oldTime = segment.endTime
+          this.skipSegment(segment)
+        }
       }
       for (const segment of this.source.segments) {
         if (segment.startTime > oldTime) {
