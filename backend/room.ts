@@ -311,20 +311,26 @@ class Room {
       sourceID = this.source.originalSource.youtubeID ?? this.source.originalSource.url
     }
 
-    if (this.source && !this.source.segments)
-      try {
-        sponsorBlock.getSegments(sourceID, allCategories).then((segments) => {
-          if (this.source && this.source?.originalSource.youtubeID === sourceID) {
-            this.source.segments = segments
-            this.updateSegmentTimeouts(startFrom)
-            this.updateState()
-          }
-        }).catch(e => {
+    if (this.source) {
+      if (!this.source.segments) {
+        try {
+          sponsorBlock.getSegments(sourceID, allCategories).then((segments) => {
+            if (this.source && this.source?.originalSource.youtubeID === sourceID) {
+              this.source.segments = segments
+              this.source.startFrom = this.updateSegmentTimeouts(startFrom)
+              this.updateState()
+              log('found segments')
+            }
+          }).catch(e => {
+            log(e, '[sponsorblock error]')
+          })
+        } catch (e) {
           log(e, '[sponsorblock error]')
-        })
-      } catch (e) {
-        log(e, '[sponsorblock error]')
+        }
+      } else {
+        this.updateSegmentTimeouts(startFrom)
       }
+    }
 
     this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
@@ -357,7 +363,7 @@ class Room {
   }
 
   skipSegment(segment: Segment) {
-    if (!this.paused && this.blockedCategories[segment.category]) {
+    if ((!this.paused || this.lastSeekedTo === 0) && this.blockedCategories[segment.category]) {
       this.seekTo({ seconds: segment.endTime, secret: this.hostSecret })
       this.notify("sponsorblock", this.members[0].client, { seconds: segment.endTime })
     }
