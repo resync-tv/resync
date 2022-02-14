@@ -61,6 +61,7 @@ class Room {
   queue: Promise<MediaSourceAny>[] = []
   membersLoading: Array<Member> = []
   membersPlaying = 0
+  loading: boolean = false
 
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
@@ -255,6 +256,11 @@ class Room {
     this.notify("leave", client)
 
     this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
+    if (this.membersLoading.length === 0 && this.loading) {
+      this.resume(undefined, this.hostSecret)
+      this.loading = false 
+    }
+    this.log(`members loading: ${this.membersLoading.length}`)
 
     const member = this.getMember(client.id)
     const memberWasHost = member && checkPermission(member.permission, Permission.Host)
@@ -328,6 +334,7 @@ class Room {
 
     this.membersLoading = this.members
     this.membersPlaying = this.members.length
+    this.loading = true
     this.lastSeekedTo = startFrom
     this.paused = true
     this.broadcast.emit("source", this.source)
@@ -413,7 +420,10 @@ class Room {
     this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
     this.updateState()
 
-    if (this.membersLoading.length === 0) this.resume(undefined, this.hostSecret)
+    if (this.membersLoading.length === 0) {
+      this.resume(undefined, this.hostSecret)
+      this.loading = false
+    }
     this.log(`members loading: ${this.membersLoading.length}`)
   }
 
