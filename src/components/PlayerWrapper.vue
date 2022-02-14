@@ -187,7 +187,7 @@ const queuePlay = (i: number) => {
 }
 
 const showSpinner = computed(() => {
-  return resync.state.value.membersLoading && resync.state.value.source && resync.paused.value
+  return resync.state.value.membersLoading.length !== 0 && resync.state.value.source && resync.paused.value
 })
 
 const showSearch = ref(false)

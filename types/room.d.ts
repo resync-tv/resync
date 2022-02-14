@@ -26,7 +26,7 @@ export interface RoomState<S = MediaSourceAny> {
   source: S | undefined
   lastSeekedTo: number
   members: Array<PublicMember>
-  membersLoading: number
+  membersLoading: Array<PublicMember>
   queue: MediaSourceAny[]
   sharedPointerEnabled: boolean
 }

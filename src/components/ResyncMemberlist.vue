@@ -4,6 +4,7 @@ import Resync from "@/resync"
 import { checkPermission, Permission } from "../../backend/permission"
 import type { PublicMember } from "$/room"
 import SvgIcon from "../components/SvgIcon.vue"
+import LoadingSpinner from "./LoadingSpinner.vue"
 
 const resync = inject<Resync>("resync")
 if (!resync) throw new Error("resync injection failed")
@@ -49,6 +50,7 @@ const permissionToggle = (
           />
         </div>
         <div class="opacity-50">{{ member.name }}</div>
+        <LoadingSpinner v-if="resync.state.value.membersLoading.filter(m => m.id === member.id).length !== 0" />
       </div>
     </transition-group>
     <div key="" class="spacer"></div>

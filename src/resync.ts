@@ -58,7 +58,7 @@ export default class Resync {
   }
 
   pointerUpdate = (): void => {
-    if (this.mousePos.value !== this.lastMousePos) {
+    if (this.mousePos.value !== this.lastMousePos && this.state.value.sharedPointerEnabled) {
       this.roomEmit("pointerUpdate", {
         pos: this.mousePos.value,
         active: this.mouseActive.value,
@@ -85,7 +85,7 @@ export default class Resync {
       source: undefined,
       lastSeekedTo: 0,
       members: [],
-      membersLoading: 0,
+      membersLoading: [],
       queue: [],
       sharedPointerEnabled: false,
     })

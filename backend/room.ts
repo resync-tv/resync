@@ -59,7 +59,7 @@ class Room {
   lastSeekedTo = 0
   source: MediaSourceAny | undefined
   queue: Promise<MediaSourceAny>[] = []
-  membersLoading = 0
+  membersLoading: Array<Member> = []
   membersPlaying = 0
 
   constructor(roomID: string, io: Server, secret?: string) {
@@ -189,7 +189,11 @@ class Room {
           name,
         })),
         defaultPermission: this.defaultPermission,
-        membersLoading: this.membersLoading,
+        membersLoading: this.membersLoading.map(({ client, name, permission }) => ({
+          id: client.id,
+          permission,
+          name,
+        })),
         queue: await Promise.all(this.queue),
         sharedPointerEnabled: this.sharedPointerEnabled,
       }
@@ -250,6 +254,8 @@ class Room {
   leave(client: Socket) {
     this.notify("leave", client)
 
+    this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
+
     const member = this.getMember(client.id)
     const memberWasHost = member && checkPermission(member.permission, Permission.Host)
     const pointer = this.sharedPointers.find(pointer => pointer.member.id === client.id)
@@ -269,7 +275,7 @@ class Room {
     client.leave(this.roomID)
     this.removeMember(client.id)
 
-    const memberAmount = Object.keys(this.members).length
+    const memberAmount = this.members.length
     if (memberAmount <= 0) this.paused = true
 
     this.updateState()
@@ -320,7 +326,7 @@ class Room {
 
     this.seekTo({ client: undefined, seconds: startFrom ?? 0, secret: this.hostSecret })
 
-    this.membersLoading = this.members.length
+    this.membersLoading = this.members
     this.membersPlaying = this.members.length
     this.lastSeekedTo = startFrom
     this.paused = true
@@ -403,12 +409,12 @@ class Room {
     } else this.playContent(client, next, 0, secret)
   }
 
-  loaded() {
-    this.membersLoading--
+  loaded(client: Socket) {
+    this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
     this.updateState()
 
-    if (this.membersLoading === 0) this.resume(undefined, this.hostSecret)
-    this.log(`members loading: ${this.membersLoading}`)
+    if (this.membersLoading.length === 0) this.resume(undefined, this.hostSecret)
+    this.log(`members loading: ${this.membersLoading.length}`)
   }
 
   finished() {
@@ -616,7 +622,7 @@ export default (io: ResyncSocketBackend): void => {
       getRoom(roomID).playQueued(client, index, true, secret)
     })
 
-    client.on("loaded", ({ roomID }) => getRoom(roomID).loaded())
+    client.on("loaded", ({ roomID }) => getRoom(roomID).loaded(client))
     client.on("finished", ({ roomID }) => getRoom(roomID).finished())
 
     client.on("pause", ({ roomID, currentTime, secret }) => {
