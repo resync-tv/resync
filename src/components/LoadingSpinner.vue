@@ -1,6 +1,15 @@
+<script setup lang="ts">
+const props = defineProps({
+  contrasted: {
+    type: Boolean,
+    default: false
+  },
+})
+</script>
+
 <template>
   <svg viewBox="25 25 50 50">
-    <circle cx="50" cy="50" r="20"></circle>
+    <circle :class="{ contrasted }" cx="50" cy="50" r="20"></circle>
   </svg>
 </template>
 
@@ -19,6 +28,11 @@ circle {
   stroke-dashoffset: 0;
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
+  &.contrasted {
+    @media screen and (prefers-color-scheme: light) {
+      stroke: var(--clr-dark);
+    }
+  }
 }
 
 @keyframes rotate {
