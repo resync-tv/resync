@@ -50,7 +50,10 @@ const permissionToggle = (
           />
         </div>
         <div class="opacity-50">{{ member.name }}</div>
-        <LoadingSpinner :contrasted="true" v-if="resync.state.value.membersLoading.filter(m => m.id === member.id).length !== 0" />
+        <LoadingSpinner
+          v-if="resync.state.value.membersLoading.filter(m => m.id === member.id).length !== 0"
+          :contrasted="true"
+        />
       </div>
     </transition-group>
     <div key="" class="spacer"></div>

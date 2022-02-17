@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { defineProps } from "vue"
+
 const props = defineProps({
   contrasted: {
     type: Boolean,
-    default: false
+    default: false,
   },
 })
 </script>

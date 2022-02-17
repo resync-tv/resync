@@ -61,7 +61,7 @@ class Room {
   queue: Promise<MediaSourceAny>[] = []
   membersLoading: Array<Member> = []
   membersPlaying = 0
-  loading: boolean = false
+  loading = false
 
   constructor(roomID: string, io: Server, secret?: string) {
     log(`constructing room ${roomID}`)
@@ -260,7 +260,7 @@ class Room {
     this.membersLoading = this.membersLoading.filter(m => m.client.id !== client.id)
     if (this.membersLoading.length === 0 && this.loading) {
       this.resume(undefined, this.hostSecret)
-      this.loading = false 
+      this.loading = false
     }
     this.log(`members loading: ${this.membersLoading.length}`)
 
@@ -314,18 +314,21 @@ class Room {
     if (this.source) {
       if (!this.source.segments) {
         try {
-          sponsorBlock.getSegments(sourceID, allCategories).then((segments) => {
-            if (this.source && this.source?.originalSource.youtubeID === sourceID) {
-              this.source.segments = segments
-              this.source.startFrom = this.updateSegmentTimeouts(startFrom)
-              this.updateState()
-              log('found segments')
-            }
-          }).catch(e => {
-            log(e, '[sponsorblock error]')
-          })
+          sponsorBlock
+            .getSegments(sourceID, allCategories)
+            .then(segments => {
+              if (this.source && this.source?.originalSource.youtubeID === sourceID) {
+                this.source.segments = segments
+                this.source.startFrom = this.updateSegmentTimeouts(startFrom)
+                this.updateState()
+                log("found segments")
+              }
+            })
+            .catch(e => {
+              log(e, "[sponsorblock error]")
+            })
         } catch (e) {
-          log(e, '[sponsorblock error]')
+          log(e, "[sponsorblock error]")
         }
       } else {
         this.updateSegmentTimeouts(startFrom)
@@ -342,7 +345,6 @@ class Room {
       return
     }
 
-
     this.membersLoading = this.members
     this.membersPlaying = this.members.length
     this.loading = true
@@ -357,13 +359,17 @@ class Room {
   async editBlocked(category: Category, newValue: boolean) {
     this.blockedCategories[category] = newValue
     let avg = await this.requestTime()
-    if (avg !== (avg = this.updateSegmentTimeouts(avg)))//vaaski please find this gem
+    if (avg !== (avg = this.updateSegmentTimeouts(avg)))
+      //vaaski please find this gem
       this.seekTo({ seconds: avg, secret: this.hostSecret })
     this.updateState()
   }
 
   skipSegment(segment: Segment) {
-    if ((!this.paused || this.lastSeekedTo === 0) && this.blockedCategories[segment.category]) {
+    if (
+      (!this.paused || this.lastSeekedTo === 0) &&
+      this.blockedCategories[segment.category]
+    ) {
       this.seekTo({ seconds: segment.endTime, secret: this.hostSecret })
       this.notify("sponsorblock", this.members[0].client, { seconds: segment.endTime })
     }
