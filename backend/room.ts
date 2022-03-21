@@ -32,7 +32,7 @@ class Room {
   readonly roomID: string
   private io: ResyncSocketBackend
   private log: debug.Debugger
-  readonly broadcast: BroadcastOperator<BackendEmits>
+  readonly broadcast: BroadcastOperator<BackendEmits, any>
 
   public members: Array<Member> = []
 

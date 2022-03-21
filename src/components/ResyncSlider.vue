@@ -2,6 +2,13 @@
 import { minMax } from "@/util"
 import { defineComponent, PropType, ref, toRefs, watch } from "vue"
 
+// if i place this in a global .d.ts file everything goes up in flames
+declare module "vue" {
+  interface CSSProperties {
+    [key: `--${string}`]: string
+  }
+}
+
 export const touchEventOffset = (event: any, target?: any) => {
   target = target || event.currentTarget
 
