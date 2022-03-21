@@ -21,7 +21,7 @@ import "@/assets/theme.css"
 import "@/assets/fonts/fonts.css"
 
 import "virtual:windi.css"
-import "vite-plugin-svg-icons/register"
+import "virtual:svg-icons-register"
 
 import { registerSW } from "virtual:pwa-register"
 import { debug } from "./util"
