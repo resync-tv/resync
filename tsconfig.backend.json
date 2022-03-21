@@ -15,8 +15,8 @@
     "jsx": "preserve",
     "sourceMap": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "$/*": ["./types/*"]
+      "/@/*": ["./src/*"],
+      "/$/*": ["./types/*"]
     }
   },
   "include": ["backend", "util.ts"]

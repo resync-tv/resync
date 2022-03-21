@@ -6,7 +6,8 @@ import { average, once } from "./util"
 import debug from "debug"
 const log = debug("resync:youtube")
 
-import YT_DL, { yt_dl, adapters, ensureBinaries } from "@resync-tv/yt-dl"
+import type { yt_dl } from "@resync-tv/yt-dl"
+import YT_DL, { adapters, ensureBinaries } from "@resync-tv/yt-dl"
 const ytdlpAdapter = new adapters.ytdlp()
 const ytdl = new YT_DL([ytdl_core.getInfo, ytdlpAdapter.getInfo], "first-to-resolve")
 
@@ -72,12 +73,12 @@ export const getInfo = async (source: string): Promise<yt_dl.EnsuredMoreVideoDet
   return videoDetails
 }
 
-interface SeperateStreams {
+interface SeparateStreams {
   audio: MediaRawSource[]
   video: MediaRawSource[]
 }
 
-export const getSeperateStreams = async (source: string): Promise<SeperateStreams> => {
+export const getSeparateStreams = async (source: string): Promise<SeparateStreams> => {
   const { formats } = await fetchVideo(source)
 
   const audios = formats.filter(f => f.hasAudio && !f.hasVideo)

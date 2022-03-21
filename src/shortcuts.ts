@@ -1,5 +1,5 @@
-import type Resync from "@/resync"
-import type { MediaSessionAction } from "$/MediaSession"
+import type Resync from "/@/resync"
+import type { MediaSessionAction } from "/$/MediaSession"
 import { debug, minMax } from "./util"
 
 const setMediaHandler = (type: MediaSessionAction, fn: () => void) => {

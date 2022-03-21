@@ -1,23 +1,24 @@
 <script lang="ts">
-import Resync, { SocketOff } from "@/resync"
+import type { SocketOff } from "/@/resync"
+import type Resync from "/@/resync"
 
 import { computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import ResyncSlider from "@/components/ResyncSlider.vue"
-import SvgIcon from "@/components/SvgIcon.vue"
-import { bufferedArray, debug, minMax, timestamp } from "@/util"
+import ResyncSlider from "/@/components/ResyncSlider.vue"
+import SvgIcon from "/@/components/SvgIcon.vue"
+import { bufferedArray, debug, minMax, timestamp } from "/@/util"
 
 const log = debug("playercontrols")
 
 export default defineComponent({
-  components: { ResyncSlider, SvgIcon },
   name: "PlayerControls",
-  emits: ["fullscreen", "queue"],
+  components: { ResyncSlider, SvgIcon },
   props: {
     fullscreenEnabled: {
       type: Boolean,
       default: false,
     },
   },
+  emits: ["fullscreen", "queue"],
   setup(props) {
     const resync = inject<Resync>("resync")
     if (!resync) throw new Error("resync injection failed")
@@ -30,7 +31,7 @@ export default defineComponent({
     })
     const buffered = ref<number[][]>([])
 
-    let interval: NodeJS.Timeout
+    let interval: ReturnType<typeof setTimeout>
     const updateProgress = (once = false, current?: number) => {
       clearInterval(interval)
 
@@ -120,32 +121,32 @@ export default defineComponent({
   <div class="h-10 w-full relative">
     <div class="flex px-2 items-center justify-between">
       <div class="flex">
-        <SvgIcon :name="playStateIcon" @click="onPlayIconClick" class="player-icon" />
+        <SvgIcon :name="playStateIcon" class="player-icon" @click="onPlayIconClick" />
         <SvgIcon
-          name="skip_next"
           v-if="resync.state.value.queue.length"
-          @click="resync.playQueued(0)"
+          name="skip_next"
           class="player-icon"
+          @click="resync.playQueued(0)"
         />
         <SvgIcon
-          name="cached"
           v-if="resync.state.value.members.length > 1"
-          @click="resync.resync()"
+          name="cached"
           title="resync"
           class="player-icon small"
+          @click="resync.resync()"
         />
 
         <div class="flex items-center volume">
           <SvgIcon
             :name="volumeStateIcon"
-            @click="onVolumeIconClick"
             class="player-icon small"
+            @click="onVolumeIconClick"
           />
           <ResyncSlider
             :progress="resync.muted.value ? 0 : resync.volume.value"
-            @value="onVolumeSlider"
             small
             immediate
+            @value="onVolumeSlider"
           />
           <div class="font-timestamp mx-1 align-middle">
             {{ timestamp(currentTime) }} / {{ timestamp(duration) }}
@@ -157,14 +158,14 @@ export default defineComponent({
         <SvgIcon
           name="playlist"
           title="show/hide queue"
-          @click="$emit('queue')"
           class="player-icon"
+          @click="$emit('queue')"
         />
         <SvgIcon
           :name="fullscreenStateIcon"
           title="fullscreen"
-          @click="$emit('fullscreen')"
           class="player-icon"
+          @click="$emit('fullscreen')"
         />
       </div>
     </div>
@@ -172,8 +173,8 @@ export default defineComponent({
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
       :buffered="buffered"
+      :update-slack="3"
       @value="onProgressSliderValue"
-      :updateSlack="3"
     />
   </div>
 </template>
@@ -192,12 +193,12 @@ export default defineComponent({
   > .resync-slider {
     @apply transition transition-all;
     @apply mx-1;
-    @apply w-0 opacity-0;
+    @apply opacity-0 w-0;
   }
 
   &:hover > .resync-slider,
   > .resync-slider.active {
-    @apply w-15 opacity-100;
+    @apply opacity-100 w-15;
   }
 }
 

@@ -1,42 +1,32 @@
 {
-  "parser": "@typescript-eslint/parser",
+  "parser": "vue-eslint-parser",
   "root": true,
   "env": {
     "node": true
   },
   "parserOptions": {
     "sourceType": "module",
-    "ecmaVersion": 2020
+    "ecmaVersion": 2020,
+    "parser": "@typescript-eslint/parser"
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
-    "plugin:prettier/recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:vue/vue3-recommended",
+    "plugin:prettier/recommended"
   ],
   "ignorePatterns": "**/*.html",
   "rules": {
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/ban-ts-comment": ["error", { "minimumDescriptionLength": 5 }],
     "eqeqeq": "error",
     "@typescript-eslint/member-delimiter-style": [
       "error",
-      {
-        "multiline": {
-          "delimiter": "none"
-        }
-      }
+      { "multiline": { "delimiter": "none" } }
     ],
-    "@typescript-eslint/indent": [
-      "error",
-      2
-    ],
+    "@typescript-eslint/indent": ["error", 2],
     "@typescript-eslint/no-explicit-any": "off",
-    "prettier/prettier": [
-      "error",
-      {
-        "endOfLine": "auto"
-      }
-    ]
+    "prettier/prettier": ["error", { "endOfLine": "auto" }]
   }
 }

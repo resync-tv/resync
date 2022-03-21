@@ -1,8 +1,9 @@
-import type { VideoMetadata } from "$/room"
+import type { VideoMetadata } from "/$/room"
 
-import Resync, { SocketOff } from "@/resync"
-import shortcuts from "@/shortcuts"
-import { bufferedStub, debug } from "@/util"
+import type { SocketOff } from "/@/resync"
+import type Resync from "/@/resync"
+import shortcuts from "/@/shortcuts"
+import { bufferedStub, debug } from "/@/util"
 
 import {
   computed,

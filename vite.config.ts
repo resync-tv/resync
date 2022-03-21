@@ -1,4 +1,4 @@
-import { resolve } from "path"
+import { join, resolve } from "path"
 import { defineConfig } from "vite"
 
 import vue from "@vitejs/plugin-vue"
@@ -6,7 +6,10 @@ import WindiCSS from "vite-plugin-windicss"
 import { VitePWA } from "vite-plugin-pwa"
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons"
 
+const PACKAGE_ROOT = __dirname
+
 export default defineConfig({
+  root: PACKAGE_ROOT,
   plugins: [
     vue(),
     WindiCSS({
@@ -24,11 +27,18 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
-      $: resolve(__dirname, "./types"),
+      "/@/": join(PACKAGE_ROOT, "src") + "/",
+      "/$/": join(PACKAGE_ROOT, "types") + "/",
+    },
+  },
+  server: {
+    fs: {
+      strict: true,
     },
   },
   build: {
     sourcemap: true,
+    emptyOutDir: true,
+    brotliSize: false,
   },
 })

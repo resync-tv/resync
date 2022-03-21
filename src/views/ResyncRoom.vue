@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { EventNotification, Message } from "$/room"
-import type { ResyncSocketFrontend } from "$/socket"
+import type { EventNotification, Message } from "/$/room"
+import type { ResyncSocketFrontend } from "/$/socket"
 
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
-import { debug, ls, validateName, isURL } from "@/util"
-import { renderNotification } from "@/notify"
+import { debug, ls, validateName, isURL } from "/@/util"
+import { renderNotification } from "/@/notify"
 
-import PlayerWrapper from "@/components/PlayerWrapper.vue"
-import VideoList from "@/components/VideoList.vue"
-import ResyncInput from "@/components/ResyncInput"
-import Resync from "@/resync"
-import { MediaSourceAny } from "$/mediaSource"
+import PlayerWrapper from "/@/components/PlayerWrapper.vue"
+import VideoList from "/@/components/VideoList.vue"
+import ResyncInput from "/@/components/ResyncInput"
+import Resync from "/@/resync"
+import type { MediaSourceAny } from "/$/mediaSource"
 
 const log = debug("room")
 
@@ -152,10 +152,10 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
     <div class="flex flex-col h-full w-full top-0 left-0 justify-center items-center relative">
       <div class="flex z-5 relative justify-center">
         <form
+          ref="urlForm"
           class="flex bottom-full w-md justify-center"
           :class="{ 'mb-3 absolute': contentShowing }"
           style="max-width: 75vw"
-          ref="urlForm"
         >
           <ResyncInput
             v-model="sourceInput"
@@ -164,87 +164,94 @@ const searchQueue = (i: number) => resync.queue(searchResults.value[i].originalS
             class="mr-2"
             autofocus
           />
-          <button
-            class="resync-button"
-            :class="{ invalid: playButtonDisabled }"
-          >{{ playButtonText }}</button>
-          <button @click="queue" class="resync-button" :class="{ invalid: !sourceIsURL }">queue</button>
+          <button class="resync-button" :class="{ invalid: playButtonDisabled }">
+            {{ playButtonText }}
+          </button>
+          <button class="resync-button" :class="{ invalid: !sourceIsURL }" @click="queue">
+            queue
+          </button>
         </form>
 
         <PlayerWrapper
           v-if="mountPlayer"
           v-show="resync.state.value.source"
           type="video"
-          :searchResults="searchResults"
-          @clearSearch="searchResults = []"
+          :search-results="searchResults"
+          @clear-search="searchResults = []"
         />
 
         <template v-if="!resync.state.value.source">
           <VideoList
             v-if="searchResults.length"
-            @close="searchResults = []"
-            @play="searchPlay"
-            @contextMenu="searchQueue"
             :videos="searchResults"
             title="search"
             placeholder="no results found"
             style="max-height: 70vh"
             class="min-w-2xl"
+            @close="searchResults = []"
+            @play="searchPlay"
+            @context-menu="searchQueue"
           />
 
           <VideoList
             v-else-if="resync.state.value.queue.length"
-            @play="resync.playQueued"
-            @contextMenu="resync.removeQueued"
-            @close="resync.clearQueue"
             :videos="resync.state.value.queue"
             title="queue"
             placeholder="queue is empty"
             class="min-w-2xl"
+            @play="resync.playQueued"
+            @context-menu="resync.removeQueued"
+            @close="resync.clearQueue"
           />
         </template>
       </div>
 
       <div id="memberlist" class="top-list left-0">
         <transition-group name="text-height">
-          <div
-            v-for="member in resync.state.value.members"
-            :key="member.id"
-            class="top-text"
-          >{{ member.name }}</div>
+          <div v-for="member in resync.state.value.members" :key="member.id" class="top-text">
+            {{ member.name }}
+          </div>
         </transition-group>
       </div>
 
       <div id="notifications" class="top-list right-0">
         <div class="h-25 transition-all relative overflow-hidden hover:h-50">
-          <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top"></div>
+          <div class="h-25 w-full bottom-0 z-3 absolute fade-out-gradient-top" />
           <transition-group name="text-height" tag="div" class="flex flex-col-reverse">
             <div
               v-for="notification in recentNotifications"
               :key="notification.key"
               class="top-text text-right z-2"
-            >{{ renderNotification[notification.event](notification) }}</div>
+            >
+              {{ renderNotification[notification.event](notification) }}
+            </div>
           </transition-group>
         </div>
       </div>
 
       <div id="chat" class="bottom-list min-w-75 right-0">
-        <div class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end">
-          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute"></div>
-          <div class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"></div>
+        <div
+          class="flex flex-col h-55 relative overflow-hidden items-end hover-bottom justify-end"
+        >
+          <div class="bg-auto h-25 w-full transition-all top-0 z-3 solid-overlay absolute" />
+          <div
+            class="h-25 mt-25 w-full transition-all top-0 z-3 absolute fade-out-gradient-bottom"
+          />
           <transition-group name="text-height" tag="div" class="flex flex-col mb-5">
             <div
               v-for="message in recentMessages"
               :key="message.key"
               class="top-text text-right opacity-25 z-2"
-            >{{ message.name + ": " + message.msg }}</div>
+            >
+              {{ message.name + ": " + message.msg }}
+            </div>
           </transition-group>
           <input
-            @keypress.enter="sendMessage"
             v-model="messageInput"
             placeholder="type message..."
             class="bg-auto outline-none h-5 text-right text-sm px-2 bottom-0 message-input absolute clr-auto"
             type="text"
+            @keypress.enter="sendMessage"
           />
         </div>
       </div>

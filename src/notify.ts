@@ -1,4 +1,4 @@
-import { EventNotification, NotifyEvents } from "$/room"
+import type { EventNotification, NotifyEvents } from "/$/room"
 import { timestamp } from "./util"
 
 type RenderNotification = {

@@ -1,6 +1,6 @@
 import type { MediaSourceAny } from "./mediaSource"
 
-import { Socket as BackendSocket } from "socket.io"
+import type { Socket as BackendSocket } from "socket.io"
 
 export interface Member {
   name: string
@@ -47,7 +47,7 @@ export interface VideoMetadata {
 }
 
 export interface Message {
-  name: string,
-  msg: string,
+  name: string
+  msg: string
   key: string
 }

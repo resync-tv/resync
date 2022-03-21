@@ -1,5 +1,5 @@
-import type { ResyncSocketBackend } from "$/socket"
-import type { MediaSourceAny } from "$/mediaSource"
+import type { ResyncSocketBackend } from "/$/socket"
+import type { MediaSourceAny } from "/$/mediaSource"
 
 import ytsr from "ytsr"
 

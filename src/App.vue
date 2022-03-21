@@ -1,16 +1,16 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, provide, ref } from "vue"
 import { useRoute } from "vue-router"
-import { io, Socket } from "socket.io-client"
+import type { Socket } from "socket.io-client"
+import { io } from "socket.io-client"
 
-import NavBar from "@/components/NavBar.vue"
+import NavBar from "/@/components/NavBar.vue"
 
-import { debug, isStaging } from "@/util"
+import { debug, isStaging } from "/@/util"
 const log = debug("app")
 
 export default defineComponent({
   components: { NavBar },
-  name: "resync",
   setup() {
     const route = useRoute()
 
@@ -19,7 +19,8 @@ export default defineComponent({
 
     let socket: Socket
     if (development) socket = io(`http://${location.hostname}:3020`)
-    else if (isStaging()) socket = io("https://hetzner.vaaski.dev", { path: "/resync-staging" })
+    else if (isStaging())
+      socket = io("https://hetzner.vaaski.dev", { path: "/resync-staging" })
     else socket = io("https://hetzner.vaaski.dev", { path: "/resync" })
 
     socket.on("connect", () => (socketConnected.value = true))
@@ -56,7 +57,7 @@ export default defineComponent({
 
 <style lang="scss">
 #app a {
-  @apply text-accent-alt;
+  @apply text-accent;
   @apply underline;
 }
 
@@ -112,8 +113,8 @@ main {
   @apply py-2 px-4 w-3xl;
   @apply rounded outline-none transition-all;
   @apply bg-light text-dark;
-  @apply light:(shadow focus:shadow-md) ;
-  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100) ;
+  @apply light:(shadow focus:shadow-md);
+  @apply dark:(bg-dark text-light text-opacity-50 focus:text-opacity-100);
 }
 
 .dark .resync-input {
@@ -135,7 +136,7 @@ main {
 .resync-button {
   @apply py-2 px-4;
   @apply rounded outline-none transition-all;
-  @apply dark:(text-light text-opacity-50) ;
+  @apply dark:(text-light text-opacity-50);
   @apply hover:dark:text-opacity-100;
   @apply focus:(outline-none);
   @apply @apply

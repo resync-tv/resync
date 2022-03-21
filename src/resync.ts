@@ -1,11 +1,12 @@
 import type { Socket } from "socket.io-client"
-import type { RoomState } from "$/room"
-import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "$/socket"
+import type { RoomState } from "/$/room"
+import type { BackendEmits, ResyncSocketFrontend, RoomEmit } from "/$/socket"
 
-import { Ref, ref, watch } from "vue"
+import type { Ref } from "vue"
+import { ref, watch } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
-import { MediaSourceAny } from "$/mediaSource"
+import type { MediaSourceAny } from "/$/mediaSource"
 
 const log = debug("resync.ts")
 

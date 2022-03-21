@@ -11,14 +11,14 @@ if (process.env.NODE_ENV !== "development") {
 
 const log = debug("main")
 
-import type { MediaMetadata } from "$/MediaSession"
+import type { MediaMetadata } from "/$/MediaSession"
 
 import { createApp } from "vue"
-import App from "@/App.vue"
+import App from "/@/App.vue"
 import router from "./router"
 
-import "@/assets/theme.css"
-import "@/assets/fonts/fonts.css"
+import "/@/assets/theme.css"
+import "/@/assets/fonts/fonts.css"
 
 import "virtual:windi.css"
 import "virtual:svg-icons-register"

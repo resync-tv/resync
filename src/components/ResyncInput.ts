@@ -24,6 +24,7 @@ export default defineComponent({
       default: false,
     },
   },
+  emits: ["update:modelValue"],
   setup(props, { emit }) {
     const { invalid, placeholder, modelValue } = toRefs(props)
 

@@ -1,5 +1,5 @@
-import type { MediaImage } from "$/MediaSession"
-import type { MediaSourceAny } from "$/mediaSource"
+import type { MediaImage } from "/$/MediaSession"
+import type { MediaSourceAny } from "/$/mediaSource"
 
 export const setMetadata = (data: MediaSourceAny, room?: string): void => {
   if (!window.navigator.mediaSession || !window.MediaMetadata) return

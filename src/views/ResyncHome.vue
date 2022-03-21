@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ResyncSocketFrontend } from "$/socket"
+import type { ResyncSocketFrontend } from "/$/socket"
 
 import { inject, ref } from "vue"
 
-import ResyncLogo from "@/components/ResyncLogo"
-import Resync from "@/resync"
+import ResyncLogo from "/@/components/ResyncLogo"
+import Resync from "/@/resync"
 import { useRouter } from "vue-router"
-import { debug, ls, unfocus, validateName, isStaging } from "@/util"
+import { debug, ls, unfocus, validateName, isStaging } from "/@/util"
 
 const log = debug("home")
 const router = useRouter()
@@ -34,7 +34,6 @@ const lastRoom = ls("resync-last-room")
 const slogan = ref("watch videos with your friends.")
 
 if (isStaging()) slogan.value = "shit might be wonky."
-
 </script>
 
 <template>

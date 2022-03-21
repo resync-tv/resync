@@ -1,7 +1,8 @@
 <script lang="ts">
-import { computed, defineComponent, inject, Ref } from "vue"
+import type { Ref } from "vue"
+import { computed, defineComponent, inject } from "vue"
 import { useRoute } from "vue-router"
-import ResyncLogo from "@/components/ResyncLogo"
+import ResyncLogo from "/@/components/ResyncLogo"
 
 export default defineComponent({
   components: { ResyncLogo },
@@ -39,15 +40,14 @@ export default defineComponent({
       :title="connectionTitle"
     >
       <ResyncLogo
-        @click="$router.push('/')"
         class="cursor-pointer h-nav fill-dark nav-transition dark:fill-light"
         :class="{ 'fill-error dark:fill-error': !socketConnected }"
+        @click="$router.push('/')"
       />
     </div>
-    <div class="flex h-full items-center"></div>
+    <div class="flex h-full items-center" />
   </nav>
 </template>
-
 
 <style lang="scss" scoped>
 .nav {

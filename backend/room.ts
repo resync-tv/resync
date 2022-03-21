@@ -1,7 +1,7 @@
 import type { BroadcastOperator, Server, Socket } from "socket.io"
-import type { MediaSourceAny } from "$/mediaSource"
-import type { NotifyEvents, RoomState, Member, EventNotification } from "$/room"
-import type { BackendEmits, ResyncSocketBackend } from "$/socket"
+import type { MediaSourceAny } from "/$/mediaSource"
+import type { NotifyEvents, RoomState, Member, EventNotification } from "/$/room"
+import type { BackendEmits, ResyncSocketBackend } from "/$/socket"
 
 import { average } from "./util"
 import { customAlphabet } from "nanoid"
