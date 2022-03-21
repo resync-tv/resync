@@ -1,12 +1,16 @@
 {
-  "cSpell.words": [
-    "Windi",
-    "resync'd",
-    "windicss",
-    "youtu"
-  ],
+  "cSpell.words": ["Windi", "resync'd", "windicss", "youtu"],
   "windicss.sortOnSave": true,
   "windicss.enableCodeFolding": false,
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "vetur.validation.style": false
+  "json.schemas": [
+    {
+      "fileMatch": ["pm2.json", "pm2-staging.json"],
+      "url": "https://raw.githubusercontent.com/edosssa/pm2-config/master/pm2config.json"
+    },
+    {
+      "fileMatch": ["nodemon.json"],
+      "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/nodemon.json"
+    }
+  ]
 }
