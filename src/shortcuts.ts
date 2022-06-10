@@ -28,6 +28,11 @@ export default (resync: Resync): (() => void) => {
     setMediaHandler("previoustrack", () => skip(-5)),
   ]
 
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && resync.fullscreenEnabled) 
+    resync.fullscreenEnabled.value = !resync.fullscreenEnabled.value;
+  }, false)
+
   window.onkeydown = (event: KeyboardEvent) => {
     const { key } = event
 
