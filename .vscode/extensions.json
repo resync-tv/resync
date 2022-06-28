@@ -1,10 +1,10 @@
 {
   "recommendations": [
     "voorjaar.windicss-intellisense",
-    "johnsoncodehk.volar",
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
     "visualstudioexptteam.vscodeintellicode",
     "knisterpeter.vscode-commitizen",
-    "johnsoncodehk.vscode-typescript-vue-plugin",
     "christian-kohler.npm-intellisense",
     "eamodio.gitlens",
     "dbaeumer.vscode-eslint",
