@@ -1,7 +1,7 @@
 {
   "watch": ["backend", "types"],
   "ext": "ts, json",
-  "exec": "npx ts-node -r dotenv/config ./backend/index.ts",
+  "exec": "npx ts-node -P tsconfig.backend.json -r dotenv/config ./backend/index.ts",
   "events": {
     "start": "node -e \"console.clear()\""
   },
