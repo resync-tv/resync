@@ -11,7 +11,8 @@ log("dev", isDev)
 
 let origin = isDev ? "*" : ["https://resync.tv", /\.netlify\.app$/]
 if (process.env.NODE_ENV === "staging") {
-  origin = ["https://staging.resync.tv", /\.netlify\.app$/]
+  const STAGING_ORIGIN = process.env.STAGING_ORIGIN ?? "https://staging.resync.tv"
+  origin = [STAGING_ORIGIN, /\.netlify\.app$/]
 }
 
 export default (port: number): Promise<void> => {
