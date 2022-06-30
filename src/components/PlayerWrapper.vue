@@ -2,7 +2,7 @@
 import type { MediaSourceAny, MediaType } from "/$/mediaSource"
 import type { VideoMetadata } from "/$/room"
 
-import { nextTick, PropType } from "vue"
+import type { PropType } from "vue"
 import { computed, inject, provide, ref, toRefs, watch, defineEmits, defineProps } from "vue"
 import { debounce } from "ts-debounce"
 
@@ -118,6 +118,19 @@ const requireUserInteraction = (): Promise<void> => {
 
 provide("requireUserInteraction", requireUserInteraction)
 
+let mouseMovedTimeout: any
+let mouseMoved = ref(false)
+const onMouseMoved = () => {
+  if (mouseMovedTimeout) clearTimeout(mouseMovedTimeout)
+  mouseMoved.value = true
+  mouseMovedTimeout = setTimeout(() => {
+    mouseMoved.value = false
+  }, 2 * 1e3)
+}
+const onMouseLeave = () => {
+  mouseMoved.value = false
+}
+
 const copyURL = async (url: string) => {
   const clip = window.navigator.clipboard
   if (!clip) window.alert("please use a modern browser like chrome for this feature.")
@@ -176,9 +189,16 @@ const closeOverlays = () => {
     id="player-wrapper"
     ref="playerWrapper"
     class="rounded flex overflow-hidden relative light:shadow"
-    :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled }"
+    :class="{
+      overlay: showInteractionOverlay,
+      rounded: !fullscreenEnabled,
+      mouseMoved,
+      active: resync.paused.value,
+    }"
     :style="sizeStyle"
     @dblclick="toggleFullscreen"
+    @mousemove="onMouseMoved"
+    @mouseleave="onMouseLeave"
   >
     <VideoPlayer :style="sizeStyle" @metadata="onMetadata" />
 
@@ -375,9 +395,17 @@ const closeOverlays = () => {
   opacity: 0;
 }
 
-#player-wrapper:hover > .hover-overlay,
+#player-wrapper.mouseMoved > .hover-overlay,
 .hover-overlay.active {
   opacity: 1;
+}
+
+#player-wrapper {
+  cursor: none;
+}
+#player-wrapper.mouseMoved,
+#player-wrapper.active {
+  @apply cursor-default;
 }
 
 #player-wrapper.overlay > .hover-overlay,
