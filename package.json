@@ -29,7 +29,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "@resync-tv/yt-dl": "^0.1.6",
+    "@resync-tv/yt-dl": "github:resync-tv/yt-dl#ddea405482cf7dd17b35c0fb8de690c2a1816253",
     "@sentry/browser": "^6.7.2",
     "@sentry/node": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
@@ -65,7 +65,7 @@
     "sass": "^1.35.1",
     "supports-color": "^9.0.1",
     "ts-node": "^10.0.0",
-    "typescript": "^4.5.4",
+    "typescript": "^4.7.4",
     "vite": "^2.7.2",
     "vite-plugin-pwa": "^0.8.1",
     "vite-plugin-svg-icons": "^2.0.1",
