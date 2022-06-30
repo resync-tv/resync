@@ -2,7 +2,7 @@
 import type { MediaSourceAny, MediaType } from "/$/mediaSource"
 import type { VideoMetadata } from "/$/room"
 
-import type { PropType } from "vue"
+import { nextTick, PropType } from "vue"
 import { computed, inject, provide, ref, toRefs, watch, defineEmits, defineProps } from "vue"
 import { debounce } from "ts-debounce"
 
@@ -84,14 +84,14 @@ const toggleFullscreen = async () => {
       log.extend("error")("exiting fullscreen didn't work")
     }
 
-    fullscreenEnabled.value = Boolean(document.fullscreenElement)
+    fullscreenEnabled.value = document.fullscreenEnabled
     return
   }
 
   try {
     if (!playerWrapper.value) throw Error("player-wrapper ref not found")
     await playerWrapper.value.requestFullscreen()
-    fullscreenEnabled.value = Boolean(document.fullscreenElement)
+    fullscreenEnabled.value = document.fullscreenEnabled
   } catch {
     log.extend("error")("fullscreen didn't work")
   }
@@ -178,8 +178,9 @@ const closeOverlays = () => {
     class="rounded flex overflow-hidden relative light:shadow"
     :class="{ overlay: showInteractionOverlay, rounded: !fullscreenEnabled }"
     :style="sizeStyle"
+    @dblclick="toggleFullscreen"
   >
-    <VideoPlayer :style="sizeStyle" @metadata="onMetadata" @fullscreen="toggleFullscreen" />
+    <VideoPlayer :style="sizeStyle" @metadata="onMetadata" />
 
     <!-- <div v-if="!resync.state.value.source" class="flex-col h-full w-full centerflex">
       <h1 class="text-error text-3xl">nothing's playing.</h1>

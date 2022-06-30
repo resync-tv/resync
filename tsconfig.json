@@ -8,6 +8,7 @@
     "strict": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
 
     "types": ["vite/client", "vite-plugin-pwa/client"],
     "plugins": [{ "name": "@vuedx/typescript-plugin-vue" }],
