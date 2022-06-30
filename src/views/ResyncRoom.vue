@@ -2,7 +2,7 @@
 import type { EventNotification, Message } from "/$/room"
 import type { ResyncSocketFrontend } from "/$/socket"
 
-import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from "vue"
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import * as sentry from "@sentry/browser"
 import { debug, ls, validateName, isURL } from "/@/util"
@@ -21,6 +21,15 @@ const router = useRouter()
 const { roomID } = route.params as Record<string, string>
 const sourceInput = ref("")
 const sourceIsURL = computed(() => isURL(sourceInput.value))
+
+watchEffect(() => {
+  // eslint-disable-next-line
+  const re = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+  const res = sourceInput.value.match(re)
+  if (res) {
+    sourceInput.value = "https://youtu.be/" + res[1]
+  }
+})
 
 let name = ls("resync-displayname")
 try {
