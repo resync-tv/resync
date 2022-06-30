@@ -29,7 +29,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "@resync-tv/yt-dl": "github:resync-tv/yt-dl#ddea405482cf7dd17b35c0fb8de690c2a1816253",
+    "@resync-tv/yt-dl": "^0.1.6",
     "@sentry/browser": "^6.7.2",
     "@sentry/node": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
