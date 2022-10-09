@@ -50,7 +50,7 @@
     "@types/node": "^15.12.4",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
-    "@vitejs/plugin-vue": "^1.2.4",
+    "@vitejs/plugin-vue": "^3.1.2",
     "@vue/compiler-sfc": "^3.1.4",
     "@vuedx/typescript-plugin-vue": "^0.7.4",
     "dotenv": "^10.0.0",
