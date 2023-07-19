@@ -47,7 +47,7 @@
   "devDependencies": {
     "@types/debug": "^4.1.6",
     "@types/nanoid-dictionary": "^4.2.0",
-    "@types/node": "^15.12.4",
+    "@types/node": "^20.4.2",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "@vitejs/plugin-vue": "^1.2.4",
