@@ -47,7 +47,7 @@ const io = new SocketServer(server, {
   transports: ["polling"], // Added on dev because hmr keeps breaking when socket.io websocket connects
 })
 socketHandler(io)
-nitroApp.hooks.hook("request", (event) => {
+nitroApp.hooks.hook("request", (event: ExtendedH3Event) => {
   event["_socket"] = io
 })
 

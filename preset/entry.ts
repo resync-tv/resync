@@ -23,6 +23,7 @@ const host = process.env.NITRO_HOST || process.env.HOST
 
 const path = process.env.NITRO_UNIX_SOCKET
 
+// @ts-expect-error idk
 const listener = server.listen(path ? { path } : { port, host }, (error) => {
   if (error) {
     console.error(error)
@@ -43,7 +44,7 @@ const listener = server.listen(path ? { path } : { port, host }, (error) => {
 })
 const io = new SocketServer(server)
 socketHandler(io)
-nitroApp.hooks.hook("request", (event) => {
+nitroApp.hooks.hook("request", (event: ExtendedH3Event) => {
   event["_socket"] = io
 })
 
