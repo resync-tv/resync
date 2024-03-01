@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@resync-tv/dream-player':
+    specifier: ^0.0.2
+    version: 0.0.2(vue@3.4.21)
   nuxt:
     specifier: ^3.10.3
     version: 3.10.3(eslint@8.57.0)(typescript@5.3.3)(vite@5.1.4)(vue-tsc@1.8.27)
@@ -1433,6 +1436,14 @@ packages:
 
   /@polka/url@1.0.0-next.24:
     resolution: {integrity: sha512-2LuNTFBIO0m7kKIQvvPHN6UE63VjpmL9rnEEaOOaiSPbZK+zUOYIzBAWcED+3XYzhYsd/0mD57VdxAEqqV52CQ==}
+    dev: false
+
+  /@resync-tv/dream-player@0.0.2(vue@3.4.21):
+    resolution: {integrity: sha512-I08kB35KWI7uLfWUowU6iTbhYgM6tGG0wwhLwqJ//nTvgjbTNC/H2LvmtwqgaGHFCLfguKjpqBkptY+Jz8bAvA==}
+    peerDependencies:
+      vue: ^3.4.19
+    dependencies:
+      vue: 3.4.21(typescript@5.3.3)
     dev: false
 
   /@rollup/plugin-alias@5.1.0(rollup@4.12.0):
