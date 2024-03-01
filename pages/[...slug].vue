@@ -10,8 +10,14 @@ const sendMessage = () => {
 
 <template>
   <div>
-    <span>{{ socket.connected }}</span>
-    <button @click="sendMessage">send</button>
+    <ClientOnly>
+      <span>{{ socket.connected }}</span>
+      <button @click="sendMessage">send</button>
+
+      <template #fallback>
+        <span>Connecting...</span>
+      </template>
+    </ClientOnly>
   </div>
 </template>
 
