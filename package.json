@@ -15,26 +15,26 @@
   "dependencies": {
     "@resync-tv/dream-player": "^0.0.2",
     "@resync-tv/yt-dlp": "^0.2.1",
-    "nuxt": "^3.10.3",
-    "socket.io": "^4.7.4",
-    "socket.io-client": "^4.7.4",
-    "vue": "^3.4.19",
-    "vue-router": "^4.3.0"
+    "nuxt": "^3.12.4",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "vue": "^3.4.35",
+    "vue-router": "^4.4.2"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^0.2.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "destr": "^2.0.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-unicorn": "^51.0.1",
-    "eslint-plugin-vue": "^9.22.0",
-    "h3": "^1.11.1",
-    "nitropack": "^2.9.1",
-    "prettier": "^3.2.5",
+    "eslint-plugin-vue": "^9.27.0",
+    "h3": "^1.12.0",
+    "nitropack": "^2.9.7",
+    "prettier": "^3.3.3",
     "std-env": "^3.7.0",
-    "typescript": "^5.3.3",
-    "vue-eslint-parser": "^9.4.2",
+    "typescript": "^5.5.4",
+    "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^2.0.29"
   }
 }
