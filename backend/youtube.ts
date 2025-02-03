@@ -1,6 +1,6 @@
 import type { MediaRawSource } from "../types/mediaSource"
 
-import ytdl_core from "ytdl-core"
+import ytdl_core from "@distube/ytdl-core"
 import { average, once } from "./util"
 
 import debug from "debug"

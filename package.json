@@ -29,6 +29,7 @@
     "lib/**/*"
   ],
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.0",
     "@resync-tv/yt-dl": "^0.1.6",
     "@sentry/browser": "^6.7.2",
     "@sentry/node": "^6.7.2",
@@ -41,7 +42,6 @@
     "ts-debounce": "^3.0.0",
     "vue": "^3.2.31",
     "vue-router": "^4.0.14",
-    "ytdl-core": "^4.11.0",
     "ytsr": "^3.5.0"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { getVideoID } from "ytdl-core"
+import { getVideoID } from "@distube/ytdl-core"
 import type { MediaSourceAny } from "../types/mediaSource"
 import { getCombinedStream, getInfo } from "./youtube"
 
